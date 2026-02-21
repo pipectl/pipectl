@@ -1,0 +1,37 @@
+id: partner-ingestion
+
+steps:
+  # ---------- Local: fast & deterministic ----------
+  - detect-format
+  - parse:
+      allow: [json, csv]
+
+  - validate-schema:
+      schema: schemas/partner-data.json
+
+  - quality-check:
+      rules:
+        - field: amount
+          min: 0
+        - field: currency
+          in: [USD, EUR, GBP]
+
+  # ---------- Cloud: storage & durability ----------
+  - snapshot:
+      name: raw_input
+
+  - snapshot:
+      name: validated_data
+
+  # ---------- Cloud: conditional quarantine ----------
+  - quarantine:
+      reason: "validation_failed"
+      when: validation.errors > 0
+
+  # ---------- Cloud: notify only if needed ----------
+  - notify:
+      slack:
+        channel: "#data-alerts"
+        message: >
+          Partner data file failed validation.
+          Errors: {{ validation.errors }}

@@ -1,0 +1,8 @@
+id: simple
+
+steps:
+  - type: echo
+    text: "Hello from pipeline 👋"
+  - type: reverse
+    text: "QUICK BROWN FOX"
+  - type: echo
