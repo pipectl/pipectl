@@ -1,6 +1,9 @@
 id: simple
 
 steps:
+  - validate-json:
+      schema: schemas/signup.json
+
   - type: echo
     text: "Hello from pipeline 👋"
   - type: reverse

@@ -1,7 +1,6 @@
 id: customer-signup
 
 steps:
-  # ---------- Local: fast, pure ----------
   - validate-json:
       schema: schemas/signup.json
 
@@ -11,39 +10,4 @@ steps:
         name: trim
 
   - redact:
-      fields: [credit_card]
-
-  # ---------- Cloud: secrets + side effects ----------
-  - call-api:
-      name: charge_customer
-      method: POST
-      url: https://api.stripe.com/v1/charges
-      secret: stripe_prod_key
-      body:
-        amount: "{{ plan.price }}"
-        currency: "usd"
-        source: "{{ token }}"
-        receipt_email: "{{ email }}"
-      retry:
-        policy: exponential
-        max_attempts: 5
-
-  - webhook:
-      name: record_billing
-      url: https://internal.example.com/billing/events
-      retry:
-        max_attempts: 3
-
-  # ---------- Cloud: durable time ----------
-  - delay: 48h
-
-  - wait-for:
-      event: onboarding_completed
-      timeout: 7d
-
-  # ---------- Cloud: conditional escalation ----------
-  - notify:
-      slack:
-        channel: "#support"
-        message: >
-          Customer {{ email }} has not completed onboarding after 7 days
+      fields: [credit_card, password]
