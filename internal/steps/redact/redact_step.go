@@ -1,14 +1,18 @@
 package redact
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/shanebell/pipectl/internal/steps"
 )
 
 type RedactStep struct {
-	Fields []string
+	Strategy string
+	Fields   []string
 }
 
 func (s *RedactStep) Name() string {
@@ -30,7 +34,7 @@ func (s *RedactStep) redactCsv(csvPayload *steps.CSVPayload) error {
 		for i, value := range row {
 			if toRedact[i] {
 				fmt.Printf("- redacting field: %v, value: %v\n", headerRow[i], value)
-				row[i] = "REDACTED"
+				row[i] = s.redactSingleValue(value)
 			}
 		}
 	}
@@ -39,15 +43,39 @@ func (s *RedactStep) redactCsv(csvPayload *steps.CSVPayload) error {
 }
 
 // TODO only handles top-level fields, make this recursive
+// TODO can types other than strings be redacted? eg: changing from an int to "***" seems wrong and could break schema.
 func (s *RedactStep) redactJson(jsonPayload *steps.JSONPayload) error {
 	for k, v := range jsonPayload.Data {
 		if slices.Contains(s.Fields, k) {
-			fmt.Printf("- redacting field: %v, value: %v\n", k, v)
-			jsonPayload.Data[k] = "REDACTED"
+			switch value := v.(type) {
+
+			case string:
+				fmt.Printf("- redacting field: %v, value: %v\n", k, v)
+				jsonPayload.Data[k] = s.redactSingleValue(value)
+
+			default:
+				fmt.Printf("Cannot redact field %v of unsupported type %T\n", k, v)
+			}
 		}
 	}
 
 	return nil
+}
+
+func (s *RedactStep) redactSingleValue(value string) string {
+	fmt.Printf("- redacting text: %v with strategy %v\n", value, s.Strategy)
+	switch s.Strategy {
+	case "mask":
+		return strings.Repeat("*", len(value))
+
+	case "sha256":
+		hash := sha256.New()
+		hash.Write([]byte(value))
+		return hex.EncodeToString(hash.Sum(nil))
+
+	default:
+		return "REDACTED"
+	}
 }
 
 func (s *RedactStep) Execute(context *steps.ExecutionContext) error {

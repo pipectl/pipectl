@@ -80,7 +80,8 @@ func (s *NormalizeStep) BuildExecutor() (steps.ExecutableStep, error) {
 }
 
 type RedactStep struct {
-	Fields []string `yaml:"fields"`
+	Strategy string   `yaml:"strategy"`
+	Fields   []string `yaml:"fields"`
 }
 
 func (s *RedactStep) StepType() string {
@@ -93,7 +94,8 @@ func (s *RedactStep) String() string {
 
 func (s *RedactStep) BuildExecutor() (steps.ExecutableStep, error) {
 	return &redact.RedactStep{
-		Fields: s.Fields,
+		Fields:   s.Fields,
+		Strategy: s.Strategy,
 	}, nil
 }
 

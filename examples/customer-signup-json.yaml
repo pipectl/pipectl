@@ -13,6 +13,7 @@ steps:
         name: trim
 
   - redact:
+      strategy: mask
       fields: [credit_card, password]
 
 output:
