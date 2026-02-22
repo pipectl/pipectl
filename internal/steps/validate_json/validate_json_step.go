@@ -14,6 +14,10 @@ func (s *ValidateJSONStep) Name() string {
 	return "validate-json"
 }
 
+func (s *ValidateJSONStep) Supports(payload steps.Payload) bool {
+	return payload.Type() == "json"
+}
+
 func (s *ValidateJSONStep) Execute(context *steps.ExecutionContext) error {
 	jsonPayload, ok := context.Payload.(*steps.JSONPayload)
 	if !ok {
@@ -23,7 +27,7 @@ func (s *ValidateJSONStep) Execute(context *steps.ExecutionContext) error {
 	fmt.Printf("- schema: %v\n", s.Schema)
 	fmt.Printf("- payload: %v\n", jsonPayload.Data)
 
-	// TODO implement schema validation
+	// TODO implement JSON schema validation
 
 	return nil
 }

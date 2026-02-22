@@ -34,5 +34,6 @@ type ExecutionContext struct {
 
 type ExecutableStep interface {
 	Execute(*ExecutionContext) error
+	Supports(payload Payload) bool
 	Name() string
 }

@@ -14,6 +14,10 @@ func (s *NormalizeStep) Name() string {
 	return "normalize"
 }
 
+func (s *NormalizeStep) Supports(payload steps.Payload) bool {
+	return payload.Type() == "json" || payload.Type() == "csv"
+}
+
 func (s *NormalizeStep) Execute(context *steps.ExecutionContext) error {
 	jsonPayload, ok := context.Payload.(*steps.JSONPayload)
 	if !ok {

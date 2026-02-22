@@ -16,4 +16,4 @@ steps:
       fields: [credit_card, password]
 
 output:
-  format: csv
+  format: json

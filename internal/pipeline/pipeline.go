@@ -210,6 +210,11 @@ func RunFromFile(path string, input []byte) error {
 	// execute each step
 	for _, executableStep := range executableSteps {
 		fmt.Printf("\nExecuting step [%s]\n", executableStep.Name())
+
+		if !executableStep.Supports(context.Payload) {
+			return fmt.Errorf("step [%s] does not support payload type [%s]", executableStep.Name(), context.Payload.Type())
+		}
+
 		if err := executableStep.Execute(context); err != nil {
 			return err
 		}
@@ -243,19 +248,24 @@ func RunFromFile(path string, input []byte) error {
 		}
 
 	} else if pipeline.Output.Format == "csv" {
-		// TODO convert payload to CSV somehow? Should that be a step in the pipeline?
-		records := [][]string{
-			{"first_name", "last_name", "username"},
-			{"John", "Smith", "john"},
-			{"Mary", "Brown", "mary"},
+		switch context.Payload.Type() {
+		case "csv":
+			csvPayload, _ := context.Payload.(*steps.CSVPayload)
+			buf := new(bytes.Buffer)
+			csvWriter := csv.NewWriter(buf)
+			if err := csvWriter.WriteAll(csvPayload.Rows); err != nil {
+				fmt.Println("Error writing CSV:", err)
+				return nil
+			}
+			fmt.Println(buf.String())
+
+		case "json":
+			// TODO convert JSON to CSV
+
+		default:
+			return fmt.Errorf("Cannot convert to CSV")
 		}
-		buf := new(bytes.Buffer)
-		csvWriter := csv.NewWriter(buf)
-		if err := csvWriter.WriteAll(records); err != nil {
-			fmt.Println("Error writing CSV:", err)
-			return nil
-		}
-		fmt.Println(buf.String())
+
 	}
 
 	return nil
