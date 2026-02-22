@@ -1,6 +1,8 @@
 package pipeline
 
 import (
+	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -9,12 +11,27 @@ import (
 	"github.com/shanebell/pipectl/internal/steps"
 	"github.com/shanebell/pipectl/internal/steps/normalize"
 	"github.com/shanebell/pipectl/internal/steps/redact"
-	validate_json "github.com/shanebell/pipectl/internal/steps/validate-json"
+	"github.com/shanebell/pipectl/internal/steps/validate_json"
 )
 
 type Pipeline struct {
-	ID    string        `yaml:"id"`
-	Steps []StepWrapper `yaml:"steps"`
+	ID     string        `yaml:"id"`
+	Input  Input         `yaml:"input"`
+	Steps  []StepWrapper `yaml:"steps"`
+	Output Output        `yaml:"output"`
+}
+
+type Input struct {
+	Format    string `yaml:"format"`
+	Encoding  string `yaml:"encoding:omitempty"`
+	Schema    string `yaml:"schema:omitempty"`
+	Delimiter string `yaml:"delimiter:omitempty"`
+	HasHeader bool   `yaml:"has_header:omitempty"`
+	MaxSize   int    `yaml:"max_size:omitempty"`
+}
+
+type Output struct {
+	Format string `yaml:"format"`
 }
 
 type Step interface {
@@ -133,6 +150,13 @@ func LoadPayload(input []byte, format string) (steps.Payload, error) {
 		}
 		return &steps.JSONPayload{Data: data}, nil
 
+	case "csv":
+		rows, err := csv.NewReader(bytes.NewReader(input)).ReadAll()
+		if err != nil {
+			panic(err)
+		}
+		return &steps.CSVPayload{Rows: rows}, nil
+
 	case "text":
 		return &steps.TextPayload{Text: string(input)}, nil
 
@@ -147,12 +171,6 @@ func RunFromFile(path string, input []byte) error {
 		return err
 	}
 
-	// parse the raw yaml
-	var raw map[string]yaml.RawMessage
-	if err := yaml.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-
 	var pipeline Pipeline
 	if err := yaml.Unmarshal(data, &pipeline); err != nil {
 		return err
@@ -161,11 +179,12 @@ func RunFromFile(path string, input []byte) error {
 	// DEBUG INFO
 	fmt.Println("----------------")
 	fmt.Printf("Pipeline: %s\n", pipeline.ID)
+	fmt.Printf("Input: %s\n", pipeline.Input.Format)
+	fmt.Println("Steps:")
 	for _, s := range pipeline.Steps {
 		fmt.Printf("- %v\n", s.Step)
 	}
 	fmt.Println("----------------")
-	fmt.Println()
 	// END DEBUG INFO
 
 	var executableSteps []steps.ExecutableStep
@@ -179,8 +198,7 @@ func RunFromFile(path string, input []byte) error {
 		executableSteps = append(executableSteps, executor)
 	}
 
-	// TODO how to determine input type?
-	payload, err := LoadPayload(input, "json")
+	payload, err := LoadPayload(input, pipeline.Input.Format)
 	if err != nil {
 		return err
 	}
@@ -197,13 +215,48 @@ func RunFromFile(path string, input []byte) error {
 		}
 	}
 
-	// TODO pipeline should definte output type
-	output, err := json.MarshalIndent(context.Payload, "", "  ")
-	if err != nil {
-		fmt.Println("Error marshalling JSON:", err)
-		return nil
+	// produce final output
+	// TODO move this into a separate function and convert to a switch statement
+	fmt.Println("\nOutput:")
+	if pipeline.Output.Format == "json" {
+
+		// TODO: which payload types can be converted to JSON?
+		switch context.Payload.Type() {
+
+		case "json":
+			jsonPayload, _ := context.Payload.(*steps.JSONPayload)
+			output, err := json.MarshalIndent(jsonPayload.Data, "", "  ")
+			if err != nil {
+				fmt.Println("Error marshalling JSON:", err)
+				return nil
+			}
+			fmt.Println(string(output))
+
+		case "csv":
+			csvPayload, _ := context.Payload.(*steps.CSVPayload)
+			// TODO how do we convert CSV to JSON?
+			fmt.Println("TODO: convert CSV to JSON")
+			fmt.Println(csvPayload.Rows)
+
+		default:
+			return fmt.Errorf("Cannot convert to JSON")
+		}
+
+	} else if pipeline.Output.Format == "csv" {
+		// TODO convert payload to CSV somehow? Should that be a step in the pipeline?
+		records := [][]string{
+			{"first_name", "last_name", "username"},
+			{"John", "Smith", "john"},
+			{"Mary", "Brown", "mary"},
+		}
+		buf := new(bytes.Buffer)
+		csvWriter := csv.NewWriter(buf)
+		if err := csvWriter.WriteAll(records); err != nil {
+			fmt.Println("Error writing CSV:", err)
+			return nil
+		}
+		fmt.Println(buf.String())
 	}
-	fmt.Println(string(output))
 
 	return nil
 }

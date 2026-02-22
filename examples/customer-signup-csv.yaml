@@ -1,0 +1,11 @@
+id: customer-signup
+
+input:
+  format: csv
+
+steps:
+  - redact:
+      fields: [credit_card, password]
+
+output:
+  format: json

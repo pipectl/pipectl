@@ -1,5 +1,8 @@
 id: customer-signup
 
+input:
+  format: json
+
 steps:
   - validate-json:
       schema: schemas/signup.json
@@ -11,3 +14,6 @@ steps:
 
   - redact:
       fields: [credit_card, password]
+
+output:
+  format: csv
