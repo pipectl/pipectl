@@ -7,7 +7,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/shanebell/pipectl/internal/steps"
+	"github.com/shanebell/pipectl/internal/engine"
+	"github.com/shanebell/pipectl/internal/payload"
 )
 
 type Step struct {
@@ -19,11 +20,11 @@ func (s *Step) Name() string {
 	return "redact"
 }
 
-func (s *Step) Supports(payload steps.Payload) bool {
+func (s *Step) Supports(payload payload.Payload) bool {
 	return payload.Type() == "json" || payload.Type() == "csv"
 }
 
-func (s *Step) redactCsv(csvPayload *steps.CSVPayload) error {
+func (s *Step) redactCsv(csvPayload *payload.CSV) error {
 	headerRow := csvPayload.Rows[0]
 	toRedact := make([]bool, len(headerRow))
 	for i, header := range headerRow {
@@ -44,7 +45,7 @@ func (s *Step) redactCsv(csvPayload *steps.CSVPayload) error {
 
 // TODO only handles top-level fields, make this recursive
 // TODO can types other than strings be redacted? eg: changing from an int to "***" seems wrong and could break schema.
-func (s *Step) redactJson(jsonPayload *steps.JSONPayload) error {
+func (s *Step) redactJson(jsonPayload *payload.JSON) error {
 	for k, v := range jsonPayload.Data {
 		if slices.Contains(s.Fields, k) {
 			switch value := v.(type) {
@@ -78,13 +79,13 @@ func (s *Step) redactSingleValue(value string) string {
 	}
 }
 
-func (s *Step) Execute(context *steps.ExecutionContext) error {
-	jsonPayload, jsonOk := context.Payload.(*steps.JSONPayload)
+func (s *Step) Execute(context *engine.ExecutionContext) error {
+	jsonPayload, jsonOk := context.Payload.(*payload.JSON)
 	if jsonOk {
 		return s.redactJson(jsonPayload)
 	}
 
-	csvPayload, csvOk := context.Payload.(*steps.CSVPayload)
+	csvPayload, csvOk := context.Payload.(*payload.CSV)
 	if csvOk {
 		return s.redactCsv(csvPayload)
 	}

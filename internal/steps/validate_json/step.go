@@ -3,7 +3,8 @@ package validate_json
 import (
 	"fmt"
 
-	"github.com/shanebell/pipectl/internal/steps"
+	"github.com/shanebell/pipectl/internal/engine"
+	"github.com/shanebell/pipectl/internal/payload"
 )
 
 type Step struct {
@@ -14,12 +15,12 @@ func (s *Step) Name() string {
 	return "validate-json"
 }
 
-func (s *Step) Supports(payload steps.Payload) bool {
+func (s *Step) Supports(payload payload.Payload) bool {
 	return payload.Type() == "json"
 }
 
-func (s *Step) Execute(context *steps.ExecutionContext) error {
-	jsonPayload, ok := context.Payload.(*steps.JSONPayload)
+func (s *Step) Execute(context *engine.ExecutionContext) error {
+	jsonPayload, ok := context.Payload.(*payload.JSON)
 	if !ok {
 		return fmt.Errorf("%v requires JSON payload, got %s", s.Name(), context.Payload.Type())
 	}

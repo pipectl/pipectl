@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/shanebell/pipectl/internal/steps"
+	"github.com/shanebell/pipectl/internal/engine"
+	"github.com/shanebell/pipectl/internal/payload"
 )
 
 type Step struct {
@@ -15,7 +16,7 @@ func (s *Step) Name() string {
 	return "normalize"
 }
 
-func (s *Step) Supports(payload steps.Payload) bool {
+func (s *Step) Supports(payload payload.Payload) bool {
 	return payload.Type() == "json" || payload.Type() == "csv"
 }
 
@@ -51,8 +52,8 @@ func (s *Step) normalizeValue(value string, strategy string) string {
 	return fn(value)
 }
 
-func (s *Step) Execute(context *steps.ExecutionContext) error {
-	jsonPayload, ok := context.Payload.(*steps.JSONPayload)
+func (s *Step) Execute(context *engine.ExecutionContext) error {
+	jsonPayload, ok := context.Payload.(*payload.JSON)
 	if !ok {
 		return fmt.Errorf("%v requires JSON payload, got %s", s.Name(), context.Payload.Type())
 	}

@@ -8,6 +8,8 @@ import (
 	"os"
 
 	"github.com/goccy/go-yaml"
+	"github.com/shanebell/pipectl/internal/engine"
+	"github.com/shanebell/pipectl/internal/payload"
 	"github.com/shanebell/pipectl/internal/steps"
 	"github.com/shanebell/pipectl/internal/steps/normalize"
 	"github.com/shanebell/pipectl/internal/steps/redact"
@@ -142,7 +144,7 @@ func (w *StepWrapper) UnmarshalYAML(b []byte) error {
 	return nil
 }
 
-func LoadPayload(input []byte, format string) (steps.Payload, error) {
+func LoadPayload(input []byte, format string) (payload.Payload, error) {
 	switch format {
 
 	case "json":
@@ -150,17 +152,17 @@ func LoadPayload(input []byte, format string) (steps.Payload, error) {
 		if err := json.Unmarshal(input, &data); err != nil {
 			return nil, err
 		}
-		return &steps.JSONPayload{Data: data}, nil
+		return &payload.JSON{Data: data}, nil
 
 	case "csv":
 		rows, err := csv.NewReader(bytes.NewReader(input)).ReadAll()
 		if err != nil {
 			panic(err)
 		}
-		return &steps.CSVPayload{Rows: rows}, nil
+		return &payload.CSV{Rows: rows}, nil
 
 	case "text":
-		return &steps.TextPayload{Text: string(input)}, nil
+		return &payload.Text{Text: string(input)}, nil
 
 	default:
 		return nil, fmt.Errorf("unsupported input format")
@@ -200,13 +202,13 @@ func RunFromFile(path string, input []byte) error {
 		executableSteps = append(executableSteps, executor)
 	}
 
-	payload, err := LoadPayload(input, pipeline.Input.Format)
+	stepPayload, err := LoadPayload(input, pipeline.Input.Format)
 	if err != nil {
 		return err
 	}
 
-	context := &steps.ExecutionContext{
-		Payload: payload,
+	context := &engine.ExecutionContext{
+		Payload: stepPayload,
 	}
 
 	// execute each step
@@ -231,7 +233,7 @@ func RunFromFile(path string, input []byte) error {
 		switch context.Payload.Type() {
 
 		case "json":
-			jsonPayload, _ := context.Payload.(*steps.JSONPayload)
+			jsonPayload, _ := context.Payload.(*payload.JSON)
 			output, err := json.MarshalIndent(jsonPayload.Data, "", "  ")
 			if err != nil {
 				fmt.Println("Error marshalling JSON:", err)
@@ -240,7 +242,7 @@ func RunFromFile(path string, input []byte) error {
 			fmt.Println(string(output))
 
 		case "csv":
-			csvPayload, _ := context.Payload.(*steps.CSVPayload)
+			csvPayload, _ := context.Payload.(*payload.CSV)
 			// TODO how do we convert CSV to JSON?
 			fmt.Println("TODO: convert CSV to JSON")
 			fmt.Println(csvPayload.Rows)
@@ -252,7 +254,7 @@ func RunFromFile(path string, input []byte) error {
 	} else if pipeline.Output.Format == "csv" {
 		switch context.Payload.Type() {
 		case "csv":
-			csvPayload, _ := context.Payload.(*steps.CSVPayload)
+			csvPayload, _ := context.Payload.(*payload.CSV)
 			buf := new(bytes.Buffer)
 			csvWriter := csv.NewWriter(buf)
 			if err := csvWriter.WriteAll(csvPayload.Rows); err != nil {
