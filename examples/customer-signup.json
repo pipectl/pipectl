@@ -1,11 +1,13 @@
 {
-  "name": "value",
+  "name": " John Smith ",
   "values": [
     "quick", "brown", "fox"
   ],
+  "string": "Quick   brown fox   ",
   "nested": {
     "name": "nested value"
   },
+  "email": "John.SMith@email.COM",
   "credit_card": "1234-5678-9012-3456",
   "password": "abc123"
 }

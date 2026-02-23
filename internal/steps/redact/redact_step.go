@@ -50,7 +50,7 @@ func (s *RedactStep) redactJson(jsonPayload *steps.JSONPayload) error {
 			switch value := v.(type) {
 
 			case string:
-				fmt.Printf("- redacting field: %v, value: %v\n", k, v)
+				fmt.Printf("- redacting field: %v, value: '%v'\n", k, v)
 				jsonPayload.Data[k] = s.redactSingleValue(value)
 
 			default:
