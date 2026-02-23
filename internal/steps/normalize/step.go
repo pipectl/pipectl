@@ -7,15 +7,15 @@ import (
 	"github.com/shanebell/pipectl/internal/steps"
 )
 
-type NormalizeStep struct {
+type Step struct {
 	Fields map[string]string
 }
 
-func (s *NormalizeStep) Name() string {
+func (s *Step) Name() string {
 	return "normalize"
 }
 
-func (s *NormalizeStep) Supports(payload steps.Payload) bool {
+func (s *Step) Supports(payload steps.Payload) bool {
 	return payload.Type() == "json" || payload.Type() == "csv"
 }
 
@@ -40,7 +40,7 @@ var strategies = map[string]func(string) string{
 	},
 }
 
-func (s *NormalizeStep) normalizeValue(value string, strategy string) string {
+func (s *Step) normalizeValue(value string, strategy string) string {
 	fmt.Printf("Normalizing value: '%v' with strategy: %v\n", value, strategy)
 
 	// TODO handle multiple strategies pipe separated eg: "trim|lower"
@@ -51,7 +51,7 @@ func (s *NormalizeStep) normalizeValue(value string, strategy string) string {
 	return fn(value)
 }
 
-func (s *NormalizeStep) Execute(context *steps.ExecutionContext) error {
+func (s *Step) Execute(context *steps.ExecutionContext) error {
 	jsonPayload, ok := context.Payload.(*steps.JSONPayload)
 	if !ok {
 		return fmt.Errorf("%v requires JSON payload, got %s", s.Name(), context.Payload.Type())

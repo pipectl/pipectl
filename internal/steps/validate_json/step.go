@@ -6,19 +6,19 @@ import (
 	"github.com/shanebell/pipectl/internal/steps"
 )
 
-type ValidateJSONStep struct {
+type Step struct {
 	Schema string
 }
 
-func (s *ValidateJSONStep) Name() string {
+func (s *Step) Name() string {
 	return "validate-json"
 }
 
-func (s *ValidateJSONStep) Supports(payload steps.Payload) bool {
+func (s *Step) Supports(payload steps.Payload) bool {
 	return payload.Type() == "json"
 }
 
-func (s *ValidateJSONStep) Execute(context *steps.ExecutionContext) error {
+func (s *Step) Execute(context *steps.ExecutionContext) error {
 	jsonPayload, ok := context.Payload.(*steps.JSONPayload)
 	if !ok {
 		return fmt.Errorf("%v requires JSON payload, got %s", s.Name(), context.Payload.Type())

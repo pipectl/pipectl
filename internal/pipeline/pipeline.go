@@ -52,7 +52,7 @@ func (s *ValidateJSONStep) StepType() string {
 }
 
 func (s *ValidateJSONStep) BuildExecutor() (steps.ExecutableStep, error) {
-	return &validate_json.ValidateJSONStep{
+	return &validate_json.Step{
 		Schema: s.Schema,
 	}, nil
 }
@@ -74,7 +74,7 @@ func (s *NormalizeStep) String() string {
 }
 
 func (s *NormalizeStep) BuildExecutor() (steps.ExecutableStep, error) {
-	return &normalize.NormalizeStep{
+	return &normalize.Step{
 		Fields: s.Fields,
 	}, nil
 }
@@ -93,7 +93,7 @@ func (s *RedactStep) String() string {
 }
 
 func (s *RedactStep) BuildExecutor() (steps.ExecutableStep, error) {
-	return &redact.RedactStep{
+	return &redact.Step{
 		Fields:   s.Fields,
 		Strategy: s.Strategy,
 	}, nil

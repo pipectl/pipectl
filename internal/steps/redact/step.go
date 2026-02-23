@@ -10,20 +10,20 @@ import (
 	"github.com/shanebell/pipectl/internal/steps"
 )
 
-type RedactStep struct {
+type Step struct {
 	Strategy string
 	Fields   []string
 }
 
-func (s *RedactStep) Name() string {
+func (s *Step) Name() string {
 	return "redact"
 }
 
-func (s *RedactStep) Supports(payload steps.Payload) bool {
+func (s *Step) Supports(payload steps.Payload) bool {
 	return payload.Type() == "json" || payload.Type() == "csv"
 }
 
-func (s *RedactStep) redactCsv(csvPayload *steps.CSVPayload) error {
+func (s *Step) redactCsv(csvPayload *steps.CSVPayload) error {
 	headerRow := csvPayload.Rows[0]
 	toRedact := make([]bool, len(headerRow))
 	for i, header := range headerRow {
@@ -44,7 +44,7 @@ func (s *RedactStep) redactCsv(csvPayload *steps.CSVPayload) error {
 
 // TODO only handles top-level fields, make this recursive
 // TODO can types other than strings be redacted? eg: changing from an int to "***" seems wrong and could break schema.
-func (s *RedactStep) redactJson(jsonPayload *steps.JSONPayload) error {
+func (s *Step) redactJson(jsonPayload *steps.JSONPayload) error {
 	for k, v := range jsonPayload.Data {
 		if slices.Contains(s.Fields, k) {
 			switch value := v.(type) {
@@ -62,7 +62,7 @@ func (s *RedactStep) redactJson(jsonPayload *steps.JSONPayload) error {
 	return nil
 }
 
-func (s *RedactStep) redactSingleValue(value string) string {
+func (s *Step) redactSingleValue(value string) string {
 	fmt.Printf("- redacting text: %v with strategy %v\n", value, s.Strategy)
 	switch s.Strategy {
 	case "mask":
@@ -78,7 +78,7 @@ func (s *RedactStep) redactSingleValue(value string) string {
 	}
 }
 
-func (s *RedactStep) Execute(context *steps.ExecutionContext) error {
+func (s *Step) Execute(context *steps.ExecutionContext) error {
 	jsonPayload, jsonOk := context.Payload.(*steps.JSONPayload)
 	if jsonOk {
 		return s.redactJson(jsonPayload)
