@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Customer signup CSV" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="pipectl" />
+    <working_directory value="$PROJECT_DIR$" />
+    <parameters value="run ./examples/customer-signup-csv.yaml" />
+    <kind value="PACKAGE" />
+    <package value="github.com/shanebell/pipectl/cmd/pipectl" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/cmd/pipectl/main.go" />
+    <redirect_input value="true" />
+    <input_file value="$PROJECT_DIR$/examples/customer-signup.csv" />
+    <method v="2" />
+  </configuration>
+</component>
