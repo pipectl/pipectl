@@ -11,6 +11,7 @@ import (
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/payload"
 	"github.com/shanebell/pipectl/internal/steps"
+	"github.com/shanebell/pipectl/internal/steps/filter"
 	"github.com/shanebell/pipectl/internal/steps/normalize"
 	"github.com/shanebell/pipectl/internal/steps/redact"
 	"github.com/shanebell/pipectl/internal/steps/validate_json"
@@ -61,6 +62,26 @@ func (s *ValidateJSONStep) BuildExecutor() (steps.ExecutableStep, error) {
 
 func (s *ValidateJSONStep) String() string {
 	return fmt.Sprintf("[%s] schema: %v", s.StepType(), s.Schema)
+}
+
+type FilterStep struct {
+	Field  string `yaml:"field"`
+	Equals string `yaml:"equals"`
+}
+
+func (s *FilterStep) StepType() string {
+	return "filter"
+}
+
+func (s *FilterStep) BuildExecutor() (steps.ExecutableStep, error) {
+	return &filter.Step{
+		Field: s.Field,
+		Value: s.Equals,
+	}, nil
+}
+
+func (s *FilterStep) String() string {
+	return fmt.Sprintf("[%s] filter: %v = %v", s.StepType(), s.Field, s.Equals)
 }
 
 type NormalizeStep struct {
@@ -131,6 +152,13 @@ func (w *StepWrapper) UnmarshalYAML(b []byte) error {
 
 		case "redact":
 			var step RedactStep
+			if err := yaml.Unmarshal(value, &step); err != nil {
+				return err
+			}
+			w.Step = &step
+
+		case "filter":
+			var step FilterStep
 			if err := yaml.Unmarshal(value, &step); err != nil {
 				return err
 			}

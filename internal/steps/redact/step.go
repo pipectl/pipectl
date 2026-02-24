@@ -64,7 +64,8 @@ func (s *Step) redactJson(jsonPayload *payload.JSON) error {
 }
 
 func (s *Step) redactSingleValue(value string) string {
-	fmt.Printf("- redacting text: %v with strategy %v\n", value, s.Strategy)
+	// TODO print something useful when strategy is not defined
+	fmt.Printf("- redacting text: %v with strategy %s\n", value, s.Strategy)
 	switch s.Strategy {
 	case "mask":
 		return strings.Repeat("*", len(value))

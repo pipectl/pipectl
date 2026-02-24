@@ -52,12 +52,7 @@ func (s *Step) normalizeValue(value string, strategy string) string {
 	return fn(value)
 }
 
-func (s *Step) Execute(context *engine.ExecutionContext) error {
-	jsonPayload, ok := context.Payload.(*payload.JSON)
-	if !ok {
-		return fmt.Errorf("%v requires JSON payload, got %s", s.Name(), context.Payload.Type())
-	}
-
+func (s *Step) normalizeJSON(jsonPayload *payload.JSON) error {
 	for key, _ := range jsonPayload.Data {
 		if strategy, needsNormalizing := s.Fields[key]; needsNormalizing {
 			if currentValue, ok := jsonPayload.Data[key].(string); ok {
@@ -66,7 +61,42 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 		}
 	}
 
-	// TODO handle CSV
+	return nil
+}
+
+func (s *Step) normalizeCsv(csvPayload *payload.CSV) error {
+	headerRow := csvPayload.Rows[0]
+	normalizeFunctions := map[int]func(string) string{}
+	strategyIndex := map[int]string{}
+	for i, header := range headerRow {
+		strategy, ok := s.Fields[header]
+		if ok {
+			normalizeFunctions[i] = strategies[strategy]
+			strategyIndex[i] = strategy
+		}
+	}
+
+	for _, row := range csvPayload.Rows[1:] {
+		for i, value := range row {
+			if strategy, ok := strategyIndex[i]; ok {
+				row[i] = s.normalizeValue(value, strategy)
+			}
+		}
+	}
 
 	return nil
+}
+
+func (s *Step) Execute(context *engine.ExecutionContext) error {
+	jsonPayload, jsonOk := context.Payload.(*payload.JSON)
+	if jsonOk {
+		return s.normalizeJSON(jsonPayload)
+	}
+
+	csvPayload, csvOk := context.Payload.(*payload.CSV)
+	if csvOk {
+		return s.normalizeCsv(csvPayload)
+	}
+
+	return fmt.Errorf("%v requires either JSON or CSV payload, got %s", s.Name(), context.Payload.Type())
 }

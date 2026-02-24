@@ -1,4 +1,5 @@
-name,credit_card,password,dob
-John,1234-5678-9012-3456,abc123,01/01/1970
-Mary,9999-9999-9999-9999,xyz789,02/02/1980
-Bill,2222-2222-2222-2222,123abc,03/03/1990
+first_name,last_name,credit_card,password,dob,country
+john,SMITH,1234-5678-9012-3456,abc123,01/01/1970,au
+Mary,jones,9999-9999-9999-9999,xyz789,02/02/1980,AU
+bill,johnson,2222-2222-2222-2222,123abc,03/03/1990,nz
+HANK,BROWN,3333-3333-3333-3333,456def,04/04/2000,au

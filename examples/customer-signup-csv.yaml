@@ -4,8 +4,21 @@ input:
   format: csv
 
 steps:
+  - normalize:
+      fields:
+        country: upper
+        first_name: capitalize
+        last_name: capitalize
+
+  - filter:
+      field: country
+      equals: AU
+
   - redact:
       fields: [credit_card, password]
+      strategy: mask
+
+
 
 output:
   format: csv
