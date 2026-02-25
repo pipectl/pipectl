@@ -12,6 +12,7 @@ import (
 	"github.com/shanebell/pipectl/internal/payload"
 	"github.com/shanebell/pipectl/internal/steps"
 	"github.com/shanebell/pipectl/internal/steps/filter"
+	"github.com/shanebell/pipectl/internal/steps/http_transform"
 	"github.com/shanebell/pipectl/internal/steps/normalize"
 	"github.com/shanebell/pipectl/internal/steps/redact"
 	"github.com/shanebell/pipectl/internal/steps/validate_json"
@@ -84,6 +85,26 @@ func (s *FilterStep) String() string {
 	return fmt.Sprintf("[%s] filter: %v = %v", s.StepType(), s.Field, s.Equals)
 }
 
+type HTTPTransformStep struct {
+	URL    string `yaml:"url"`
+	Method string `yaml:"method"`
+}
+
+func (s *HTTPTransformStep) StepType() string {
+	return "http-transform"
+}
+
+func (s *HTTPTransformStep) BuildExecutor() (steps.ExecutableStep, error) {
+	return &http_transform.Step{
+		URL:    s.URL,
+		Method: s.Method,
+	}, nil
+}
+
+func (s *HTTPTransformStep) String() string {
+	return fmt.Sprintf("[%s]: %v %v", s.StepType(), s.URL, s.Method)
+}
+
 type NormalizeStep struct {
 	Fields map[string]string `yaml:"fields"`
 }
@@ -134,6 +155,8 @@ func (w *StepWrapper) UnmarshalYAML(b []byte) error {
 	}
 
 	for key, value := range raw {
+
+		// TODO find a better way to implement this switch statement
 		switch key {
 
 		case "validate-json":
@@ -159,6 +182,13 @@ func (w *StepWrapper) UnmarshalYAML(b []byte) error {
 
 		case "filter":
 			var step FilterStep
+			if err := yaml.Unmarshal(value, &step); err != nil {
+				return err
+			}
+			w.Step = &step
+
+		case "http-transform":
+			var step HTTPTransformStep
 			if err := yaml.Unmarshal(value, &step); err != nil {
 				return err
 			}

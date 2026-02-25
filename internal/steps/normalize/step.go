@@ -16,8 +16,8 @@ func (s *Step) Name() string {
 	return "normalize"
 }
 
-func (s *Step) Supports(payload payload.Payload) bool {
-	return payload.Type() == "json" || payload.Type() == "csv"
+func (s *Step) Supports(p payload.Payload) bool {
+	return p.Type() == payload.JSONType || p.Type() == payload.CSVType
 }
 
 var strategies = map[string]func(string) string{

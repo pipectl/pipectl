@@ -15,8 +15,8 @@ func (s *Step) Name() string {
 	return "validate-json"
 }
 
-func (s *Step) Supports(payload payload.Payload) bool {
-	return payload.Type() == "json"
+func (s *Step) Supports(p payload.Payload) bool {
+	return p.Type() == payload.JSONType
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {

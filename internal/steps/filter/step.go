@@ -16,8 +16,8 @@ func (s *Step) Name() string {
 	return "filter"
 }
 
-func (s *Step) Supports(payload payload.Payload) bool {
-	return payload.Type() == "csv"
+func (s *Step) Supports(p payload.Payload) bool {
+	return p.Type() == payload.CSVType
 }
 
 func (s *Step) filterCsv(csvPayload *payload.CSV) error {

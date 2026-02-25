@@ -17,5 +17,12 @@ steps:
       strategy: mask
       fields: [credit_card, password]
 
+  - http-transform:
+      url: https://httpbin.org/post
+      method: POST
+
+  - redact:
+      fields: [data, origin]
+
 output:
   format: json

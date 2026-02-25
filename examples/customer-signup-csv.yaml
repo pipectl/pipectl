@@ -18,7 +18,5 @@ steps:
       fields: [credit_card, password]
       strategy: mask
 
-
-
 output:
   format: csv
