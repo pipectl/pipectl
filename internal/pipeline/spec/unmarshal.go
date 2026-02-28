@@ -1,4 +1,4 @@
-package pipeline
+package spec
 
 import (
 	"fmt"
@@ -14,7 +14,6 @@ var stepRegistry = map[string]func() Step{
 	"http-transform": func() Step { return &HTTPTransformStep{} },
 }
 
-// custom unmarshal for different steps
 func (w *StepWrapper) UnmarshalYAML(b []byte) error {
 	var raw map[string]yaml.RawMessage
 	if err := yaml.Unmarshal(b, &raw); err != nil {
@@ -26,12 +25,12 @@ func (w *StepWrapper) UnmarshalYAML(b []byte) error {
 	}
 
 	for key, value := range raw {
-		var factory, ok = stepRegistry[key]
+		factory, ok := stepRegistry[key]
 		if !ok {
 			return fmt.Errorf("unknown step type: %s", key)
 		}
 
-		var step = factory()
+		step := factory()
 		if err := yaml.Unmarshal(value, step); err != nil {
 			return err
 		}

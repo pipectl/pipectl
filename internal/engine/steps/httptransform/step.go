@@ -41,6 +41,9 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("Error calling HTTP service: %v\n", err)
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Unexpected status code: %d\n", resp.StatusCode)
