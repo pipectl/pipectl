@@ -3,7 +3,7 @@ package pipeline
 import (
 	"fmt"
 
-	"github.com/shanebell/pipectl/internal/steps"
+	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/steps/redact"
 )
 
@@ -20,7 +20,7 @@ func (s *RedactStep) String() string {
 	return fmt.Sprintf("[%s] fields: %v", s.StepType(), s.Fields)
 }
 
-func (s *RedactStep) BuildExecutor() (steps.ExecutableStep, error) {
+func (s *RedactStep) BuildExecutor() (engine.ExecutableStep, error) {
 	return &redact.Step{
 		Fields:   s.Fields,
 		Strategy: s.Strategy,

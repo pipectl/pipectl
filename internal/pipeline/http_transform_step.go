@@ -3,7 +3,7 @@ package pipeline
 import (
 	"fmt"
 
-	"github.com/shanebell/pipectl/internal/steps"
+	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/steps/http_transform"
 )
 
@@ -16,7 +16,7 @@ func (s *HTTPTransformStep) StepType() string {
 	return "http-transform"
 }
 
-func (s *HTTPTransformStep) BuildExecutor() (steps.ExecutableStep, error) {
+func (s *HTTPTransformStep) BuildExecutor() (engine.ExecutableStep, error) {
 	return &http_transform.Step{
 		URL:    s.URL,
 		Method: s.Method,

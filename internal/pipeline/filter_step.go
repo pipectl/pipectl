@@ -3,7 +3,7 @@ package pipeline
 import (
 	"fmt"
 
-	"github.com/shanebell/pipectl/internal/steps"
+	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/steps/filter"
 )
 
@@ -16,7 +16,7 @@ func (s *FilterStep) StepType() string {
 	return "filter"
 }
 
-func (s *FilterStep) BuildExecutor() (steps.ExecutableStep, error) {
+func (s *FilterStep) BuildExecutor() (engine.ExecutableStep, error) {
 	return &filter.Step{
 		Field: s.Field,
 		Value: s.Equals,
