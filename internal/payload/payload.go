@@ -37,7 +37,6 @@ func Read(input []byte, format string) (Payload, error) {
 }
 
 func Write(payload Payload, format string) error {
-	fmt.Println("\nOutput:")
 	if format == "json" {
 
 		// TODO: which payload types can be converted to JSON?

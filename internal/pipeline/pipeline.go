@@ -10,19 +10,14 @@ import (
 )
 
 func log(p spec.Pipeline) {
-	fmt.Println("----------------")
-	fmt.Printf("Pipeline: %s\n", p.ID)
-	fmt.Printf("Input: %s\n", p.Input.Format)
-	fmt.Println("Steps:")
-	for _, step := range p.Steps {
-		if step.Step == nil {
-			fmt.Println("- <nil>")
-			continue
-		}
-		fmt.Printf("- %s\n", step.Step.StepType())
+	fmt.Printf("Executing pipeline\n")
+	fmt.Printf("- ID: %s\n", p.ID)
+	fmt.Printf("- Input: %s\n", p.Input.Format)
+	fmt.Println("- Steps:")
+	for i, step := range p.Steps {
+		fmt.Printf("  %v. %s\n", i+1, step.Step.StepType())
 	}
-	fmt.Printf("Output: %s\n", p.Output.Format)
-	fmt.Println("----------------")
+	fmt.Printf("- Output: %s\n", p.Output.Format)
 }
 
 func Run(path string, input []byte) error {
@@ -47,10 +42,12 @@ func Run(path string, input []byte) error {
 
 	ctx := &engine.ExecutionContext{Payload: inputPayload}
 
+	fmt.Printf("\nRunning steps...\n")
 	if err := pipelineEngine.Run(ctx); err != nil {
 		return err
 	}
 
+	fmt.Printf("\nOutput:\n")
 	if err := payload.Write(ctx.Payload, p.Output.Format); err != nil {
 		return err
 	}
