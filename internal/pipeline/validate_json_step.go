@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	"github.com/shanebell/pipectl/internal/steps/validate_json"
+	"github.com/shanebell/pipectl/internal/engine/steps/validatejson"
 )
 
 func (s *ValidateJSONStep) StepType() string {
@@ -12,7 +12,7 @@ func (s *ValidateJSONStep) StepType() string {
 }
 
 func (s *ValidateJSONStep) BuildExecutor() (engine.ExecutableStep, error) {
-	return &validate_json.Step{
+	return &validatejson.Step{
 		Schema: s.Schema,
 	}, nil
 }

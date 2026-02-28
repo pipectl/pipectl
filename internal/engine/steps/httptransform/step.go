@@ -1,4 +1,4 @@
-package http_transform
+package httptransform
 
 import (
 	"bytes"

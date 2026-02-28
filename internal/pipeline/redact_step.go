@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	"github.com/shanebell/pipectl/internal/steps/redact"
+	"github.com/shanebell/pipectl/internal/engine/steps/redact"
 )
 
 type RedactStep struct {

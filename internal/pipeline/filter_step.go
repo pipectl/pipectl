@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	"github.com/shanebell/pipectl/internal/steps/filter"
+	"github.com/shanebell/pipectl/internal/engine/steps/filter"
 )
 
 type FilterStep struct {

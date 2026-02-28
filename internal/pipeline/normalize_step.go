@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	"github.com/shanebell/pipectl/internal/steps/normalize"
+	"github.com/shanebell/pipectl/internal/engine/steps/normalize"
 )
 
 type NormalizeStep struct {

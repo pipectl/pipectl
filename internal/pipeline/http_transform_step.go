@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	"github.com/shanebell/pipectl/internal/steps/http_transform"
+	"github.com/shanebell/pipectl/internal/engine/steps/httptransform"
 )
 
 type HTTPTransformStep struct {
@@ -17,7 +17,7 @@ func (s *HTTPTransformStep) StepType() string {
 }
 
 func (s *HTTPTransformStep) BuildExecutor() (engine.ExecutableStep, error) {
-	return &http_transform.Step{
+	return &httptransform.Step{
 		URL:    s.URL,
 		Method: s.Method,
 	}, nil
