@@ -42,6 +42,14 @@ type StepWrapper struct {
 	Step Step
 }
 
+var stepRegistry = map[string]Step{
+	"validate-json":  &ValidateJSONStep{},
+	"normalize":      &NormalizeStep{},
+	"redact":         &RedactStep{},
+	"filter":         &FilterStep{},
+	"http-transform": &HTTPTransformStep{},
+}
+
 // custom unmarshal for different steps
 func (w *StepWrapper) UnmarshalYAML(b []byte) error {
 	var raw map[string]yaml.RawMessage
@@ -54,48 +62,14 @@ func (w *StepWrapper) UnmarshalYAML(b []byte) error {
 	}
 
 	for key, value := range raw {
-
-		// TODO find a better way to implement this switch statement
-		switch key {
-
-		case "validate-json":
-			var step ValidateJSONStep
-			if err := yaml.Unmarshal(value, &step); err != nil {
-				return err
-			}
-			w.Step = &step
-
-		case "normalize":
-			var step NormalizeStep
-			if err := yaml.Unmarshal(value, &step); err != nil {
-				return err
-			}
-			w.Step = &step
-
-		case "redact":
-			var step RedactStep
-			if err := yaml.Unmarshal(value, &step); err != nil {
-				return err
-			}
-			w.Step = &step
-
-		case "filter":
-			var step FilterStep
-			if err := yaml.Unmarshal(value, &step); err != nil {
-				return err
-			}
-			w.Step = &step
-
-		case "http-transform":
-			var step HTTPTransformStep
-			if err := yaml.Unmarshal(value, &step); err != nil {
-				return err
-			}
-			w.Step = &step
-
-		default:
+		var step, ok = stepRegistry[key]
+		if !ok {
 			return fmt.Errorf("unknown step type: %s", key)
 		}
+		if err := yaml.Unmarshal(value, step); err != nil {
+			return err
+		}
+		w.Step = step
 	}
 
 	return nil
