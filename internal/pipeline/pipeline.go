@@ -11,11 +11,6 @@ import (
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/payload"
 	"github.com/shanebell/pipectl/internal/steps"
-	"github.com/shanebell/pipectl/internal/steps/filter"
-	"github.com/shanebell/pipectl/internal/steps/http_transform"
-	"github.com/shanebell/pipectl/internal/steps/normalize"
-	"github.com/shanebell/pipectl/internal/steps/redact"
-	"github.com/shanebell/pipectl/internal/steps/validate_json"
 )
 
 type Pipeline struct {
@@ -45,102 +40,6 @@ type Step interface {
 
 type StepWrapper struct {
 	Step Step
-}
-
-type ValidateJSONStep struct {
-	Schema string `yaml:"schema"`
-}
-
-func (s *ValidateJSONStep) StepType() string {
-	return "validate-json"
-}
-
-func (s *ValidateJSONStep) BuildExecutor() (steps.ExecutableStep, error) {
-	return &validate_json.Step{
-		Schema: s.Schema,
-	}, nil
-}
-
-func (s *ValidateJSONStep) String() string {
-	return fmt.Sprintf("[%s] schema: %v", s.StepType(), s.Schema)
-}
-
-type FilterStep struct {
-	Field  string `yaml:"field"`
-	Equals string `yaml:"equals"`
-}
-
-func (s *FilterStep) StepType() string {
-	return "filter"
-}
-
-func (s *FilterStep) BuildExecutor() (steps.ExecutableStep, error) {
-	return &filter.Step{
-		Field: s.Field,
-		Value: s.Equals,
-	}, nil
-}
-
-func (s *FilterStep) String() string {
-	return fmt.Sprintf("[%s] filter: %v = %v", s.StepType(), s.Field, s.Equals)
-}
-
-type HTTPTransformStep struct {
-	URL    string `yaml:"url"`
-	Method string `yaml:"method"`
-}
-
-func (s *HTTPTransformStep) StepType() string {
-	return "http-transform"
-}
-
-func (s *HTTPTransformStep) BuildExecutor() (steps.ExecutableStep, error) {
-	return &http_transform.Step{
-		URL:    s.URL,
-		Method: s.Method,
-	}, nil
-}
-
-func (s *HTTPTransformStep) String() string {
-	return fmt.Sprintf("[%s]: %v %v", s.StepType(), s.URL, s.Method)
-}
-
-type NormalizeStep struct {
-	Fields map[string]string `yaml:"fields"`
-}
-
-func (s *NormalizeStep) StepType() string {
-	return "normalize"
-}
-
-func (s *NormalizeStep) String() string {
-	return fmt.Sprintf("[%s] fields: %v", s.StepType(), s.Fields)
-}
-
-func (s *NormalizeStep) BuildExecutor() (steps.ExecutableStep, error) {
-	return &normalize.Step{
-		Fields: s.Fields,
-	}, nil
-}
-
-type RedactStep struct {
-	Strategy string   `yaml:"strategy"`
-	Fields   []string `yaml:"fields"`
-}
-
-func (s *RedactStep) StepType() string {
-	return "redact"
-}
-
-func (s *RedactStep) String() string {
-	return fmt.Sprintf("[%s] fields: %v", s.StepType(), s.Fields)
-}
-
-func (s *RedactStep) BuildExecutor() (steps.ExecutableStep, error) {
-	return &redact.Step{
-		Fields:   s.Fields,
-		Strategy: s.Strategy,
-	}, nil
 }
 
 // custom unmarshal for different steps
