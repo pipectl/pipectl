@@ -20,6 +20,20 @@ func (s *Step) Supports(p payload.Payload) bool {
 	return p.Type() == payload.JSONType || p.Type() == payload.CSVType
 }
 
+func (s *Step) Execute(context *engine.ExecutionContext) error {
+	jsonPayload, jsonOk := context.Payload.(*payload.JSON)
+	if jsonOk {
+		return s.normalizeJSON(jsonPayload)
+	}
+
+	csvPayload, csvOk := context.Payload.(*payload.CSV)
+	if csvOk {
+		return s.normalizeCsv(csvPayload)
+	}
+
+	return fmt.Errorf("%v requires either JSON or CSV payload, got %s", s.Name(), context.Payload.Type())
+}
+
 var strategies = map[string]func(string) string{
 	"lower": strings.ToLower,
 	"upper": strings.ToUpper,
@@ -85,18 +99,4 @@ func (s *Step) normalizeCsv(csvPayload *payload.CSV) error {
 	}
 
 	return nil
-}
-
-func (s *Step) Execute(context *engine.ExecutionContext) error {
-	jsonPayload, jsonOk := context.Payload.(*payload.JSON)
-	if jsonOk {
-		return s.normalizeJSON(jsonPayload)
-	}
-
-	csvPayload, csvOk := context.Payload.(*payload.CSV)
-	if csvOk {
-		return s.normalizeCsv(csvPayload)
-	}
-
-	return fmt.Errorf("%v requires either JSON or CSV payload, got %s", s.Name(), context.Payload.Type())
 }

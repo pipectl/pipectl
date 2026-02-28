@@ -20,6 +20,17 @@ func (s *Step) Supports(p payload.Payload) bool {
 	return p.Type() == payload.CSVType
 }
 
+func (s *Step) Execute(context *engine.ExecutionContext) error {
+	csvPayload, ok := context.Payload.(*payload.CSV)
+	if !ok {
+		return fmt.Errorf("%v requires CSV payload, got %s", s.Name(), context.Payload.Type())
+	}
+
+	s.filterCsv(csvPayload)
+
+	return nil
+}
+
 func (s *Step) filterCsv(csvPayload *payload.CSV) error {
 	headerRow := csvPayload.Rows[0]
 	toFilter := make([]*string, len(headerRow))
@@ -52,16 +63,5 @@ func (s *Step) filterCsv(csvPayload *payload.CSV) error {
 	}
 
 	csvPayload.Rows = filteredRows
-	return nil
-}
-
-func (s *Step) Execute(context *engine.ExecutionContext) error {
-	csvPayload, ok := context.Payload.(*payload.CSV)
-	if !ok {
-		return fmt.Errorf("%v requires CSV payload, got %s", s.Name(), context.Payload.Type())
-	}
-
-	s.filterCsv(csvPayload)
-
 	return nil
 }

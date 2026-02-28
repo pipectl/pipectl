@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/customer-signup.schema.json",
+  "title": "Customer Signup",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "values",
+    "string",
+    "nested",
+    "email",
+    "credit_card",
+    "password"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "values": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nested": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "credit_card": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4}$"
+    },
+    "password": {
+      "type": "string",
+      "minLength": 6
+    }
+  }
+}

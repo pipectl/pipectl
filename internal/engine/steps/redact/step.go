@@ -24,6 +24,20 @@ func (s *Step) Supports(p payload.Payload) bool {
 	return p.Type() == payload.JSONType || p.Type() == payload.CSVType
 }
 
+func (s *Step) Execute(context *engine.ExecutionContext) error {
+	jsonPayload, jsonOk := context.Payload.(*payload.JSON)
+	if jsonOk {
+		return s.redactJson(jsonPayload)
+	}
+
+	csvPayload, csvOk := context.Payload.(*payload.CSV)
+	if csvOk {
+		return s.redactCsv(csvPayload)
+	}
+
+	return fmt.Errorf("%v requires either JSON or CSV payload, got %s", s.Name(), context.Payload.Type())
+}
+
 func (s *Step) redactCsv(csvPayload *payload.CSV) error {
 	headerRow := csvPayload.Rows[0]
 	toRedact := make([]bool, len(headerRow))
@@ -78,18 +92,4 @@ func (s *Step) redactSingleValue(value string) string {
 	default:
 		return "REDACTED"
 	}
-}
-
-func (s *Step) Execute(context *engine.ExecutionContext) error {
-	jsonPayload, jsonOk := context.Payload.(*payload.JSON)
-	if jsonOk {
-		return s.redactJson(jsonPayload)
-	}
-
-	csvPayload, csvOk := context.Payload.(*payload.CSV)
-	if csvOk {
-		return s.redactCsv(csvPayload)
-	}
-
-	return fmt.Errorf("%v requires either JSON or CSV payload, got %s", s.Name(), context.Payload.Type())
 }

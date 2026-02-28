@@ -32,15 +32,25 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 		fmt.Printf("- using proxy: %v\n", s.Proxy)
 	}
 
+	transformedPayload, err := s.transformPayload(context.Payload)
+	if err != nil {
+		return err
+	}
+
+	context.Payload = transformedPayload
+	return nil
+}
+
+func (s *Step) transformPayload(inputPayload payload.Payload) (*payload.JSON, error) {
 	var bodyReader io.Reader
 	if s.Method == "POST" {
-		jsonBody, _ := json.Marshal(context.Payload)
+		jsonBody, _ := json.Marshal(inputPayload)
 		bodyReader = bytes.NewBuffer(jsonBody)
 	}
 
 	req, err := http.NewRequest(s.Method, s.URL, bodyReader)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("X-Pipectl-Step", "http-transform")
 
@@ -48,7 +58,7 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	if s.Proxy != "" {
 		proxyURL, err := url.Parse(s.Proxy)
 		if err != nil {
-			return fmt.Errorf("invalid proxy URL %q: %w", s.Proxy, err)
+			return nil, fmt.Errorf("invalid proxy URL %q: %w", s.Proxy, err)
 		}
 
 		transport := http.DefaultTransport.(*http.Transport).Clone()
@@ -58,25 +68,23 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("Error calling HTTP service: %v\n", err)
+		return nil, fmt.Errorf("Error calling HTTP service: %v\n", err)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Unexpected status code: %d\n", resp.StatusCode)
+		return nil, fmt.Errorf("Unexpected status code: %d\n", resp.StatusCode)
 	}
-
-	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("Error reading response body: %s\n", err)
+		return nil, fmt.Errorf("Error reading response body: %s\n", err)
 	}
 
 	var data map[string]interface{}
 	if err := json.Unmarshal(body, &data); err != nil {
-		return fmt.Errorf("Error parsing JSON response: %s\n", err)
+		return nil, fmt.Errorf("Error parsing JSON response: %s\n", err)
 	}
-	context.Payload = &payload.JSON{Data: data}
 
-	return nil
+	return &payload.JSON{Data: data}, nil
 }

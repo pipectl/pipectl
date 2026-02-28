@@ -5,7 +5,7 @@ input:
 
 steps:
   - validate-json:
-      schema: schemas/signup.json
+      schema: ./examples/signup-schema.json
 
   - normalize:
       fields:
