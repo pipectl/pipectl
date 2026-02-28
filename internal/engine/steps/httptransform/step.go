@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/payload"
@@ -14,6 +15,7 @@ import (
 type Step struct {
 	URL    string
 	Method string
+	Proxy  string
 }
 
 func (s *Step) Name() string {
@@ -26,6 +28,9 @@ func (s *Step) Supports(p payload.Payload) bool {
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
 	fmt.Printf("- transforming via HTTP %v to URL: %v\n", s.Method, s.URL)
+	if s.Proxy != "" {
+		fmt.Printf("- using proxy: %v\n", s.Proxy)
+	}
 
 	var bodyReader io.Reader
 	if s.Method == "POST" {
@@ -40,6 +45,17 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	req.Header.Set("X-Pipectl-Step", "http-transform")
 
 	client := &http.Client{}
+	if s.Proxy != "" {
+		proxyURL, err := url.Parse(s.Proxy)
+		if err != nil {
+			return fmt.Errorf("invalid proxy URL %q: %w", s.Proxy, err)
+		}
+
+		transport := http.DefaultTransport.(*http.Transport).Clone()
+		transport.Proxy = http.ProxyURL(proxyURL)
+		client.Transport = transport
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Error calling HTTP service: %v\n", err)

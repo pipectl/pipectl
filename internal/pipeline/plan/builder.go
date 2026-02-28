@@ -36,7 +36,7 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 	case *spec.FilterStep:
 		return &filter.Step{Field: s.Field, Value: s.Equals}, nil
 	case *spec.HTTPTransformStep:
-		return &httptransform.Step{URL: s.URL, Method: s.Method}, nil
+		return &httptransform.Step{URL: s.URL, Method: s.Method, Proxy: s.Proxy}, nil
 	case nil:
 		return nil, fmt.Errorf("step is nil")
 	default:
