@@ -69,7 +69,6 @@ type Rule struct {
 ### HTTP Transform
 
 - Add support for additional parameters
-  - headers
   - timeout
   - expect_format
 

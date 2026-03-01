@@ -12,6 +12,50 @@ import (
 	"github.com/shanebell/pipectl/internal/engine/payload"
 )
 
+func TestExecuteWithBodyMethods(t *testing.T) {
+	methods := []string{
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodPatch,
+		http.MethodDelete,
+	}
+
+	for _, method := range methods {
+		t.Run(method, func(t *testing.T) {
+			target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != method {
+					t.Fatalf("expected method %q, got %q", method, r.Method)
+				}
+
+				body, err := io.ReadAll(r.Body)
+				if err != nil {
+					t.Fatalf("failed reading request body: %v", err)
+				}
+				if len(body) == 0 {
+					t.Fatalf("expected non-empty request body for %s", method)
+				}
+
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"ok":true}`))
+			}))
+			defer target.Close()
+
+			step := &Step{
+				URL:    target.URL,
+				Method: method,
+			}
+
+			ctx := &engine.ExecutionContext{
+				Payload: &payload.JSON{Data: map[string]interface{}{"a": "b"}},
+			}
+
+			if err := step.Execute(ctx); err != nil {
+				t.Fatalf("execute returned error: %v", err)
+			}
+		})
+	}
+}
+
 func TestExecuteWithoutProxy(t *testing.T) {
 	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -37,6 +81,46 @@ func TestExecuteWithoutProxy(t *testing.T) {
 		t.Fatalf("expected payload.JSON, got %T", ctx.Payload)
 	}
 	if got, ok := out.Data["from"]; !ok || got != "target" {
+		t.Fatalf("unexpected response payload: %#v", out.Data)
+	}
+}
+
+func TestExecuteWithHeaders(t *testing.T) {
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("Authorization"); got != "Bearer {{API_TOKEN}}" {
+			t.Fatalf("expected Authorization header to be set, got %q", got)
+		}
+		if got := r.Header.Get("X-Custom-Header"); got != "custom-value" {
+			t.Fatalf("expected X-Custom-Header header to be set, got %q", got)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"from":"target-with-headers"}`))
+	}))
+	defer target.Close()
+
+	step := &Step{
+		URL:    target.URL,
+		Method: http.MethodPost,
+		Headers: map[string]string{
+			"Authorization":   "Bearer {{API_TOKEN}}",
+			"X-Custom-Header": "custom-value",
+		},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSON{Data: map[string]interface{}{"a": "b"}},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out, ok := ctx.Payload.(*payload.JSON)
+	if !ok {
+		t.Fatalf("expected payload.JSON, got %T", ctx.Payload)
+	}
+	if got, ok := out.Data["from"]; !ok || got != "target-with-headers" {
 		t.Fatalf("unexpected response payload: %#v", out.Data)
 	}
 }

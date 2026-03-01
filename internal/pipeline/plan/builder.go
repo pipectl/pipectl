@@ -28,18 +28,31 @@ func Build(p spec.Pipeline) ([]engine.ExecutableStep, error) {
 func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 	switch s := step.(type) {
 	case *spec.ValidateJSONStep:
-		return &validatejson.Step{Schema: s.Schema}, nil
+		return &validatejson.Step{
+			Schema: s.Schema,
+		}, nil
 	case *spec.NormalizeStep:
-		return &normalize.Step{Fields: s.Fields}, nil
+		return &normalize.Step{
+			Fields: s.Fields,
+		}, nil
 	case *spec.RedactStep:
-		return &redact.Step{Fields: s.Fields, Strategy: s.Strategy}, nil
+		return &redact.Step{
+			Fields:   s.Fields,
+			Strategy: s.Strategy,
+		}, nil
 	case *spec.FilterStep:
-		return &filter.Step{Field: s.Field, Value: s.Equals}, nil
+		return &filter.Step{
+			Field: s.Field,
+			Value: s.Equals,
+		}, nil
 	case *spec.HTTPTransformStep:
-		return &httptransform.Step{URL: s.URL, Method: s.Method, Proxy: s.Proxy}, nil
-	case nil:
-		return nil, fmt.Errorf("step is nil")
+		return &httptransform.Step{
+			URL:     s.URL,
+			Method:  s.Method,
+			Proxy:   s.Proxy,
+			Headers: s.Headers,
+		}, nil
 	default:
-		return nil, fmt.Errorf("unsupported step type %T", step)
+		return nil, fmt.Errorf("invalid step type %T", step)
 	}
 }

@@ -7,15 +7,17 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/engine/payload"
 )
 
 type Step struct {
-	URL    string
-	Method string
-	Proxy  string
+	URL     string
+	Method  string
+	Proxy   string
+	Headers map[string]string
 }
 
 func (s *Step) Name() string {
@@ -43,16 +45,23 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 
 func (s *Step) transformPayload(inputPayload payload.Payload) (*payload.JSON, error) {
 	var bodyReader io.Reader
-	if s.Method == "POST" {
+	method := strings.ToUpper(s.Method)
+
+	// Set the request body from the step payload
+	if method == http.MethodPost || method == http.MethodPut || method == http.MethodPatch || method == http.MethodDelete {
 		jsonBody, _ := json.Marshal(inputPayload)
 		bodyReader = bytes.NewBuffer(jsonBody)
 	}
 
-	req, err := http.NewRequest(s.Method, s.URL, bodyReader)
+	req, err := http.NewRequest(method, s.URL, bodyReader)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("X-Pipectl-Step", "http-transform")
+
+	// add headers
+	for key, value := range s.Headers {
+		req.Header.Set(key, value)
+	}
 
 	client := &http.Client{}
 	if s.Proxy != "" {

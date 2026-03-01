@@ -3,9 +3,10 @@ package spec
 import "fmt"
 
 type HTTPTransformStep struct {
-	URL    string `yaml:"url"`
-	Method string `yaml:"method"`
-	Proxy  string `yaml:"proxy"`
+	URL     string            `yaml:"url"`
+	Method  string            `yaml:"method"`
+	Proxy   string            `yaml:"proxy"`
+	Headers map[string]string `yaml:"headers"`
 }
 
 func (s *HTTPTransformStep) StepType() string {
@@ -13,5 +14,5 @@ func (s *HTTPTransformStep) StepType() string {
 }
 
 func (s *HTTPTransformStep) String() string {
-	return fmt.Sprintf("[%s]: %v %v proxy=%v", s.StepType(), s.URL, s.Method, s.Proxy)
+	return fmt.Sprintf("[%s]: %v %v proxy=%v headers=%v", s.StepType(), s.URL, s.Method, s.Proxy, s.Headers)
 }

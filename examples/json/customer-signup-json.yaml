@@ -20,6 +20,9 @@ steps:
   - http-transform:
       url: https://httpbin.org/post
       method: POST
+      headers:
+        X-Pipectl-Step: http-transform
+        Authorization: Bearer asdf
 
   - redact:
       fields: [data, origin]
