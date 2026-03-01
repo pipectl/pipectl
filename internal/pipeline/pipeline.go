@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	"github.com/shanebell/pipectl/internal/payload"
+	"github.com/shanebell/pipectl/internal/engine/payload"
 	"github.com/shanebell/pipectl/internal/pipeline/plan"
 	"github.com/shanebell/pipectl/internal/pipeline/spec"
 )

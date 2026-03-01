@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	"github.com/shanebell/pipectl/internal/payload"
+	payload2 "github.com/shanebell/pipectl/internal/engine/payload"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -18,12 +18,12 @@ func (s *Step) Name() string {
 	return "validate-json"
 }
 
-func (s *Step) Supports(p payload.Payload) bool {
-	return p.Type() == payload.JSONType
+func (s *Step) Supports(p payload2.Payload) bool {
+	return p.Type() == payload2.JSONType
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
-	jsonPayload, ok := context.Payload.(*payload.JSON)
+	jsonPayload, ok := context.Payload.(*payload2.JSON)
 	if !ok {
 		return fmt.Errorf("%v requires JSON payload, got %s", s.Name(), context.Payload.Type())
 	}

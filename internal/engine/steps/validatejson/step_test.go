@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	"github.com/shanebell/pipectl/internal/payload"
+	payload2 "github.com/shanebell/pipectl/internal/engine/payload"
 )
 
 func TestName(t *testing.T) {
@@ -20,11 +20,11 @@ func TestName(t *testing.T) {
 func TestSupports(t *testing.T) {
 	step := &Step{}
 
-	if !step.Supports(&payload.JSON{}) {
+	if !step.Supports(&payload2.JSON{}) {
 		t.Fatal("expected step to support JSON payload")
 	}
 
-	if step.Supports(&payload.CSV{}) {
+	if step.Supports(&payload2.CSV{}) {
 		t.Fatal("did not expect step to support CSV payload")
 	}
 }
@@ -39,7 +39,7 @@ func TestExecuteValidJSONAgainstSchemaFile(t *testing.T) {
 
 	step := &Step{Schema: schemaPath}
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"email": "alice@example.com"}},
+		Payload: &payload2.JSON{Data: map[string]interface{}{"email": "alice@example.com"}},
 	}
 
 	if err := step.Execute(ctx); err != nil {
@@ -50,7 +50,7 @@ func TestExecuteValidJSONAgainstSchemaFile(t *testing.T) {
 func TestExecuteReturnsValidationError(t *testing.T) {
 	step := &Step{Schema: `{"type":"object","required":["email"],"properties":{"email":{"type":"string"}}}`}
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"id": 123}},
+		Payload: &payload2.JSON{Data: map[string]interface{}{"id": 123}},
 	}
 
 	err := step.Execute(ctx)
@@ -68,7 +68,7 @@ func TestExecuteReturnsValidationError(t *testing.T) {
 func TestExecuteReturnsErrorForNonJSONPayload(t *testing.T) {
 	step := &Step{Schema: `{"type":"object"}`}
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.CSV{Rows: [][]string{{"id"}, {"1"}}},
+		Payload: &payload2.CSV{Rows: [][]string{{"id"}, {"1"}}},
 	}
 
 	err := step.Execute(ctx)
@@ -83,7 +83,7 @@ func TestExecuteReturnsErrorForNonJSONPayload(t *testing.T) {
 func TestExecuteReturnsErrorWhenSchemaIsMissing(t *testing.T) {
 	step := &Step{Schema: " "}
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"email": "alice@example.com"}},
+		Payload: &payload2.JSON{Data: map[string]interface{}{"email": "alice@example.com"}},
 	}
 
 	err := step.Execute(ctx)

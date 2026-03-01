@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	"github.com/shanebell/pipectl/internal/payload"
+	"github.com/shanebell/pipectl/internal/engine/payload"
 )
 
 func TestExecuteWithoutProxy(t *testing.T) {
