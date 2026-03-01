@@ -79,7 +79,7 @@ func TestExecuteReturnsErrorForNonCSVPayload(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected an error for non-CSV payload")
 	}
-	if !strings.Contains(err.Error(), "requires CSV payload") {
+	if !strings.Contains(err.Error(), "filter does not support payload type json") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

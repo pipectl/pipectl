@@ -21,14 +21,12 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
-	csvPayload, ok := context.Payload.(*payload.CSV)
-	if !ok {
-		return fmt.Errorf("%v requires CSV payload, got %s", s.Name(), context.Payload.Type())
+	if s.Supports(context.Payload) == false {
+		return fmt.Errorf("%v does not support payload type %v", s.Name(), context.Payload.Type())
 	}
 
-	s.filterCsv(csvPayload)
-
-	return nil
+	csvPayload := context.Payload.(*payload.CSV)
+	return s.filterCsv(csvPayload)
 }
 
 func (s *Step) filterCsv(csvPayload *payload.CSV) error {
