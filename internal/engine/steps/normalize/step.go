@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	payload2 "github.com/shanebell/pipectl/internal/engine/payload"
+	"github.com/shanebell/pipectl/internal/engine/payload"
 )
 
 type Step struct {
@@ -16,17 +16,17 @@ func (s *Step) Name() string {
 	return "normalize"
 }
 
-func (s *Step) Supports(p payload2.Payload) bool {
-	return p.Type() == payload2.JSONType || p.Type() == payload2.CSVType
+func (s *Step) Supports(p payload.Payload) bool {
+	return p.Type() == payload.JSONType || p.Type() == payload.CSVType
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
-	jsonPayload, jsonOk := context.Payload.(*payload2.JSON)
+	jsonPayload, jsonOk := context.Payload.(*payload.JSON)
 	if jsonOk {
 		return s.normalizeJSON(jsonPayload)
 	}
 
-	csvPayload, csvOk := context.Payload.(*payload2.CSV)
+	csvPayload, csvOk := context.Payload.(*payload.CSV)
 	if csvOk {
 		return s.normalizeCsv(csvPayload)
 	}
@@ -66,7 +66,7 @@ func (s *Step) normalizeValue(value string, strategy string) string {
 	return fn(value)
 }
 
-func (s *Step) normalizeJSON(jsonPayload *payload2.JSON) error {
+func (s *Step) normalizeJSON(jsonPayload *payload.JSON) error {
 	for key, _ := range jsonPayload.Data {
 		if strategy, needsNormalizing := s.Fields[key]; needsNormalizing {
 			if currentValue, ok := jsonPayload.Data[key].(string); ok {
@@ -78,7 +78,7 @@ func (s *Step) normalizeJSON(jsonPayload *payload2.JSON) error {
 	return nil
 }
 
-func (s *Step) normalizeCsv(csvPayload *payload2.CSV) error {
+func (s *Step) normalizeCsv(csvPayload *payload.CSV) error {
 	headerRow := csvPayload.Rows[0]
 	normalizeFunctions := map[int]func(string) string{}
 	strategyIndex := map[int]string{}

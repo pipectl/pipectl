@@ -9,7 +9,7 @@ import (
 	"net/url"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	payload2 "github.com/shanebell/pipectl/internal/engine/payload"
+	"github.com/shanebell/pipectl/internal/engine/payload"
 )
 
 type Step struct {
@@ -22,8 +22,8 @@ func (s *Step) Name() string {
 	return "http-transform"
 }
 
-func (s *Step) Supports(p payload2.Payload) bool {
-	return p.Type() == payload2.JSONType
+func (s *Step) Supports(p payload.Payload) bool {
+	return p.Type() == payload.JSONType
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
@@ -41,7 +41,7 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	return nil
 }
 
-func (s *Step) transformPayload(inputPayload payload2.Payload) (*payload2.JSON, error) {
+func (s *Step) transformPayload(inputPayload payload.Payload) (*payload.JSON, error) {
 	var bodyReader io.Reader
 	if s.Method == "POST" {
 		jsonBody, _ := json.Marshal(inputPayload)
@@ -86,5 +86,5 @@ func (s *Step) transformPayload(inputPayload payload2.Payload) (*payload2.JSON, 
 		return nil, fmt.Errorf("Error parsing JSON response: %s\n", err)
 	}
 
-	return &payload2.JSON{Data: data}, nil
+	return &payload.JSON{Data: data}, nil
 }

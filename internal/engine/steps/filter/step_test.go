@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	payload2 "github.com/shanebell/pipectl/internal/engine/payload"
+	"github.com/shanebell/pipectl/internal/engine/payload"
 )
 
 func TestName(t *testing.T) {
@@ -19,11 +19,11 @@ func TestName(t *testing.T) {
 func TestSupports(t *testing.T) {
 	step := &Step{}
 
-	if !step.Supports(&payload2.CSV{}) {
+	if !step.Supports(&payload.CSV{}) {
 		t.Fatal("expected step to support CSV payload")
 	}
 
-	if step.Supports(&payload2.JSON{}) {
+	if step.Supports(&payload.JSON{}) {
 		t.Fatal("did not expect step to support JSON payload")
 	}
 }
@@ -34,7 +34,7 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 		Value: "active",
 	}
 
-	csvPayload := &payload2.CSV{
+	csvPayload := &payload.CSV{
 		Rows: [][]string{
 			{"id", "status"},
 			{"1", "active"},
@@ -49,7 +49,7 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 		t.Fatalf("execute returned error: %v", err)
 	}
 
-	out, ok := ctx.Payload.(*payload2.CSV)
+	out, ok := ctx.Payload.(*payload.CSV)
 	if !ok {
 		t.Fatalf("expected payload.CSV, got %T", ctx.Payload)
 	}
@@ -72,7 +72,7 @@ func TestExecuteReturnsErrorForNonCSVPayload(t *testing.T) {
 	}
 
 	ctx := &engine.ExecutionContext{
-		Payload: &payload2.JSON{Data: map[string]interface{}{"status": "active"}},
+		Payload: &payload.JSON{Data: map[string]interface{}{"status": "active"}},
 	}
 
 	err := step.Execute(ctx)

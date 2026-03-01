@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	payload2 "github.com/shanebell/pipectl/internal/engine/payload"
+	"github.com/shanebell/pipectl/internal/engine/payload"
 )
 
 type Step struct {
@@ -16,12 +16,12 @@ func (s *Step) Name() string {
 	return "filter"
 }
 
-func (s *Step) Supports(p payload2.Payload) bool {
-	return p.Type() == payload2.CSVType
+func (s *Step) Supports(p payload.Payload) bool {
+	return p.Type() == payload.CSVType
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
-	csvPayload, ok := context.Payload.(*payload2.CSV)
+	csvPayload, ok := context.Payload.(*payload.CSV)
 	if !ok {
 		return fmt.Errorf("%v requires CSV payload, got %s", s.Name(), context.Payload.Type())
 	}
@@ -31,7 +31,7 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	return nil
 }
 
-func (s *Step) filterCsv(csvPayload *payload2.CSV) error {
+func (s *Step) filterCsv(csvPayload *payload.CSV) error {
 	headerRow := csvPayload.Rows[0]
 	toFilter := make([]*string, len(headerRow))
 	for i, header := range headerRow {

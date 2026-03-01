@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	payload2 "github.com/shanebell/pipectl/internal/engine/payload"
+	"github.com/shanebell/pipectl/internal/engine/payload"
 )
 
 func TestNormalizeValueStrategies(t *testing.T) {
@@ -93,15 +93,15 @@ func TestName(t *testing.T) {
 func TestSupports(t *testing.T) {
 	step := &Step{}
 
-	if !step.Supports(&payload2.JSON{}) {
+	if !step.Supports(&payload.JSON{}) {
 		t.Fatal("expected step to support JSON payload")
 	}
 
-	if !step.Supports(&payload2.CSV{}) {
+	if !step.Supports(&payload.CSV{}) {
 		t.Fatal("expected step to support CSV payload")
 	}
 
-	if step.Supports(&payload2.Text{}) {
+	if step.Supports(&payload.Text{}) {
 		t.Fatal("did not expect step to support Text payload")
 	}
 }
@@ -115,7 +115,7 @@ func TestExecuteNormalizesJSONFields(t *testing.T) {
 	}
 
 	ctx := &engine.ExecutionContext{
-		Payload: &payload2.JSON{
+		Payload: &payload.JSON{
 			Data: map[string]interface{}{
 				"name":   "  Alice  ",
 				"status": " ACTIVE ",
@@ -128,7 +128,7 @@ func TestExecuteNormalizesJSONFields(t *testing.T) {
 		t.Fatalf("execute returned error: %v", err)
 	}
 
-	out, ok := ctx.Payload.(*payload2.JSON)
+	out, ok := ctx.Payload.(*payload.JSON)
 	if !ok {
 		t.Fatalf("expected payload.JSON, got %T", ctx.Payload)
 	}
@@ -152,7 +152,7 @@ func TestExecuteNormalizesCSVFields(t *testing.T) {
 	}
 
 	ctx := &engine.ExecutionContext{
-		Payload: &payload2.CSV{
+		Payload: &payload.CSV{
 			Rows: [][]string{
 				{"name", "email", "id"},
 				{" Alice ", "Alice@Example.Com", "1"},
@@ -165,7 +165,7 @@ func TestExecuteNormalizesCSVFields(t *testing.T) {
 		t.Fatalf("execute returned error: %v", err)
 	}
 
-	out, ok := ctx.Payload.(*payload2.CSV)
+	out, ok := ctx.Payload.(*payload.CSV)
 	if !ok {
 		t.Fatalf("expected payload.CSV, got %T", ctx.Payload)
 	}
@@ -186,7 +186,7 @@ func TestExecuteReturnsErrorForUnsupportedPayload(t *testing.T) {
 	}
 
 	ctx := &engine.ExecutionContext{
-		Payload: &payload2.Text{Text: "HELLO"},
+		Payload: &payload.Text{Text: "HELLO"},
 	}
 
 	err := step.Execute(ctx)

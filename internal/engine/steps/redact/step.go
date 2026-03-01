@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/shanebell/pipectl/internal/engine"
-	payload2 "github.com/shanebell/pipectl/internal/engine/payload"
+	"github.com/shanebell/pipectl/internal/engine/payload"
 )
 
 type Step struct {
@@ -20,17 +20,17 @@ func (s *Step) Name() string {
 	return "redact"
 }
 
-func (s *Step) Supports(p payload2.Payload) bool {
-	return p.Type() == payload2.JSONType || p.Type() == payload2.CSVType
+func (s *Step) Supports(p payload.Payload) bool {
+	return p.Type() == payload.JSONType || p.Type() == payload.CSVType
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
-	jsonPayload, jsonOk := context.Payload.(*payload2.JSON)
+	jsonPayload, jsonOk := context.Payload.(*payload.JSON)
 	if jsonOk {
 		return s.redactJson(jsonPayload)
 	}
 
-	csvPayload, csvOk := context.Payload.(*payload2.CSV)
+	csvPayload, csvOk := context.Payload.(*payload.CSV)
 	if csvOk {
 		return s.redactCsv(csvPayload)
 	}
@@ -38,7 +38,7 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	return fmt.Errorf("%v requires either JSON or CSV payload, got %s", s.Name(), context.Payload.Type())
 }
 
-func (s *Step) redactCsv(csvPayload *payload2.CSV) error {
+func (s *Step) redactCsv(csvPayload *payload.CSV) error {
 	headerRow := csvPayload.Rows[0]
 	toRedact := make([]bool, len(headerRow))
 	for i, header := range headerRow {
@@ -59,7 +59,7 @@ func (s *Step) redactCsv(csvPayload *payload2.CSV) error {
 
 // TODO only handles top-level fields, make this recursive
 // TODO can types other than strings be redacted? eg: changing from an int to "***" seems wrong and could break schema.
-func (s *Step) redactJson(jsonPayload *payload2.JSON) error {
+func (s *Step) redactJson(jsonPayload *payload.JSON) error {
 	for k, v := range jsonPayload.Data {
 		if slices.Contains(s.Fields, k) {
 			switch value := v.(type) {
