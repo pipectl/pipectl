@@ -23,7 +23,8 @@ steps:
       timeout: 60
       headers:
         X-Pipectl-Step: http-transform
-        Authorization: Bearer asdf
+        Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=
+      expect-format: json
 
   - redact:
       fields: [data, origin]

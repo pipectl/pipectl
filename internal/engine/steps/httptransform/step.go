@@ -3,9 +3,11 @@ package httptransform
 import (
 	"bytes"
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"net/url"
 	"strings"
@@ -16,11 +18,12 @@ import (
 )
 
 type Step struct {
-	URL     string
-	Method  string
-	Proxy   string
-	Headers map[string]string
-	Timeout int
+	URL          string
+	Method       string
+	Proxy        string
+	Headers      map[string]string
+	Timeout      int
+	ExpectFormat string
 }
 
 const (
@@ -51,7 +54,7 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	return nil
 }
 
-func (s *Step) transformPayload(inputPayload payload.Payload) (*payload.JSON, error) {
+func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, error) {
 	var bodyReader io.Reader
 	method := strings.ToUpper(s.Method)
 
@@ -100,17 +103,74 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (*payload.JSON, er
 		return nil, fmt.Errorf("Unexpected status code: %d\n", resp.StatusCode)
 	}
 
+	expectedFormat, err := s.resolveExpectedFormat()
+	if err != nil {
+		return nil, err
+	}
+	if err := validateResponseContentType(resp.Header.Get("Content-Type"), expectedFormat); err != nil {
+		return nil, err
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Error reading response body: %s\n", err)
 	}
 
-	var data map[string]interface{}
-	if err := json.Unmarshal(body, &data); err != nil {
-		return nil, fmt.Errorf("Error parsing JSON response: %s\n", err)
+	switch expectedFormat {
+	case payload.JSONType:
+		var data map[string]interface{}
+		if err := json.Unmarshal(body, &data); err != nil {
+			return nil, fmt.Errorf("Error parsing JSON response: %s\n", err)
+		}
+		return &payload.JSON{Data: data}, nil
+
+	case payload.CSVType:
+		rows, err := csv.NewReader(bytes.NewReader(body)).ReadAll()
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing CSV response: %s\n", err)
+		}
+		return &payload.CSV{Rows: rows}, nil
 	}
 
-	return &payload.JSON{Data: data}, nil
+	return nil, fmt.Errorf("invalid expect-format %q", expectedFormat)
+}
+
+func (s *Step) resolveExpectedFormat() (string, error) {
+	expectedFormat := strings.ToLower(strings.TrimSpace(s.ExpectFormat))
+	if expectedFormat == "" {
+		return payload.JSONType, nil
+	}
+
+	if expectedFormat != payload.JSONType && expectedFormat != payload.CSVType {
+		return "", fmt.Errorf("invalid expect-format %q: must be json or csv", s.ExpectFormat)
+	}
+
+	return expectedFormat, nil
+}
+
+func validateResponseContentType(contentType string, expectedFormat string) error {
+	mediaType, _, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		return fmt.Errorf("invalid response Content-Type %q: %w", contentType, err)
+	}
+
+	if !contentTypeMatchesFormat(mediaType, expectedFormat) {
+		return fmt.Errorf("response Content-Type %q does not match expect-format %q", mediaType, expectedFormat)
+	}
+
+	return nil
+}
+
+func contentTypeMatchesFormat(mediaType string, expectedFormat string) bool {
+	normalizedMediaType := strings.ToLower(strings.TrimSpace(mediaType))
+	switch expectedFormat {
+	case payload.JSONType:
+		return strings.HasSuffix(normalizedMediaType, "/json") || strings.HasSuffix(normalizedMediaType, "+json")
+	case payload.CSVType:
+		return strings.HasSuffix(normalizedMediaType, "/csv") || strings.Contains(normalizedMediaType, "csv")
+	default:
+		return false
+	}
 }
 
 func (s *Step) resolveTimeout() (time.Duration, error) {

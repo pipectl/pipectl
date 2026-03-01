@@ -68,19 +68,8 @@ type Rule struct {
 
 ### HTTP Transform
 
-- Add support for additional parameters
-  - timeout
-  - expect_format
+- Add support for posting CSV payloads
 
-```yaml
-- http_transform:
-    url: https://api.example.com/process
-    method: POST
-    headers:
-      Authorization: "Bearer ${API_TOKEN}"
-    timeout: 10s
-    expect_format: csv
-```
 
 ### HTTP request
 

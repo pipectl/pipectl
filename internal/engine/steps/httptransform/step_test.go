@@ -132,6 +132,77 @@ func TestExecuteWithTimeoutInSeconds(t *testing.T) {
 	}
 }
 
+func TestResolveExpectedFormatInvalid(t *testing.T) {
+	step := &Step{ExpectFormat: "xml"}
+
+	_, err := step.resolveExpectedFormat()
+	if err == nil {
+		t.Fatal("expected invalid expect-format error")
+	}
+	if !strings.Contains(err.Error(), "must be json or csv") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestExecuteWithExpectFormatJSONMismatch(t *testing.T) {
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/csv")
+		_, _ = w.Write([]byte("id,name\n1,Alice\n"))
+	}))
+	defer target.Close()
+
+	step := &Step{
+		URL:          target.URL,
+		Method:       http.MethodPost,
+		ExpectFormat: "json",
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSON{Data: map[string]interface{}{"a": "b"}},
+	}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected content-type mismatch error")
+	}
+	if !strings.Contains(err.Error(), "does not match expect-format") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestExecuteWithExpectFormatCSV(t *testing.T) {
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/csv")
+		_, _ = w.Write([]byte("id,name\n1,Alice\n2,Bob\n"))
+	}))
+	defer target.Close()
+
+	step := &Step{
+		URL:          target.URL,
+		Method:       http.MethodPost,
+		ExpectFormat: "csv",
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSON{Data: map[string]interface{}{"a": "b"}},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out, ok := ctx.Payload.(*payload.CSV)
+	if !ok {
+		t.Fatalf("expected payload.CSV, got %T", ctx.Payload)
+	}
+	if len(out.Rows) != 3 {
+		t.Fatalf("unexpected CSV rows: %#v", out.Rows)
+	}
+	if out.Rows[0][0] != "id" || out.Rows[1][1] != "Alice" || out.Rows[2][1] != "Bob" {
+		t.Fatalf("unexpected CSV content: %#v", out.Rows)
+	}
+}
+
 func TestExecuteWithoutProxy(t *testing.T) {
 	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

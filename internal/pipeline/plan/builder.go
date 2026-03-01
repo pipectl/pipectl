@@ -47,11 +47,12 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 		}, nil
 	case *spec.HTTPTransformStep:
 		return &httptransform.Step{
-			URL:     s.URL,
-			Method:  s.Method,
-			Proxy:   s.Proxy,
-			Headers: s.Headers,
-			Timeout: s.Timeout,
+			URL:          s.URL,
+			Method:       s.Method,
+			Proxy:        s.Proxy,
+			Headers:      s.Headers,
+			Timeout:      s.Timeout,
+			ExpectFormat: s.ExpectFormat,
 		}, nil
 	default:
 		return nil, fmt.Errorf("invalid step type %T", step)
