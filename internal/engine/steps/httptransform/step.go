@@ -2,12 +2,14 @@ package httptransform
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/engine/payload"
@@ -18,7 +20,13 @@ type Step struct {
 	Method  string
 	Proxy   string
 	Headers map[string]string
+	Timeout int
 }
+
+const (
+	defaultTimeoutSeconds = 60
+	maxTimeoutSeconds     = 300
+)
 
 func (s *Step) Name() string {
 	return "http-transform"
@@ -57,6 +65,13 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (*payload.JSON, er
 	if err != nil {
 		return nil, err
 	}
+	requestTimeout, err := s.resolveTimeout()
+	if err != nil {
+		return nil, err
+	}
+	timeoutCtx, cancel := context.WithTimeout(req.Context(), requestTimeout)
+	defer cancel()
+	req = req.WithContext(timeoutCtx)
 
 	// add headers
 	for key, value := range s.Headers {
@@ -96,4 +111,20 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (*payload.JSON, er
 	}
 
 	return &payload.JSON{Data: data}, nil
+}
+
+func (s *Step) resolveTimeout() (time.Duration, error) {
+	if s.Timeout == 0 {
+		return defaultTimeoutSeconds * time.Second, nil
+	}
+
+	if s.Timeout < 0 {
+		return 0, fmt.Errorf("invalid timeout %d: must be a positive number of seconds", s.Timeout)
+	}
+
+	if s.Timeout > maxTimeoutSeconds {
+		return 0, fmt.Errorf("invalid timeout %d: maximum is %d seconds", s.Timeout, maxTimeoutSeconds)
+	}
+
+	return time.Duration(s.Timeout) * time.Second, nil
 }

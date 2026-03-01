@@ -20,6 +20,7 @@ steps:
   - http-transform:
       url: https://httpbin.org/post
       method: POST
+      timeout: 60
       headers:
         X-Pipectl-Step: http-transform
         Authorization: Bearer asdf

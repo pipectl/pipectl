@@ -51,6 +51,7 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 			Method:  s.Method,
 			Proxy:   s.Proxy,
 			Headers: s.Headers,
+			Timeout: s.Timeout,
 		}, nil
 	default:
 		return nil, fmt.Errorf("invalid step type %T", step)

@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/engine/payload"
@@ -53,6 +54,81 @@ func TestExecuteWithBodyMethods(t *testing.T) {
 				t.Fatalf("execute returned error: %v", err)
 			}
 		})
+	}
+}
+
+func TestResolveTimeoutDefault(t *testing.T) {
+	step := &Step{}
+
+	got, err := step.resolveTimeout()
+	if err != nil {
+		t.Fatalf("resolveTimeout returned error: %v", err)
+	}
+	if got != 60*time.Second {
+		t.Fatalf("expected default timeout 60s, got %v", got)
+	}
+}
+
+func TestResolveTimeoutCustom(t *testing.T) {
+	step := &Step{Timeout: 2}
+
+	got, err := step.resolveTimeout()
+	if err != nil {
+		t.Fatalf("resolveTimeout returned error: %v", err)
+	}
+	if got != 2*time.Second {
+		t.Fatalf("expected timeout 2s, got %v", got)
+	}
+}
+
+func TestResolveTimeoutInvalid(t *testing.T) {
+	step := &Step{Timeout: -1}
+
+	_, err := step.resolveTimeout()
+	if err == nil {
+		t.Fatal("expected error for invalid timeout")
+	}
+	if !strings.Contains(err.Error(), "invalid timeout") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestResolveTimeoutAboveMaximum(t *testing.T) {
+	step := &Step{Timeout: 301}
+
+	_, err := step.resolveTimeout()
+	if err == nil {
+		t.Fatal("expected error for timeout above maximum")
+	}
+	if !strings.Contains(err.Error(), "maximum is 300 seconds") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestExecuteWithTimeoutInSeconds(t *testing.T) {
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(2 * time.Second)
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"from":"slow-target"}`))
+	}))
+	defer target.Close()
+
+	step := &Step{
+		URL:     target.URL,
+		Method:  http.MethodPost,
+		Timeout: 1,
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSON{Data: map[string]interface{}{"a": "b"}},
+	}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected timeout error")
+	}
+	if !strings.Contains(err.Error(), "context deadline exceeded") {
+		t.Fatalf("unexpected timeout error: %v", err)
 	}
 }
 
