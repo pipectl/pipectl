@@ -1,8 +1,211 @@
 # TODO
 
+### Payload
+
+- TODO
+    - Support JSONL
+    - Support arrays of JSON objects
+
 ## Steps
 
 ### Filter
 
 - Add support for JSON payloads
-- 
+- Add support for multiple conditions.
+
+AND example:
+
+```yaml
+- filter:
+    all:
+      - field: country
+        equals: AU
+      - field: status
+        equals: active
+```
+
+OR example:
+
+```yaml
+- filter:
+    any:
+      - field: country
+        equals: AU
+      - field: country
+        equals: NZ
+```
+
+Combination:
+
+```yaml
+- filter:
+    all:
+      - field: age
+        greater_than: 18
+      - any:
+          - field: country
+            equals: AU
+          - field: country
+            equals: NZ
+```
+
+Note: if doing the combined above, model the step representation like this:
+
+```go
+package steps
+
+type ConditionGroup struct {
+	All  []ConditionGroup
+	Any  []ConditionGroup
+	Rule *Rule
+}
+
+type Rule struct {
+	Field string
+	Value interface{}
+}
+```
+
+### HTTP Transform
+
+- Add support for additional parameters
+  - headers
+  - timeout
+  - expect_format
+
+```yaml
+- http_transform:
+    url: https://api.example.com/process
+    method: POST
+    headers:
+      Authorization: "Bearer ${API_TOKEN}"
+    timeout: 10s
+    expect_format: csv
+```
+
+### HTTP request
+
+- Add a separate step for HTTP requests
+- Does NOT transform the payload (the same payload is passed through)
+- Sends the payload to the HTTP endpoint
+- Fails on non 200 responses
+
+### Select
+
+Keep only certain fields
+
+eg:
+
+```yaml
+- select:
+    fields: [ id, email, created_at ]
+```
+
+- TODO
+    - Add support for CSV
+    - Add support for JSON
+
+### Rename
+
+Rename fields.
+
+```yaml
+- rename:
+    mappings:
+      firstName: first_name
+      lastName: last_name
+```
+
+- TODO
+    - Add support for CSV
+    - Add support for JSON
+
+### Map
+
+Transform a field.
+
+Note: Some overlap with `normalize`.
+
+```yaml
+- map:
+    field: email
+    to_lower: true
+```
+
+```yaml
+- map:
+    field: price
+    multiply_by: 1.1
+```
+
+- TODO
+    - Which operations are supported? eg:
+        - `to_lower`
+        - `to_upper`
+        - `multiply_by`
+        - `divide_by`
+        - `add`
+        - `subtract`
+        - `round`
+        - `floor`
+        - `ceil`
+
+### Default
+
+Set missing values.
+
+```yaml
+- default:
+    field: country
+    value: AU
+```
+
+- TODO
+    - Add support for CSV
+    - Add support for JSON
+
+### Cast
+
+Convert types.
+
+```yaml
+- cast:
+    field: age
+    type: int
+```
+
+- TODO
+    - Which casts are supported?
+
+### Mask
+
+Different from redact.
+
+```yaml
+- mask:
+    field: credit_card
+    strategy: last4
+```
+
+- TODO
+    - Add support for CSV
+    - Add support for JSON
+
+### Dedupe
+
+Remove duplicates
+
+```yaml
+- dedupe:
+    by: email
+```
+
+### Enrich
+
+Add derived fields
+
+```yaml
+- enrich:
+    field: full_name
+    value: "{{first_name}} {{last_name}}"
+```

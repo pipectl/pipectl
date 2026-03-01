@@ -2,7 +2,6 @@ package filter
 
 import (
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/shanebell/pipectl/internal/engine"
@@ -62,24 +61,5 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 
 	if !reflect.DeepEqual(out.Rows, expected) {
 		t.Fatalf("unexpected filtered rows:\nexpected: %#v\ngot: %#v", expected, out.Rows)
-	}
-}
-
-func TestExecuteReturnsErrorForNonCSVPayload(t *testing.T) {
-	step := &Step{
-		Field: "status",
-		Value: "active",
-	}
-
-	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"status": "active"}},
-	}
-
-	err := step.Execute(ctx)
-	if err == nil {
-		t.Fatal("expected an error for non-CSV payload")
-	}
-	if !strings.Contains(err.Error(), "filter does not support payload type json") {
-		t.Fatalf("unexpected error: %v", err)
 	}
 }

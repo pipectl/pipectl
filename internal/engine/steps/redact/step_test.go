@@ -155,7 +155,7 @@ func TestExecuteReturnsErrorForUnsupportedPayload(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected an error for unsupported payload")
 	}
-	if !strings.Contains(err.Error(), "requires either JSON or CSV payload") {
+	if !strings.Contains(err.Error(), "redact received invalid payload type text") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

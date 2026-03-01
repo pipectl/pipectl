@@ -1,110 +1,66 @@
 # Pipectl
 
-## Steps
+Pipe Control - a pipeline execution tool
 
-### Filter
+# Usage
 
-Drop records based on conditions.
+## CSV example
+
+Transform, filter and redact data from a CSV file:
 
 ```yaml
-- filter:
-    field: status
-    equals: active
+id: customer-pipeline
+
+input:
+  format: csv
+
+steps:
+  - normalize:
+      fields:
+        country: upper
+        first_name: capitalize
+        last_name: capitalize
+
+  - filter:
+      field: country
+      equals: AU
+
+  - redact:
+      fields: [credit_card, password]
+      strategy: mask
+
+output:
+  format: csv
 ```
 
-### Select
+## JSON example
 
-Keep only certain fields.
-
-```yaml
-- select:
-    fields: [id, email, created_at]
-```
-
-### Rename
-
-Rename fields.
+Validate and transform JSON data and POST to an API endpoint
 
 ```yaml
-- rename:
-    mappings:
-      firstName: first_name
-      lastName: last_name
-```
+id: customer-signup
 
-### Map
+input:
+  format: json
 
-Transform a field.
+steps:
+  - validate-json:
+      schema: ./schema.json
 
-```yaml
-- map:
-    field: email
-    to_lower: true
-```
+  - normalize:
+      fields:
+        email: lower
+        name: trim
+        string: collapse-spaces
 
-```yaml
-- map:
-    field: price
-    multiply_by: 1.1
-```
+  - redact:
+      strategy: mask
+      fields: [credit_card, password]
 
-### Default
+  - http-transform:
+      url: https://example.com/register-customer
+      method: POST
 
-Set missing values.
-
-```yaml
-- default:
-    field: country
-    value: AU
-```
-
-### Cast
-
-Convert types.
-
-```yaml
-- cast:
-    field: age
-    type: int
-```
-
-### Validate schema
-
-You already have validate_json — this is broader
-
-```yaml
-- validate_schema:
-    required: [id, email]
-    types:
-      age: int
-      email: string
-```
-
-### Dedupe
-
-Remove duplicates
-
-```yaml
-- dedupe:
-    by: email
-```
-
-### Mask
-
-Different from redact.
-
-```yaml
-- mask:
-    field: credit_card
-    strategy: last4
-```
-
-### Enrich
-
-Add derived fields
-
-```yaml
-- enrich:
-    field: full_name
-    value: "{{first_name}} {{last_name}}"
+output:
+  format: json
 ```

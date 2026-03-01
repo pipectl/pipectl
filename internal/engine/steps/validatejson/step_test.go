@@ -65,21 +65,6 @@ func TestExecuteReturnsValidationError(t *testing.T) {
 	}
 }
 
-func TestExecuteReturnsErrorForNonJSONPayload(t *testing.T) {
-	step := &Step{Schema: `{"type":"object"}`}
-	ctx := &engine.ExecutionContext{
-		Payload: &payload.CSV{Rows: [][]string{{"id"}, {"1"}}},
-	}
-
-	err := step.Execute(ctx)
-	if err == nil {
-		t.Fatal("expected an error for non-JSON payload")
-	}
-	if !strings.Contains(err.Error(), "requires JSON payload") {
-		t.Fatalf("unexpected error: %v", err)
-	}
-}
-
 func TestExecuteReturnsErrorWhenSchemaIsMissing(t *testing.T) {
 	step := &Step{Schema: " "}
 	ctx := &engine.ExecutionContext{

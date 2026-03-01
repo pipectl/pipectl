@@ -35,7 +35,7 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 		return s.redactCsv(csvPayload)
 	}
 
-	return fmt.Errorf("%v requires either JSON or CSV payload, got %s", s.Name(), context.Payload.Type())
+	return fmt.Errorf("%v received invalid payload type %v", s.Name(), context.Payload.Type())
 }
 
 func (s *Step) redactCsv(csvPayload *payload.CSV) error {

@@ -23,12 +23,8 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
-	jsonPayload, ok := context.Payload.(*payload.JSON)
-	if !ok {
-		return fmt.Errorf("%v requires JSON payload, got %s", s.Name(), context.Payload.Type())
-	}
-
 	fmt.Printf("Validating JSON payload against schema %v\n", s.Schema)
+	jsonPayload := context.Payload.(*payload.JSON)
 	return s.validateJSONPayload(jsonPayload.Data)
 }
 
