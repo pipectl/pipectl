@@ -80,17 +80,7 @@ type Rule struct {
 
 ### Select
 
-Keep only certain fields
-
-eg:
-
-```yaml
-- select:
-    fields: [ id, email, created_at ]
-```
-
 - TODO
-    - Add support for CSV
     - Add support for JSON
 
 ### Rename

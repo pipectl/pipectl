@@ -56,7 +56,7 @@ var strategies = map[string]func(string) string{
 }
 
 func (s *Step) normalizeValue(value string, strategy string) string {
-	fmt.Printf("Normalizing value: '%v' with strategy: %v\n", value, strategy)
+	fmt.Printf("- normalizing value: '%v' with strategy: %v\n", value, strategy)
 
 	// TODO handle multiple strategies pipe separated eg: "trim|lower"
 	fn, ok := strategies[strategy]

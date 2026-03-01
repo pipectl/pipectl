@@ -52,7 +52,7 @@ func (s *Step) filterCsv(csvPayload *payload.CSV) error {
 		if match {
 			filteredRows = append(filteredRows, row)
 		} else {
-			fmt.Printf("Excluding row: %v\n", row[0:len(headerRow)])
+			fmt.Printf("- excluding row: %v\n", row[0:len(headerRow)])
 		}
 	}
 

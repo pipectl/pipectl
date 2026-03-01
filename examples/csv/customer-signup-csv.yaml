@@ -18,5 +18,8 @@ steps:
       fields: [credit_card, password]
       strategy: mask
 
+  - select:
+      fields: [first_name, credit_card, dob]
+
 output:
   format: csv
