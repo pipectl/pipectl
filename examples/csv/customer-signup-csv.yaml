@@ -43,5 +43,9 @@ steps:
   - count:
       message: "Final record count"
 
+  - assert:
+      records-equal: 20
+      field-exists: firstName
+
 output:
   format: csv

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/shanebell/pipectl/internal/engine"
+	"github.com/shanebell/pipectl/internal/engine/steps/assert"
 	"github.com/shanebell/pipectl/internal/engine/steps/count"
 	"github.com/shanebell/pipectl/internal/engine/steps/default"
 	"github.com/shanebell/pipectl/internal/engine/steps/filter"
@@ -43,6 +44,13 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 	case *spec.DefaultStep:
 		return &_default.Step{
 			Fields: s.Fields,
+		}, nil
+	case *spec.AssertStep:
+		return &assert.Step{
+			MinRecords:   s.MinRecords,
+			MaxRecords:   s.MaxRecords,
+			RecordsEqual: s.RecordsEqual,
+			FieldExists:  s.FieldExists,
 		}, nil
 	case *spec.RenameStep:
 		return &rename.Step{

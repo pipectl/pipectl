@@ -25,6 +25,12 @@ steps:
       field: country
       equals: AU
 
+  - assert:
+      min-records: 10
+      max-records: 1000
+      records-equal: 100
+      field-exists: email
+
   - redact:
       fields: [credit_card, password]
       strategy: mask

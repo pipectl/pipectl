@@ -3,6 +3,7 @@ package plan
 import (
 	"testing"
 
+	"github.com/shanebell/pipectl/internal/engine/steps/assert"
 	"github.com/shanebell/pipectl/internal/engine/steps/count"
 	"github.com/shanebell/pipectl/internal/engine/steps/default"
 	_log "github.com/shanebell/pipectl/internal/engine/steps/log"
@@ -193,5 +194,50 @@ func TestBuildCountStep(t *testing.T) {
 
 	if countStep.Message != "records before output" {
 		t.Fatalf("unexpected message: got %q want %q", countStep.Message, "records before output")
+	}
+}
+
+func TestBuildAssertStep(t *testing.T) {
+	min := 10
+	max := 1000
+	equal := 100
+	pipeline := spec.Pipeline{
+		Steps: []spec.StepWrapper{
+			{
+				Step: &spec.AssertStep{
+					MinRecords:   &min,
+					MaxRecords:   &max,
+					RecordsEqual: &equal,
+					FieldExists:  "email",
+				},
+			},
+		},
+	}
+
+	executableSteps, err := Build(pipeline)
+	if err != nil {
+		t.Fatalf("build returned error: %v", err)
+	}
+
+	if len(executableSteps) != 1 {
+		t.Fatalf("unexpected step count: got %d want %d", len(executableSteps), 1)
+	}
+
+	assertStep, ok := executableSteps[0].(*assert.Step)
+	if !ok {
+		t.Fatalf("expected *assert.Step, got %T", executableSteps[0])
+	}
+
+	if assertStep.MinRecords == nil || *assertStep.MinRecords != 10 {
+		t.Fatalf("unexpected min-records: got %v want 10", assertStep.MinRecords)
+	}
+	if assertStep.MaxRecords == nil || *assertStep.MaxRecords != 1000 {
+		t.Fatalf("unexpected max-records: got %v want 1000", assertStep.MaxRecords)
+	}
+	if assertStep.RecordsEqual == nil || *assertStep.RecordsEqual != 100 {
+		t.Fatalf("unexpected records-equal: got %v want 100", assertStep.RecordsEqual)
+	}
+	if assertStep.FieldExists != "email" {
+		t.Fatalf("unexpected field-exists: got %q want %q", assertStep.FieldExists, "email")
 	}
 }

@@ -1,6 +1,7 @@
 package spec
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/goccy/go-yaml"
@@ -121,5 +122,102 @@ func TestStepWrapperUnmarshalCountStep(t *testing.T) {
 
 	if countStep.Message != "Payload before output" {
 		t.Fatalf("unexpected message: got %q want %q", countStep.Message, "Payload before output")
+	}
+}
+
+func TestStepWrapperUnmarshalAssertStep(t *testing.T) {
+	raw := []byte(`assert:
+  min-records: 10
+  max-records: 1000
+  records-equal: 100
+  field-exists: email
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	assertStep, ok := step.Step.(*AssertStep)
+	if !ok {
+		t.Fatalf("expected *AssertStep, got %T", step.Step)
+	}
+
+	if assertStep.MinRecords == nil || *assertStep.MinRecords != 10 {
+		t.Fatalf("unexpected min-records: got %v want 10", assertStep.MinRecords)
+	}
+	if assertStep.MaxRecords == nil || *assertStep.MaxRecords != 1000 {
+		t.Fatalf("unexpected max-records: got %v want 1000", assertStep.MaxRecords)
+	}
+	if assertStep.RecordsEqual == nil || *assertStep.RecordsEqual != 100 {
+		t.Fatalf("unexpected records-equal: got %v want 100", assertStep.RecordsEqual)
+	}
+	if assertStep.FieldExists != "email" {
+		t.Fatalf("unexpected field-exists: got %q want %q", assertStep.FieldExists, "email")
+	}
+}
+
+func TestStepWrapperUnmarshalAssertStepRequiresAtLeastOneOption(t *testing.T) {
+	raw := []byte(`assert: {}`)
+
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for assert with no options")
+	}
+	if !strings.Contains(err.Error(), "assert requires at least one option") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStepWrapperUnmarshalAssertStepValidatesBounds(t *testing.T) {
+	raw := []byte(`assert:
+  min-records: 100
+  max-records: 10
+`)
+
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for invalid min/max bounds")
+	}
+	if !strings.Contains(err.Error(), "assert min-records must be <= max-records") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStepWrapperUnmarshalAssertStepValidatesRecordsEqualBounds(t *testing.T) {
+	raw := []byte(`assert:
+  min-records: 10
+  records-equal: 9
+`)
+
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for inconsistent records-equal/min-records bounds")
+	}
+	if !strings.Contains(err.Error(), "assert records-equal must be >= min-records") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStepWrapperUnmarshalAssertStepWithRecordsEqualOnly(t *testing.T) {
+	raw := []byte(`assert:
+  records-equal: 16
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	assertStep, ok := step.Step.(*AssertStep)
+	if !ok {
+		t.Fatalf("expected *AssertStep, got %T", step.Step)
+	}
+
+	if assertStep.RecordsEqual == nil || *assertStep.RecordsEqual != 16 {
+		t.Fatalf("unexpected records-equal: got %v want 16", assertStep.RecordsEqual)
 	}
 }
