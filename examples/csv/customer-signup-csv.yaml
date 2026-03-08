@@ -21,5 +21,11 @@ steps:
   - select:
       fields: [first_name, credit_card, dob]
 
+  - rename:
+      fields:
+        first_name: firstName
+        credit_card: creditCard
+        dob: DOB
+
 output:
   format: csv

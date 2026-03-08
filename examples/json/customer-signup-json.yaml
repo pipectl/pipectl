@@ -17,6 +17,10 @@ steps:
       strategy: mask
       fields: [credit_card, password]
 
+  - rename:
+      fields:
+        credit_card: creditCard
+
   - http-transform:
       url: https://httpbin.org/post
       method: POST

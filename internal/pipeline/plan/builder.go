@@ -8,6 +8,7 @@ import (
 	"github.com/shanebell/pipectl/internal/engine/steps/httptransform"
 	"github.com/shanebell/pipectl/internal/engine/steps/normalize"
 	"github.com/shanebell/pipectl/internal/engine/steps/redact"
+	"github.com/shanebell/pipectl/internal/engine/steps/rename"
 	"github.com/shanebell/pipectl/internal/engine/steps/select"
 	"github.com/shanebell/pipectl/internal/engine/steps/validatejson"
 	"github.com/shanebell/pipectl/internal/pipeline/spec"
@@ -34,6 +35,10 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 		}, nil
 	case *spec.NormalizeStep:
 		return &normalize.Step{
+			Fields: s.Fields,
+		}, nil
+	case *spec.RenameStep:
+		return &rename.Step{
 			Fields: s.Fields,
 		}, nil
 	case *spec.RedactStep:

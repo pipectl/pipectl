@@ -9,6 +9,7 @@ import (
 var stepRegistry = map[string]func() Step{
 	"validate-json":  func() Step { return &ValidateJSONStep{} },
 	"normalize":      func() Step { return &NormalizeStep{} },
+	"rename":         func() Step { return &RenameStep{} },
 	"redact":         func() Step { return &RedactStep{} },
 	"select":         func() Step { return &SelectStep{} },
 	"filter":         func() Step { return &FilterStep{} },
