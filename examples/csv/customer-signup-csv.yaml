@@ -5,6 +5,7 @@ input:
 
 steps:
   - log:
+      message: "Initial payload"
       count: true
       sample: 5
 

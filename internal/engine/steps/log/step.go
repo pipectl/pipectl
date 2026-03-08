@@ -30,11 +30,11 @@ func (s *Step) Supports(p payload.Payload) bool {
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
 	if s.Message != "" {
-		fmt.Printf("message: %s\n", s.Message)
+		fmt.Printf("- message: %s\n", s.Message)
 	}
 
 	if s.Count {
-		fmt.Printf("records: %d\n", s.recordCount(context.Payload))
+		fmt.Printf("- records: %d\n", s.recordCount(context.Payload))
 	}
 
 	s.printSample(context.Payload)
@@ -75,7 +75,7 @@ func (s *Step) printSample(p payload.Payload) {
 			return
 		}
 		if len(v.Rows) <= 1 {
-			fmt.Printf("sample (%d):\n", 0)
+			fmt.Printf("- sample (%d):\n", 0)
 			fmt.Println(strings.Join(v.Rows[0], ","))
 			return
 		}
@@ -83,7 +83,7 @@ func (s *Step) printSample(p payload.Payload) {
 		if len(rows) > limit {
 			rows = rows[:limit]
 		}
-		fmt.Printf("sample (%d):\n", len(rows))
+		fmt.Printf("- sample (%d):\n", len(rows))
 		fmt.Println(strings.Join(v.Rows[0], ","))
 		for _, row := range rows {
 			fmt.Println(strings.Join(row, ","))
@@ -92,7 +92,7 @@ func (s *Step) printSample(p payload.Payload) {
 		if len(v.Data) == 0 {
 			return
 		}
-		fmt.Printf("sample (1):\n")
+		fmt.Printf("- sample (1):\n")
 		raw, err := json.Marshal(v.Data)
 		if err != nil {
 			fmt.Printf("%v\n", v.Data)
@@ -107,7 +107,7 @@ func (s *Step) printSample(p payload.Payload) {
 		if len(lines) > limit {
 			lines = lines[:limit]
 		}
-		fmt.Printf("sample (%d):\n", len(lines))
+		fmt.Printf("- sample (%d):\n", len(lines))
 		for _, line := range lines {
 			fmt.Println(line)
 		}

@@ -56,8 +56,8 @@ func TestExecuteDefaultsMessageCountAndSample(t *testing.T) {
 	})
 
 	assertNotContains(t, output, "message:")
-	assertContains(t, output, "records: 2\n")
-	assertContains(t, output, "sample (2):\n")
+	assertContains(t, output, "- records: 2\n")
+	assertContains(t, output, "- sample (2):\n")
 	assertContains(t, output, "id,name\n")
 	assertContains(t, output, "1,alice\n")
 	assertContains(t, output, "2,bob\n")
@@ -86,9 +86,9 @@ func TestExecutePrintsMessageAndRespectsCountAndSample(t *testing.T) {
 		}
 	})
 
-	assertContains(t, output, "message: Payload after step 2\n")
+	assertContains(t, output, "- message: Payload after step 2\n")
 	assertNotContains(t, output, "records:")
-	assertContains(t, output, "sample (1):\n")
+	assertContains(t, output, "- sample (1):\n")
 	assertContains(t, output, "id,name\n")
 	assertContains(t, output, "1,alice\n")
 	assertNotContains(t, output, "2,bob\n")
