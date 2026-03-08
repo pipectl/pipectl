@@ -15,6 +15,7 @@ var stepRegistry = map[string]func() Step{
 	"select":         func() Step { return &SelectStep{} },
 	"filter":         func() Step { return &FilterStep{} },
 	"log":            func() Step { return &LogStep{} },
+	"count":          func() Step { return &CountStep{} },
 	"http-transform": func() Step { return &HTTPTransformStep{} },
 }
 

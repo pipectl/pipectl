@@ -3,6 +3,7 @@ package plan
 import (
 	"testing"
 
+	"github.com/shanebell/pipectl/internal/engine/steps/count"
 	"github.com/shanebell/pipectl/internal/engine/steps/default"
 	_log "github.com/shanebell/pipectl/internal/engine/steps/log"
 	"github.com/shanebell/pipectl/internal/engine/steps/rename"
@@ -162,5 +163,35 @@ func TestBuildLogStepCustomValues(t *testing.T) {
 	}
 	if logStep.Sample != 3 {
 		t.Fatalf("unexpected sample: got %d want %d", logStep.Sample, 3)
+	}
+}
+
+func TestBuildCountStep(t *testing.T) {
+	pipeline := spec.Pipeline{
+		Steps: []spec.StepWrapper{
+			{
+				Step: &spec.CountStep{
+					Message: "records before output",
+				},
+			},
+		},
+	}
+
+	executableSteps, err := Build(pipeline)
+	if err != nil {
+		t.Fatalf("build returned error: %v", err)
+	}
+
+	if len(executableSteps) != 1 {
+		t.Fatalf("unexpected step count: got %d want %d", len(executableSteps), 1)
+	}
+
+	countStep, ok := executableSteps[0].(*count.Step)
+	if !ok {
+		t.Fatalf("expected *count.Step, got %T", executableSteps[0])
+	}
+
+	if countStep.Message != "records before output" {
+		t.Fatalf("unexpected message: got %q want %q", countStep.Message, "records before output")
 	}
 }

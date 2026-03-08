@@ -41,5 +41,8 @@ steps:
   - redact:
       fields: [data, origin]
 
+  - count:
+      message: Final record count
+
 output:
   format: json

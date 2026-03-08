@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/shanebell/pipectl/internal/engine"
+	"github.com/shanebell/pipectl/internal/engine/steps/count"
 	"github.com/shanebell/pipectl/internal/engine/steps/default"
 	"github.com/shanebell/pipectl/internal/engine/steps/filter"
 	"github.com/shanebell/pipectl/internal/engine/steps/httptransform"
@@ -76,6 +77,10 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 			Message: s.Message,
 			Count:   count,
 			Sample:  sample,
+		}, nil
+	case *spec.CountStep:
+		return &count.Step{
+			Message: s.Message,
 		}, nil
 	case *spec.HTTPTransformStep:
 		return &httptransform.Step{

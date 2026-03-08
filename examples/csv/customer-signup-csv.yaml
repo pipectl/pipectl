@@ -25,7 +25,7 @@ steps:
   - log:
       message: After filter
       count: true
-      sample: 5
+      sample: 0
 
   - redact:
       fields: [credit_card, password]
@@ -39,6 +39,9 @@ steps:
         first_name: firstName
         credit_card: creditCard
         dob: DOB
+
+  - count:
+      message: "Final record count"
 
 output:
   format: csv
