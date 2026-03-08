@@ -8,6 +8,11 @@
 
 ## Steps
 
+### Select
+
+- TODO
+    - Add support for JSON
+
 ### Filter
 
 - Add support for JSON payloads
@@ -70,18 +75,12 @@ type Rule struct {
 
 - Add support for posting CSV payloads
 
-
 ### HTTP request
 
 - Add a separate step for HTTP requests
 - Does NOT transform the payload (the same payload is passed through)
 - Sends the payload to the HTTP endpoint
 - Fails on non 200 responses
-
-### Select
-
-- TODO
-    - Add support for JSON
 
 ### Rename
 
