@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/shanebell/pipectl/internal/engine"
+	"github.com/shanebell/pipectl/internal/engine/steps/default"
 	"github.com/shanebell/pipectl/internal/engine/steps/filter"
 	"github.com/shanebell/pipectl/internal/engine/steps/httptransform"
 	"github.com/shanebell/pipectl/internal/engine/steps/normalize"
@@ -35,6 +36,10 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 		}, nil
 	case *spec.NormalizeStep:
 		return &normalize.Step{
+			Fields: s.Fields,
+		}, nil
+	case *spec.DefaultStep:
+		return &_default.Step{
 			Fields: s.Fields,
 		}, nil
 	case *spec.RenameStep:

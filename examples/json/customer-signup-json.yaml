@@ -7,6 +7,11 @@ steps:
   - validate-json:
       schema: ./examples/json/signup-schema.json
 
+  - default:
+      fields:
+        country: AU
+        currency: AUD
+
   - normalize:
       fields:
         email: lower

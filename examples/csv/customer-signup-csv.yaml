@@ -4,6 +4,10 @@ input:
   format: csv
 
 steps:
+  - default:
+      fields:
+        country: AU
+
   - normalize:
       fields:
         country: upper

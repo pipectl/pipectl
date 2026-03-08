@@ -82,21 +82,6 @@ type Rule struct {
 - Sends the payload to the HTTP endpoint
 - Fails on non 200 responses
 
-### Rename
-
-Rename fields.
-
-```yaml
-- rename:
-    mappings:
-      firstName: first_name
-      lastName: last_name
-```
-
-- TODO
-    - Add support for CSV
-    - Add support for JSON
-
 ### Map
 
 Transform a field.
@@ -126,20 +111,6 @@ Note: Some overlap with `normalize`.
         - `round`
         - `floor`
         - `ceil`
-
-### Default
-
-Set missing values.
-
-```yaml
-- default:
-    field: country
-    value: AU
-```
-
-- TODO
-    - Add support for CSV
-    - Add support for JSON
 
 ### Cast
 

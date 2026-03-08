@@ -37,3 +37,39 @@ func TestStepWrapperUnmarshalRenameStep(t *testing.T) {
 		}
 	}
 }
+
+func TestStepWrapperUnmarshalDefaultStep(t *testing.T) {
+	raw := []byte(`default:
+  fields:
+    country: AU
+    password: Passw0rd
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	defaultStep, ok := step.Step.(*DefaultStep)
+	if !ok {
+		t.Fatalf("expected *DefaultStep, got %T", step.Step)
+	}
+
+	expected := map[string]interface{}{
+		"country":  "AU",
+		"password": "Passw0rd",
+	}
+	if len(defaultStep.Fields) != len(expected) {
+		t.Fatalf("unexpected fields count: got %d want %d", len(defaultStep.Fields), len(expected))
+	}
+
+	for key, expectedValue := range expected {
+		got, exists := defaultStep.Fields[key]
+		if !exists {
+			t.Fatalf("expected field %q to exist", key)
+		}
+		if got != expectedValue {
+			t.Fatalf("unexpected default value for %q: got %v want %v", key, got, expectedValue)
+		}
+	}
+}
