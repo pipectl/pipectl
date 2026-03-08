@@ -4,6 +4,10 @@ input:
   format: csv
 
 steps:
+  - log:
+      count: true
+      sample: 5
+
   - default:
       fields:
         country: AU
@@ -17,6 +21,11 @@ steps:
   - filter:
       field: country
       equals: AU
+
+  - log:
+      message: After filter
+      count: true
+      sample: 5
 
   - redact:
       fields: [credit_card, password]

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/shanebell/pipectl/internal/engine/steps/default"
+	_log "github.com/shanebell/pipectl/internal/engine/steps/log"
 	"github.com/shanebell/pipectl/internal/engine/steps/rename"
 	"github.com/shanebell/pipectl/internal/pipeline/spec"
 )
@@ -91,5 +92,75 @@ func TestBuildDefaultStep(t *testing.T) {
 		if got := defaultStep.Fields[key]; got != value {
 			t.Fatalf("unexpected default value for %q: got %v want %v", key, got, value)
 		}
+	}
+}
+
+func TestBuildLogStepDefaults(t *testing.T) {
+	pipeline := spec.Pipeline{
+		Steps: []spec.StepWrapper{
+			{
+				Step: &spec.LogStep{},
+			},
+		},
+	}
+
+	executableSteps, err := Build(pipeline)
+	if err != nil {
+		t.Fatalf("build returned error: %v", err)
+	}
+
+	if len(executableSteps) != 1 {
+		t.Fatalf("unexpected step count: got %d want %d", len(executableSteps), 1)
+	}
+
+	logStep, ok := executableSteps[0].(*_log.Step)
+	if !ok {
+		t.Fatalf("expected *_log.Step, got %T", executableSteps[0])
+	}
+
+	if logStep.Message != "" {
+		t.Fatalf("unexpected message: got %q want empty", logStep.Message)
+	}
+	if !logStep.Count {
+		t.Fatalf("unexpected count default: got %v want true", logStep.Count)
+	}
+	if logStep.Sample != 10 {
+		t.Fatalf("unexpected sample default: got %d want %d", logStep.Sample, 10)
+	}
+}
+
+func TestBuildLogStepCustomValues(t *testing.T) {
+	count := false
+	sample := 3
+	pipeline := spec.Pipeline{
+		Steps: []spec.StepWrapper{
+			{
+				Step: &spec.LogStep{
+					Message: "after transform",
+					Count:   &count,
+					Sample:  &sample,
+				},
+			},
+		},
+	}
+
+	executableSteps, err := Build(pipeline)
+	if err != nil {
+		t.Fatalf("build returned error: %v", err)
+	}
+
+	logStep, ok := executableSteps[0].(*_log.Step)
+	if !ok {
+		t.Fatalf("expected *_log.Step, got %T", executableSteps[0])
+	}
+
+	if logStep.Message != "after transform" {
+		t.Fatalf("unexpected message: got %q want %q", logStep.Message, "after transform")
+	}
+	if logStep.Count {
+		t.Fatalf("unexpected count: got %v want false", logStep.Count)
+	}
+	if logStep.Sample != 3 {
+		t.Fatalf("unexpected sample: got %d want %d", logStep.Sample, 3)
 	}
 }

@@ -7,6 +7,9 @@ steps:
   - validate-json:
       schema: ./examples/json/signup-schema.json
 
+  - log:
+      message: "Initial payload"
+
   - default:
       fields:
         country: AU

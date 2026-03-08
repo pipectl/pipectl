@@ -73,3 +73,33 @@ func TestStepWrapperUnmarshalDefaultStep(t *testing.T) {
 		}
 	}
 }
+
+func TestStepWrapperUnmarshalLogStep(t *testing.T) {
+	raw := []byte(`log:
+  message: Payload after step 2
+  count: true
+  sample: 10
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	logStep, ok := step.Step.(*LogStep)
+	if !ok {
+		t.Fatalf("expected *LogStep, got %T", step.Step)
+	}
+
+	if logStep.Message != "Payload after step 2" {
+		t.Fatalf("unexpected message: got %q want %q", logStep.Message, "Payload after step 2")
+	}
+
+	if logStep.Count == nil || !*logStep.Count {
+		t.Fatalf("unexpected count: got %v want true", logStep.Count)
+	}
+
+	if logStep.Sample == nil || *logStep.Sample != 10 {
+		t.Fatalf("unexpected sample: got %v want 10", logStep.Sample)
+	}
+}

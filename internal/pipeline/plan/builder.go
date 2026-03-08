@@ -7,6 +7,7 @@ import (
 	"github.com/shanebell/pipectl/internal/engine/steps/default"
 	"github.com/shanebell/pipectl/internal/engine/steps/filter"
 	"github.com/shanebell/pipectl/internal/engine/steps/httptransform"
+	_log "github.com/shanebell/pipectl/internal/engine/steps/log"
 	"github.com/shanebell/pipectl/internal/engine/steps/normalize"
 	"github.com/shanebell/pipectl/internal/engine/steps/redact"
 	"github.com/shanebell/pipectl/internal/engine/steps/rename"
@@ -59,6 +60,22 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 		return &filter.Step{
 			Field: s.Field,
 			Value: s.Equals,
+		}, nil
+	case *spec.LogStep:
+		count := true
+		if s.Count != nil {
+			count = *s.Count
+		}
+
+		sample := 10
+		if s.Sample != nil {
+			sample = *s.Sample
+		}
+
+		return &_log.Step{
+			Message: s.Message,
+			Count:   count,
+			Sample:  sample,
 		}, nil
 	case *spec.HTTPTransformStep:
 		return &httptransform.Step{
