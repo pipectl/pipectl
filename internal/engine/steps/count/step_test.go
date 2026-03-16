@@ -28,10 +28,6 @@ func TestSupports(t *testing.T) {
 	if !step.Supports(&payload.CSV{}) {
 		t.Fatal("expected step to support CSV payload")
 	}
-
-	if !step.Supports(&payload.Text{}) {
-		t.Fatal("expected step to support Text payload")
-	}
 }
 
 func TestExecutePrintsRawRecordCountWithoutCommas(t *testing.T) {
@@ -62,8 +58,12 @@ func TestExecutePrintsRawRecordCountWithoutCommas(t *testing.T) {
 func TestExecutePrintsMessageLikeLogStep(t *testing.T) {
 	step := &Step{Message: "Message goes here"}
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.Text{
-			Text: "a\nb\nc\n",
+		Payload: &payload.JSON{
+			Data: map[string]interface{}{
+				"name1": "value1",
+				"name2": "value2",
+				"name3": "value3",
+			},
 		},
 	}
 
@@ -74,7 +74,7 @@ func TestExecutePrintsMessageLikeLogStep(t *testing.T) {
 	})
 
 	assertContains(t, output, "- message: Message goes here\n")
-	assertContains(t, output, "- records: 3\n")
+	assertContains(t, output, "- records: 1\n")
 }
 
 func captureStdout(t *testing.T, fn func()) string {

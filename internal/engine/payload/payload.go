@@ -28,9 +28,6 @@ func Read(input []byte, format string) (Payload, error) {
 		}
 		return &CSV{Rows: rows}, nil
 
-	case "text":
-		return &Text{Text: string(input)}, nil
-
 	default:
 		return nil, fmt.Errorf("unsupported input format")
 	}

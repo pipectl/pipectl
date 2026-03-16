@@ -4,6 +4,8 @@
 
 - TODO
     - Support JSONL
+      - But only allow 1 object per line
+      - `invalid JSONL: expected object per line, got array` 
     - Support arrays of JSON objects
 
 ## Steps

@@ -27,10 +27,6 @@ func TestSupports(t *testing.T) {
 	if !step.Supports(&payload.CSV{}) {
 		t.Fatal("expected step to support CSV payload")
 	}
-
-	if step.Supports(&payload.Text{}) {
-		t.Fatal("did not expect step to support Text payload")
-	}
 }
 
 func TestExecuteSucceedsForCSV(t *testing.T) {
@@ -174,21 +170,6 @@ func TestExecuteFailsWhenRecordCountDoesNotEqualExpected(t *testing.T) {
 		t.Fatal("expected an error when record count does not equal expected")
 	}
 	if !strings.Contains(err.Error(), "is not equal to expected 3") {
-		t.Fatalf("unexpected error: %v", err)
-	}
-}
-
-func TestExecuteReturnsErrorForUnsupportedPayload(t *testing.T) {
-	step := &Step{}
-	ctx := &engine.ExecutionContext{
-		Payload: &payload.Text{Text: "hello"},
-	}
-
-	err := step.Execute(ctx)
-	if err == nil {
-		t.Fatal("expected an error for unsupported payload")
-	}
-	if !strings.Contains(err.Error(), "assert received invalid payload type text") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

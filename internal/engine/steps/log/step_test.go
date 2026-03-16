@@ -27,10 +27,6 @@ func TestSupports(t *testing.T) {
 	if !step.Supports(&payload.CSV{}) {
 		t.Fatal("expected step to support CSV payload")
 	}
-
-	if !step.Supports(&payload.Text{}) {
-		t.Fatal("expected step to support Text payload")
-	}
 }
 
 func TestExecuteDefaultsMessageCountAndSample(t *testing.T) {

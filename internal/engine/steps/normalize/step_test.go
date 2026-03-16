@@ -2,7 +2,6 @@ package normalize
 
 import (
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/shanebell/pipectl/internal/engine"
@@ -100,10 +99,6 @@ func TestSupports(t *testing.T) {
 	if !step.Supports(&payload.CSV{}) {
 		t.Fatal("expected step to support CSV payload")
 	}
-
-	if step.Supports(&payload.Text{}) {
-		t.Fatal("did not expect step to support Text payload")
-	}
 }
 
 func TestExecuteNormalizesJSONFields(t *testing.T) {
@@ -177,23 +172,5 @@ func TestExecuteNormalizesCSVFields(t *testing.T) {
 	}
 	if !reflect.DeepEqual(out.Rows, expected) {
 		t.Fatalf("unexpected normalized CSV rows:\nexpected: %#v\ngot: %#v", expected, out.Rows)
-	}
-}
-
-func TestExecuteReturnsErrorForUnsupportedPayload(t *testing.T) {
-	step := &Step{
-		Fields: map[string]string{"text": "lower"},
-	}
-
-	ctx := &engine.ExecutionContext{
-		Payload: &payload.Text{Text: "HELLO"},
-	}
-
-	err := step.Execute(ctx)
-	if err == nil {
-		t.Fatal("expected an error for unsupported payload")
-	}
-	if !strings.Contains(err.Error(), "normalize received invalid payload type text") {
-		t.Fatalf("unexpected error: %v", err)
 	}
 }
