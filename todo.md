@@ -8,6 +8,40 @@
 
 ## Steps
 
+### Convert
+
+Convert the payload to a different format.
+
+```yaml
+- convert:
+    format: json | jsonl | csv
+```
+
+Future enhancements:
+
+```yaml
+- convert:
+    format: json
+    pretty: true
+```
+
+```yaml
+- convert:
+    format: csv
+    delimiter: ";"
+```
+
+Conversions:
+
+| In    | Out   |
+|-------|-------|
+| CSV   | JSON  |
+| CSV   | JSONL |
+| JSON  | JSONL |
+| JSONL | JSON  |
+| JSON  | CSV   |
+| JSONL | CSV   |
+
 ### Select
 
 - TODO
