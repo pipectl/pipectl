@@ -23,6 +23,9 @@ func TestSupports(t *testing.T) {
 	if !step.Supports(&payload.JSON{}) {
 		t.Fatal("expected step to support JSON payload")
 	}
+	if !step.Supports(&payload.JSONL{}) {
+		t.Fatal("expected step to support JSONL payload")
+	}
 
 	if step.Supports(&payload.CSV{}) {
 		t.Fatal("did not expect step to support CSV payload")
@@ -65,6 +68,45 @@ func TestExecuteReturnsValidationError(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "JSON schema validation failed") {
 		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(err.Error(), "email is required") {
+		t.Fatalf("unexpected validation details: %v", err)
+	}
+}
+
+func TestExecuteValidatesEachJSONLRecordAgainstSchema(t *testing.T) {
+	step := &Step{Schema: `{"type":"object","required":["email"],"properties":{"email":{"type":"string"}}}`}
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSONL{
+			Records: []map[string]interface{}{
+				{"email": "alice@example.com"},
+				{"email": "bob@example.com"},
+			},
+		},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+}
+
+func TestExecuteReturnsRecordIndexedErrorForInvalidJSONL(t *testing.T) {
+	step := &Step{Schema: `{"type":"object","required":["email"],"properties":{"email":{"type":"string"}}}`}
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSONL{
+			Records: []map[string]interface{}{
+				{"email": "alice@example.com"},
+				{"id": 123},
+			},
+		},
+	}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected schema validation error")
+	}
+	if !strings.Contains(err.Error(), "JSONL record 2") {
+		t.Fatalf("expected indexed JSONL error, got %v", err)
 	}
 	if !strings.Contains(err.Error(), "email is required") {
 		t.Fatalf("unexpected validation details: %v", err)

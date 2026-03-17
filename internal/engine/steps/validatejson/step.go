@@ -19,21 +19,32 @@ func (s *Step) Name() string {
 }
 
 func (s *Step) Supports(p payload.Payload) bool {
-	return p.Type() == payload.JSONType
+	switch p.(type) {
+	case payload.RecordPayload:
+		return true
+	default:
+		return false
+	}
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
 	fmt.Printf("- validating JSON payload against schema %v\n", s.Schema)
-	jsonPayload := context.Payload.(*payload.JSON)
-	return s.validateJSONPayload(jsonPayload.Value())
-}
-
-func (s *Step) validateJSONPayload(data interface{}) error {
 	schemaLoader, err := s.schemaLoader()
 	if err != nil {
 		return err
 	}
 
+	switch value := context.Payload.(type) {
+	case *payload.JSONL:
+		return s.validateJSONLRecords(schemaLoader, value.GetRecords())
+	case payload.RecordPayload:
+		return s.validateJSONPayload(schemaLoader, value.Value())
+	default:
+		return fmt.Errorf("%v received invalid payload type %v", s.Name(), context.Payload.Type())
+	}
+}
+
+func (s *Step) validateJSONPayload(schemaLoader gojsonschema.JSONLoader, data interface{}) error {
 	result, err := gojsonschema.Validate(schemaLoader, gojsonschema.NewGoLoader(data))
 	if err != nil {
 		return fmt.Errorf("unable to validate JSON payload: %w", err)
@@ -49,6 +60,16 @@ func (s *Step) validateJSONPayload(data interface{}) error {
 	}
 
 	return fmt.Errorf("JSON schema validation failed: %s", strings.Join(validationErrors, "; "))
+}
+
+func (s *Step) validateJSONLRecords(schemaLoader gojsonschema.JSONLoader, records []map[string]interface{}) error {
+	for i, record := range records {
+		if err := s.validateJSONPayload(schemaLoader, record); err != nil {
+			return fmt.Errorf("JSONL record %d: %w", i+1, err)
+		}
+	}
+
+	return nil
 }
 
 func (s *Step) schemaLoader() (gojsonschema.JSONLoader, error) {

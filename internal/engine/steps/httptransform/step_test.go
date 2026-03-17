@@ -145,8 +145,56 @@ func TestResolveExpectedFormatInvalid(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected invalid expect-format error")
 	}
-	if !strings.Contains(err.Error(), "must be json or csv") {
+	if !strings.Contains(err.Error(), "must be json, jsonl or csv") {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestExecuteWithJSONLPayloadUsesNDJSONContentType(t *testing.T) {
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("Content-Type"); got != "application/x-ndjson" {
+			t.Fatalf("expected NDJSON content type, got %q", got)
+		}
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("failed reading request body: %v", err)
+		}
+		expectedBody := "{\"id\":1}\n{\"id\":2}\n"
+		if string(body) != expectedBody {
+			t.Fatalf("unexpected request body: got %q want %q", string(body), expectedBody)
+		}
+
+		w.Header().Set("Content-Type", "application/x-ndjson")
+		_, _ = w.Write([]byte("{\"ok\":true}\n"))
+	}))
+	defer target.Close()
+
+	step := &Step{
+		URL:          target.URL,
+		Method:       http.MethodPost,
+		ExpectFormat: payload.JSONLType,
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSONL{
+			Records: []map[string]interface{}{
+				{"id": 1},
+				{"id": 2},
+			},
+		},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out, ok := ctx.Payload.(*payload.JSONL)
+	if !ok {
+		t.Fatalf("expected payload.JSONL, got %T", ctx.Payload)
+	}
+	if len(out.Records) != 1 || out.Records[0]["ok"] != true {
+		t.Fatalf("unexpected JSONL response payload: %#v", out.Records)
 	}
 }
 

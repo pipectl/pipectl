@@ -1,7 +1,7 @@
 id: customer-signup
 
 input:
-  format: json
+  format: jsonl
 
 steps:
   - validate-json:
@@ -28,15 +28,6 @@ steps:
   - rename:
       fields:
         credit_card: creditCard
-
-  - http-transform:
-      url: https://httpbin.org/post
-      method: POST
-      timeout: 60
-      headers:
-        X-Pipectl-Step: http-transform
-        Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=
-      expect-format: json
 
   - redact:
       fields: [data, origin]

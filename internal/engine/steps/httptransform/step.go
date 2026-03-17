@@ -36,7 +36,12 @@ func (s *Step) Name() string {
 }
 
 func (s *Step) Supports(p payload.Payload) bool {
-	return p.Type() == payload.JSONType
+	switch p.(type) {
+	case payload.RecordPayload:
+		return true
+	default:
+		return false
+	}
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
@@ -60,12 +65,19 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, 
 
 	// Set the request body from the step payload
 	if method == http.MethodPost || method == http.MethodPut || method == http.MethodPatch || method == http.MethodDelete {
-		jsonInput, ok := inputPayload.(*payload.JSON)
-		if !ok {
+		switch v := inputPayload.(type) {
+		case *payload.JSON:
+			jsonBody, _ := json.Marshal(v.Value())
+			bodyReader = bytes.NewBuffer(jsonBody)
+		case *payload.JSONL:
+			body, err := marshalJSONL(v)
+			if err != nil {
+				return nil, fmt.Errorf("http-transform could not encode JSONL payload: %w", err)
+			}
+			bodyReader = bytes.NewBuffer(body)
+		default:
 			return nil, fmt.Errorf("http-transform received invalid payload type %v", inputPayload.Type())
 		}
-		jsonBody, _ := json.Marshal(jsonInput.Value())
-		bodyReader = bytes.NewBuffer(jsonBody)
 	}
 
 	req, err := http.NewRequest(method, s.URL, bodyReader)
@@ -83,6 +95,9 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, 
 	// add headers
 	for key, value := range s.Headers {
 		req.Header.Set(key, value)
+	}
+	if bodyReader != nil && req.Header.Get("Content-Type") == "" && inputPayload.Type() == payload.JSONLType {
+		req.Header.Set("Content-Type", "application/x-ndjson")
 	}
 
 	client := &http.Client{}
@@ -123,6 +138,8 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, 
 	switch expectedFormat {
 	case payload.JSONType:
 		return payload.Read(body, payload.JSONType)
+	case payload.JSONLType:
+		return payload.Read(body, payload.JSONLType)
 
 	case payload.CSVType:
 		rows, err := csv.NewReader(bytes.NewReader(body)).ReadAll()
@@ -141,8 +158,8 @@ func (s *Step) resolveExpectedFormat() (string, error) {
 		return payload.JSONType, nil
 	}
 
-	if expectedFormat != payload.JSONType && expectedFormat != payload.CSVType {
-		return "", fmt.Errorf("invalid expect-format %q: must be json or csv", s.ExpectFormat)
+	if expectedFormat != payload.JSONType && expectedFormat != payload.JSONLType && expectedFormat != payload.CSVType {
+		return "", fmt.Errorf("invalid expect-format %q: must be json, jsonl or csv", s.ExpectFormat)
 	}
 
 	return expectedFormat, nil
@@ -166,11 +183,26 @@ func contentTypeMatchesFormat(mediaType string, expectedFormat string) bool {
 	switch expectedFormat {
 	case payload.JSONType:
 		return strings.HasSuffix(normalizedMediaType, "/json") || strings.HasSuffix(normalizedMediaType, "+json")
+	case payload.JSONLType:
+		return normalizedMediaType == "application/x-ndjson" || normalizedMediaType == "application/ndjson" || normalizedMediaType == "application/jsonl"
 	case payload.CSVType:
 		return strings.HasSuffix(normalizedMediaType, "/csv") || strings.Contains(normalizedMediaType, "csv")
 	default:
 		return false
 	}
+}
+
+func marshalJSONL(input *payload.JSONL) ([]byte, error) {
+	var body bytes.Buffer
+	for _, record := range input.Records {
+		raw, err := json.Marshal(record)
+		if err != nil {
+			return nil, err
+		}
+		body.Write(raw)
+		body.WriteByte('\n')
+	}
+	return body.Bytes(), nil
 }
 
 func (s *Step) resolveTimeout() (time.Duration, error) {

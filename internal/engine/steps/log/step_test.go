@@ -23,10 +23,40 @@ func TestSupports(t *testing.T) {
 	if !step.Supports(&payload.JSON{}) {
 		t.Fatal("expected step to support JSON payload")
 	}
+	if !step.Supports(&payload.JSONL{}) {
+		t.Fatal("expected step to support JSONL payload")
+	}
 
 	if !step.Supports(&payload.CSV{}) {
 		t.Fatal("expected step to support CSV payload")
 	}
+}
+
+func TestExecutePrintsJSONLSample(t *testing.T) {
+	step := &Step{
+		Count:  true,
+		Sample: 1,
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSONL{
+			Records: []map[string]interface{}{
+				{"id": 1, "name": "alice"},
+				{"id": 2, "name": "bob"},
+			},
+		},
+	}
+
+	output := captureStdout(t, func() {
+		if err := step.Execute(ctx); err != nil {
+			t.Fatalf("execute returned error: %v", err)
+		}
+	})
+
+	assertContains(t, output, "- records: 2\n")
+	assertContains(t, output, "- sample (1):\n")
+	assertContains(t, output, `"name":"alice"`)
+	assertNotContains(t, output, `"name":"bob"`)
 }
 
 func TestExecuteDefaultsMessageCountAndSample(t *testing.T) {

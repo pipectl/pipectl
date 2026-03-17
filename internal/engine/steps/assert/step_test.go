@@ -23,6 +23,9 @@ func TestSupports(t *testing.T) {
 	if !step.Supports(&payload.JSON{}) {
 		t.Fatal("expected step to support JSON payload")
 	}
+	if !step.Supports(&payload.JSONL{}) {
+		t.Fatal("expected step to support JSONL payload")
+	}
 
 	if !step.Supports(&payload.CSV{}) {
 		t.Fatal("expected step to support CSV payload")
@@ -75,6 +78,31 @@ func TestExecuteSucceedsForJSON(t *testing.T) {
 				},
 			},
 			Shape: payload.JSONObjectShape,
+		},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+}
+
+func TestExecuteSucceedsForJSONL(t *testing.T) {
+	min := 1
+	max := 2
+	equal := 2
+	step := &Step{
+		MinRecords:   &min,
+		MaxRecords:   &max,
+		RecordsEqual: &equal,
+		FieldExists:  "email",
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSONL{
+			Records: []map[string]interface{}{
+				{"email": "alice@example.com"},
+				{"email": "bob@example.com"},
+			},
 		},
 	}
 

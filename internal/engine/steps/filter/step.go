@@ -17,7 +17,12 @@ func (s *Step) Name() string {
 }
 
 func (s *Step) Supports(p payload.Payload) bool {
-	return p.Type() == payload.CSVType
+	switch p.(type) {
+	case *payload.CSV:
+		return true
+	default:
+		return false
+	}
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {

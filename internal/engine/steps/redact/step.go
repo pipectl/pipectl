@@ -21,13 +21,18 @@ func (s *Step) Name() string {
 }
 
 func (s *Step) Supports(p payload.Payload) bool {
-	return p.Type() == payload.JSONType || p.Type() == payload.CSVType
+	switch p.(type) {
+	case payload.RecordPayload, *payload.CSV:
+		return true
+	default:
+		return false
+	}
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
-	jsonPayload, jsonOk := context.Payload.(*payload.JSON)
-	if jsonOk {
-		return s.redactJson(jsonPayload)
+	recordPayload, recordOk := context.Payload.(payload.RecordPayload)
+	if recordOk {
+		return s.redactJson(recordPayload)
 	}
 
 	csvPayload, csvOk := context.Payload.(*payload.CSV)
@@ -59,8 +64,8 @@ func (s *Step) redactCsv(csvPayload *payload.CSV) error {
 
 // TODO only handles top-level fields, make this recursive
 // TODO can types other than strings be redacted? eg: changing from an int to "***" seems wrong and could break schema.
-func (s *Step) redactJson(jsonPayload *payload.JSON) error {
-	for _, record := range jsonPayload.Records {
+func (s *Step) redactJson(recordPayload payload.RecordPayload) error {
+	for _, record := range recordPayload.GetRecords() {
 		if record == nil {
 			continue
 		}

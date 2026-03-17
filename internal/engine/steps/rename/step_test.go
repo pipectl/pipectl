@@ -21,6 +21,9 @@ func TestSupports(t *testing.T) {
 	if !step.Supports(&payload.JSON{}) {
 		t.Fatal("expected step to support JSON payload")
 	}
+	if !step.Supports(&payload.JSONL{}) {
+		t.Fatal("expected step to support JSONL payload")
+	}
 
 	if !step.Supports(&payload.CSV{}) {
 		t.Fatal("expected step to support CSV payload")
@@ -64,6 +67,31 @@ func TestExecuteRenamesJSONFields(t *testing.T) {
 	}
 	if !reflect.DeepEqual(out.Records[0], expected) {
 		t.Fatalf("unexpected renamed JSON data:\nexpected: %#v\ngot: %#v", expected, out.Records[0])
+	}
+}
+
+func TestExecuteRenamesJSONLFields(t *testing.T) {
+	step := &Step{
+		Fields: map[string]string{
+			"firstName": "first_name",
+		},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSONL{
+			Records: []map[string]interface{}{
+				{"firstName": "Alice"},
+			},
+		},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out := ctx.Payload.(*payload.JSONL)
+	if out.Records[0]["first_name"] != "Alice" {
+		t.Fatalf("unexpected renamed JSONL data: %#v", out.Records[0])
 	}
 }
 

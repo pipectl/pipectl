@@ -21,6 +21,9 @@ func TestSupports(t *testing.T) {
 	if !step.Supports(&payload.JSON{}) {
 		t.Fatal("expected step to support JSON payload")
 	}
+	if !step.Supports(&payload.JSONL{}) {
+		t.Fatal("expected step to support JSONL payload")
+	}
 
 	if !step.Supports(&payload.CSV{}) {
 		t.Fatal("expected step to support CSV payload")
@@ -87,6 +90,35 @@ func TestExecuteInitializesNilJSONMap(t *testing.T) {
 	out := ctx.Payload.(*payload.JSON)
 	if out.Records[0]["country"] != "AU" {
 		t.Fatalf("expected default field to be set, got %#v", out.Records)
+	}
+}
+
+func TestExecuteAppliesDefaultsToMissingJSONLFields(t *testing.T) {
+	step := &Step{
+		Fields: map[string]interface{}{
+			"country": "AU",
+		},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSONL{
+			Records: []map[string]interface{}{
+				{"name": "Alice"},
+				{"name": "Bob", "country": "NZ"},
+			},
+		},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out, ok := ctx.Payload.(*payload.JSONL)
+	if !ok {
+		t.Fatalf("expected payload.JSONL, got %T", ctx.Payload)
+	}
+	if out.Records[0]["country"] != "AU" || out.Records[1]["country"] != "NZ" {
+		t.Fatalf("unexpected JSONL records: %#v", out.Records)
 	}
 }
 

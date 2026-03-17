@@ -1,14 +1,14 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Customer signup JSON" type="GoApplicationRunConfiguration" factoryName="Go Application">
+  <configuration default="false" name="Customer signup JSON array" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="pipectl" />
     <working_directory value="$PROJECT_DIR$" />
-    <parameters value="run ./examples/json/customer-signup-json.yaml" />
+    <parameters value="run ./examples/json/customer-signup-json-array.yaml" />
     <kind value="PACKAGE" />
     <package value="github.com/shanebell/pipectl/cmd/pipectl" />
     <directory value="$PROJECT_DIR$" />
     <filePath value="$PROJECT_DIR$/cmd/pipectl/main.go" />
     <redirect_input value="true" />
-    <input_file value="$PROJECT_DIR$/examples/json/input/customer-signup.json" />
+    <input_file value="$PROJECT_DIR$/examples/json/input/customer-signup-array.json" />
     <method v="2" />
   </configuration>
 </component>

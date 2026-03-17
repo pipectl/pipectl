@@ -1,10 +1,12 @@
 package payload
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 type Payload interface {
@@ -43,6 +45,34 @@ func Read(input []byte, format string) (Payload, error) {
 			return nil, fmt.Errorf("invalid JSON input: expected object or array of objects")
 		}
 
+	case JSONLType:
+		scanner := bufio.NewScanner(bytes.NewReader(input))
+		records := make([]map[string]interface{}, 0)
+		lineNumber := 0
+		for scanner.Scan() {
+			lineNumber++
+			line := strings.TrimSpace(scanner.Text())
+			if line == "" {
+				continue
+			}
+
+			var value interface{}
+			if err := json.Unmarshal([]byte(line), &value); err != nil {
+				return nil, fmt.Errorf("invalid JSONL input on line %d: %w", lineNumber, err)
+			}
+			record, ok := value.(map[string]interface{})
+			if !ok || record == nil {
+				return nil, fmt.Errorf("invalid JSONL input on line %d: expected object", lineNumber)
+			}
+
+			records = append(records, record)
+		}
+		if err := scanner.Err(); err != nil {
+			return nil, fmt.Errorf("invalid JSONL input: %w", err)
+		}
+
+		return &JSONL{Records: records}, nil
+
 	case CSVType:
 		rows, err := csv.NewReader(bytes.NewReader(input)).ReadAll()
 		if err != nil {
@@ -70,6 +100,15 @@ func Write(payload Payload, format string) error {
 			}
 			fmt.Println(string(output))
 
+		case JSONLType:
+			jsonlPayload, _ := payload.(*JSONL)
+			output, err := json.MarshalIndent(jsonlPayload.Value(), "", "  ")
+			if err != nil {
+				fmt.Println("Error marshalling JSON:", err)
+				return err
+			}
+			fmt.Println(string(output))
+
 		case CSVType:
 			csvPayload, _ := payload.(*CSV)
 			// TODO how to convert from CSV to JSON?
@@ -78,6 +117,34 @@ func Write(payload Payload, format string) error {
 
 		default:
 			return fmt.Errorf("Cannot convert to JSON")
+		}
+
+	} else if format == JSONLType {
+		switch payload.Type() {
+		case JSONLType:
+			jsonlPayload, _ := payload.(*JSONL)
+			for _, record := range jsonlPayload.Records {
+				output, err := json.Marshal(record)
+				if err != nil {
+					fmt.Println("Error marshalling JSONL:", err)
+					return err
+				}
+				fmt.Println(string(output))
+			}
+
+		case JSONType:
+			jsonPayload, _ := payload.(*JSON)
+			for _, record := range jsonPayload.Records {
+				output, err := json.Marshal(record)
+				if err != nil {
+					fmt.Println("Error marshalling JSONL:", err)
+					return err
+				}
+				fmt.Println(string(output))
+			}
+
+		default:
+			return fmt.Errorf("Cannot convert to JSONL")
 		}
 
 	} else if format == CSVType {

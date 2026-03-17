@@ -5,7 +5,7 @@ input:
 
 steps:
   - validate-json:
-      schema: ./examples/json/signup-array-schema.json
+      schema: ./examples/json/schema/signup-array-schema.json
 
   - log:
       message: "Initial payload"
@@ -33,4 +33,4 @@ steps:
       message: Final record count
 
 output:
-  format: json
+  format: jsonl

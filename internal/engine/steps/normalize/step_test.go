@@ -95,6 +95,9 @@ func TestSupports(t *testing.T) {
 	if !step.Supports(&payload.JSON{}) {
 		t.Fatal("expected step to support JSON payload")
 	}
+	if !step.Supports(&payload.JSONL{}) {
+		t.Fatal("expected step to support JSONL payload")
+	}
 
 	if !step.Supports(&payload.CSV{}) {
 		t.Fatal("expected step to support CSV payload")
@@ -138,6 +141,31 @@ func TestExecuteNormalizesJSONFields(t *testing.T) {
 	}
 	if !reflect.DeepEqual(out.Records[0], expected) {
 		t.Fatalf("unexpected normalized JSON data:\nexpected: %#v\ngot: %#v", expected, out.Records[0])
+	}
+}
+
+func TestExecuteNormalizesJSONLFields(t *testing.T) {
+	step := &Step{
+		Fields: map[string]string{
+			"name": "trim",
+		},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSONL{
+			Records: []map[string]interface{}{
+				{"name": " Alice "},
+			},
+		},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out := ctx.Payload.(*payload.JSONL)
+	if out.Records[0]["name"] != "Alice" {
+		t.Fatalf("unexpected normalized JSONL data: %#v", out.Records[0])
 	}
 }
 

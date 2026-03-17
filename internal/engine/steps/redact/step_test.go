@@ -21,6 +21,9 @@ func TestSupports(t *testing.T) {
 	if !step.Supports(&payload.JSON{}) {
 		t.Fatal("expected step to support JSON payload")
 	}
+	if !step.Supports(&payload.JSONL{}) {
+		t.Fatal("expected step to support JSONL payload")
+	}
 
 	if !step.Supports(&payload.CSV{}) {
 		t.Fatal("expected step to support CSV payload")
@@ -101,6 +104,30 @@ func TestExecuteRedactsJSONFields(t *testing.T) {
 	}
 	if !reflect.DeepEqual(out.Records[0], expected) {
 		t.Fatalf("unexpected redacted JSON data:\nexpected: %#v\ngot: %#v", expected, out.Records[0])
+	}
+}
+
+func TestExecuteRedactsJSONLFields(t *testing.T) {
+	step := &Step{
+		Strategy: "mask",
+		Fields:   []string{"email"},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSONL{
+			Records: []map[string]interface{}{
+				{"email": "alice@example.com"},
+			},
+		},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out := ctx.Payload.(*payload.JSONL)
+	if out.Records[0]["email"] != "*****************" {
+		t.Fatalf("unexpected redacted JSONL data: %#v", out.Records[0])
 	}
 }
 

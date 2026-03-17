@@ -2,6 +2,13 @@ package payload
 
 const JSONType string = "json"
 
+type RecordPayload interface {
+	Payload
+	GetRecords() []map[string]interface{}
+	EnsureRecords()
+	Value() interface{}
+}
+
 type JSONShape string
 
 const (
@@ -20,6 +27,10 @@ func (p *JSON) Type() string {
 
 func (p *JSON) RecordCount() int {
 	return len(p.Records)
+}
+
+func (p *JSON) GetRecords() []map[string]interface{} {
+	return p.Records
 }
 
 func (p *JSON) EnsureRecords() {
