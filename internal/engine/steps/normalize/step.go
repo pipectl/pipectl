@@ -67,10 +67,16 @@ func (s *Step) normalizeValue(value string, strategy string) string {
 }
 
 func (s *Step) normalizeJSON(jsonPayload *payload.JSON) error {
-	for key, _ := range jsonPayload.Data {
-		if strategy, needsNormalizing := s.Fields[key]; needsNormalizing {
-			if currentValue, ok := jsonPayload.Data[key].(string); ok {
-				jsonPayload.Data[key] = s.normalizeValue(currentValue, strategy)
+	for _, record := range jsonPayload.Records {
+		if record == nil {
+			continue
+		}
+
+		for key := range record {
+			if strategy, needsNormalizing := s.Fields[key]; needsNormalizing {
+				if currentValue, ok := record[key].(string); ok {
+					record[key] = s.normalizeValue(currentValue, strategy)
+				}
 			}
 		}
 	}

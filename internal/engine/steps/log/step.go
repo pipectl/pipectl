@@ -34,28 +34,11 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	}
 
 	if s.Count {
-		fmt.Printf("- records: %d\n", s.recordCount(context.Payload))
+		fmt.Printf("- records: %d\n", context.Payload.RecordCount())
 	}
 
 	s.printSample(context.Payload)
 	return nil
-}
-
-func (s *Step) recordCount(p payload.Payload) int {
-	switch v := p.(type) {
-	case *payload.CSV:
-		if len(v.Rows) == 0 {
-			return 0
-		}
-		return len(v.Rows) - 1
-	case *payload.JSON:
-		if len(v.Data) == 0 {
-			return 0
-		}
-		return 1
-	default:
-		return 0
-	}
 }
 
 func (s *Step) printSample(p payload.Payload) {
@@ -87,15 +70,21 @@ func (s *Step) printSample(p payload.Payload) {
 			fmt.Println(strings.Join(row, ","))
 		}
 	case *payload.JSON:
-		if len(v.Data) == 0 {
+		if len(v.Records) == 0 {
 			return
 		}
-		fmt.Printf("- sample (1):\n")
-		raw, err := json.Marshal(v.Data)
-		if err != nil {
-			fmt.Printf("%v\n", v.Data)
-			return
+		records := v.Records
+		if len(records) > limit {
+			records = records[:limit]
 		}
-		fmt.Println(string(raw))
+		fmt.Printf("- sample (%d):\n", len(records))
+		for _, record := range records {
+			raw, err := json.Marshal(record)
+			if err != nil {
+				fmt.Printf("%v\n", record)
+				continue
+			}
+			fmt.Println(string(raw))
+		}
 	}
 }

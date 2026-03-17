@@ -1,0 +1,36 @@
+id: customer-signup
+
+input:
+  format: json
+
+steps:
+  - validate-json:
+      schema: ./examples/json/signup-array-schema.json
+
+  - log:
+      message: "Initial payload"
+
+  - default:
+      fields:
+        country: AU
+        currency: AUD
+
+  - normalize:
+      fields:
+        email: lower
+        name: trim
+        string: collapse-spaces
+
+  - redact:
+      strategy: mask
+      fields: [credit_card, password]
+
+  - rename:
+      fields:
+        credit_card: creditCard
+
+  - count:
+      message: Final record count
+
+output:
+  format: json

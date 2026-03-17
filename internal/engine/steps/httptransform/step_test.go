@@ -47,7 +47,10 @@ func TestExecuteWithBodyMethods(t *testing.T) {
 			}
 
 			ctx := &engine.ExecutionContext{
-				Payload: &payload.JSON{Data: map[string]interface{}{"a": "b"}},
+				Payload: &payload.JSON{
+					Records: []map[string]interface{}{{"a": "b"}},
+					Shape:   payload.JSONObjectShape,
+				},
 			}
 
 			if err := step.Execute(ctx); err != nil {
@@ -120,7 +123,10 @@ func TestExecuteWithTimeoutInSeconds(t *testing.T) {
 	}
 
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"a": "b"}},
+		Payload: &payload.JSON{
+			Records: []map[string]interface{}{{"a": "b"}},
+			Shape:   payload.JSONObjectShape,
+		},
 	}
 
 	err := step.Execute(ctx)
@@ -158,7 +164,10 @@ func TestExecuteWithExpectFormatJSONMismatch(t *testing.T) {
 	}
 
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"a": "b"}},
+		Payload: &payload.JSON{
+			Records: []map[string]interface{}{{"a": "b"}},
+			Shape:   payload.JSONObjectShape,
+		},
 	}
 
 	err := step.Execute(ctx)
@@ -184,7 +193,10 @@ func TestExecuteWithExpectFormatCSV(t *testing.T) {
 	}
 
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"a": "b"}},
+		Payload: &payload.JSON{
+			Records: []map[string]interface{}{{"a": "b"}},
+			Shape:   payload.JSONObjectShape,
+		},
 	}
 
 	if err := step.Execute(ctx); err != nil {
@@ -216,7 +228,10 @@ func TestExecuteWithoutProxy(t *testing.T) {
 	}
 
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"a": "b"}},
+		Payload: &payload.JSON{
+			Records: []map[string]interface{}{{"a": "b"}},
+			Shape:   payload.JSONObjectShape,
+		},
 	}
 
 	if err := step.Execute(ctx); err != nil {
@@ -227,8 +242,8 @@ func TestExecuteWithoutProxy(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected payload.JSON, got %T", ctx.Payload)
 	}
-	if got, ok := out.Data["from"]; !ok || got != "target" {
-		t.Fatalf("unexpected response payload: %#v", out.Data)
+	if got, ok := out.Records[0]["from"]; !ok || got != "target" {
+		t.Fatalf("unexpected response payload: %#v", out.Records)
 	}
 }
 
@@ -256,7 +271,10 @@ func TestExecuteWithHeaders(t *testing.T) {
 	}
 
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"a": "b"}},
+		Payload: &payload.JSON{
+			Records: []map[string]interface{}{{"a": "b"}},
+			Shape:   payload.JSONObjectShape,
+		},
 	}
 
 	if err := step.Execute(ctx); err != nil {
@@ -267,8 +285,8 @@ func TestExecuteWithHeaders(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected payload.JSON, got %T", ctx.Payload)
 	}
-	if got, ok := out.Data["from"]; !ok || got != "target-with-headers" {
-		t.Fatalf("unexpected response payload: %#v", out.Data)
+	if got, ok := out.Records[0]["from"]; !ok || got != "target-with-headers" {
+		t.Fatalf("unexpected response payload: %#v", out.Records)
 	}
 }
 
@@ -317,7 +335,10 @@ func TestExecuteWithProxy(t *testing.T) {
 	}
 
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"a": "b"}},
+		Payload: &payload.JSON{
+			Records: []map[string]interface{}{{"a": "b"}},
+			Shape:   payload.JSONObjectShape,
+		},
 	}
 
 	if err := step.Execute(ctx); err != nil {
@@ -334,8 +355,8 @@ func TestExecuteWithProxy(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected payload.JSON, got %T", ctx.Payload)
 	}
-	if got, ok := out.Data["from"]; !ok || got != "target-via-proxy" {
-		t.Fatalf("unexpected response payload: %#v", out.Data)
+	if got, ok := out.Records[0]["from"]; !ok || got != "target-via-proxy" {
+		t.Fatalf("unexpected response payload: %#v", out.Records)
 	}
 }
 
@@ -347,7 +368,10 @@ func TestExecuteWithInvalidProxyURL(t *testing.T) {
 	}
 
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"a": "b"}},
+		Payload: &payload.JSON{
+			Records: []map[string]interface{}{{"a": "b"}},
+			Shape:   payload.JSONObjectShape,
+		},
 	}
 
 	err := step.Execute(ctx)

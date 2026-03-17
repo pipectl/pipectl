@@ -29,7 +29,7 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 		return fmt.Errorf("%v received invalid payload type %v", s.Name(), context.Payload.Type())
 	}
 
-	recordCount := s.recordCount(context.Payload)
+	recordCount := context.Payload.RecordCount()
 	fmt.Printf("- assert records: actual=%d\n", recordCount)
 
 	if s.RecordsEqual != nil {
@@ -63,23 +63,6 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	return nil
 }
 
-func (s *Step) recordCount(p payload.Payload) int {
-	switch v := p.(type) {
-	case *payload.CSV:
-		if len(v.Rows) == 0 {
-			return 0
-		}
-		return len(v.Rows) - 1
-	case *payload.JSON:
-		if len(v.Data) == 0 {
-			return 0
-		}
-		return 1
-	default:
-		return 0
-	}
-}
-
 func (s *Step) fieldExists(p payload.Payload) bool {
 	switch v := p.(type) {
 	case *payload.CSV:
@@ -93,8 +76,12 @@ func (s *Step) fieldExists(p payload.Payload) bool {
 		}
 		return false
 	case *payload.JSON:
-		_, exists := v.Data[s.FieldExists]
-		return exists
+		for _, record := range v.Records {
+			if _, exists := record[s.FieldExists]; exists {
+				return true
+			}
+		}
+		return false
 	default:
 		return false
 	}

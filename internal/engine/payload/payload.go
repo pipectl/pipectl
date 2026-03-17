@@ -9,17 +9,39 @@ import (
 
 type Payload interface {
 	Type() string
+	RecordCount() int
 }
 
 func Read(input []byte, format string) (Payload, error) {
 	switch format {
 
 	case JSONType:
-		var data map[string]interface{}
-		if err := json.Unmarshal(input, &data); err != nil {
-			return nil, err
+		var value interface{}
+		if err := json.Unmarshal(input, &value); err != nil {
+			return nil, fmt.Errorf("invalid JSON input: %w", err)
 		}
-		return &JSON{Data: data}, nil
+		switch data := value.(type) {
+		case map[string]interface{}:
+			return &JSON{
+				Records: []map[string]interface{}{data},
+				Shape:   JSONObjectShape,
+			}, nil
+		case []interface{}:
+			records := make([]map[string]interface{}, 0, len(data))
+			for i, item := range data {
+				record, ok := item.(map[string]interface{})
+				if !ok {
+					return nil, fmt.Errorf("invalid JSON input: array item %d is %T, expected object", i, item)
+				}
+				records = append(records, record)
+			}
+			return &JSON{
+				Records: records,
+				Shape:   JSONArrayShape,
+			}, nil
+		default:
+			return nil, fmt.Errorf("invalid JSON input: expected object or array of objects")
+		}
 
 	case CSVType:
 		rows, err := csv.NewReader(bytes.NewReader(input)).ReadAll()
@@ -41,7 +63,7 @@ func Write(payload Payload, format string) error {
 
 		case JSONType:
 			jsonPayload, _ := payload.(*JSON)
-			output, err := json.MarshalIndent(jsonPayload.Data, "", "  ")
+			output, err := json.MarshalIndent(jsonPayload.Value(), "", "  ")
 			if err != nil {
 				fmt.Println("Error marshalling JSON:", err)
 				return err

@@ -34,15 +34,21 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 }
 
 func (s *Step) renameJSON(jsonPayload *payload.JSON) error {
-	for from, to := range s.Fields {
-		value, ok := jsonPayload.Data[from]
-		if !ok {
+	for _, record := range jsonPayload.Records {
+		if record == nil {
 			continue
 		}
 
-		fmt.Printf("- renaming field: %v => %v\n", from, to)
-		jsonPayload.Data[to] = value
-		delete(jsonPayload.Data, from)
+		for from, to := range s.Fields {
+			value, ok := record[from]
+			if !ok {
+				continue
+			}
+
+			fmt.Printf("- renaming field: %v => %v\n", from, to)
+			record[to] = value
+			delete(record, from)
+		}
 	}
 
 	return nil

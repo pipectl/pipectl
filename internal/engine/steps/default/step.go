@@ -34,17 +34,21 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 }
 
 func (s *Step) defaultJSON(jsonPayload *payload.JSON) error {
-	if jsonPayload.Data == nil {
-		jsonPayload.Data = map[string]interface{}{}
-	}
+	jsonPayload.EnsureRecords()
 
-	for key, value := range s.Fields {
-		if _, exists := jsonPayload.Data[key]; exists {
+	for _, record := range jsonPayload.Records {
+		if record == nil {
 			continue
 		}
 
-		fmt.Printf("- applying default: %v => %v\n", key, value)
-		jsonPayload.Data[key] = value
+		for key, value := range s.Fields {
+			if _, exists := record[key]; exists {
+				continue
+			}
+
+			fmt.Printf("- applying default: %v => %v\n", key, value)
+			record[key] = value
+		}
 	}
 
 	return nil

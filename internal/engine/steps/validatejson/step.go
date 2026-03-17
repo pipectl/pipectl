@@ -25,10 +25,10 @@ func (s *Step) Supports(p payload.Payload) bool {
 func (s *Step) Execute(context *engine.ExecutionContext) error {
 	fmt.Printf("- validating JSON payload against schema %v\n", s.Schema)
 	jsonPayload := context.Payload.(*payload.JSON)
-	return s.validateJSONPayload(jsonPayload.Data)
+	return s.validateJSONPayload(jsonPayload.Value())
 }
 
-func (s *Step) validateJSONPayload(data map[string]interface{}) error {
+func (s *Step) validateJSONPayload(data interface{}) error {
 	schemaLoader, err := s.schemaLoader()
 	if err != nil {
 		return err

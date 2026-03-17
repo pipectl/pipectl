@@ -60,16 +60,22 @@ func (s *Step) redactCsv(csvPayload *payload.CSV) error {
 // TODO only handles top-level fields, make this recursive
 // TODO can types other than strings be redacted? eg: changing from an int to "***" seems wrong and could break schema.
 func (s *Step) redactJson(jsonPayload *payload.JSON) error {
-	for k, v := range jsonPayload.Data {
-		if slices.Contains(s.Fields, k) {
-			switch value := v.(type) {
+	for _, record := range jsonPayload.Records {
+		if record == nil {
+			continue
+		}
 
-			case string:
-				fmt.Printf("- redacting field: %v, value: '%v'\n", k, v)
-				jsonPayload.Data[k] = s.redactSingleValue(value)
+		for k, v := range record {
+			if slices.Contains(s.Fields, k) {
+				switch value := v.(type) {
 
-			default:
-				fmt.Printf("Cannot redact field %v of unsupported type %T\n", k, v)
+				case string:
+					fmt.Printf("- redacting field: %v, value: '%v'\n", k, v)
+					record[k] = s.redactSingleValue(value)
+
+				default:
+					fmt.Printf("Cannot redact field %v of unsupported type %T\n", k, v)
+				}
 			}
 		}
 	}

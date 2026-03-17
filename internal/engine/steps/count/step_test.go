@@ -59,11 +59,14 @@ func TestExecutePrintsMessageLikeLogStep(t *testing.T) {
 	step := &Step{Message: "Message goes here"}
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Data: map[string]interface{}{
-				"name1": "value1",
-				"name2": "value2",
-				"name3": "value3",
+			Records: []map[string]interface{}{
+				{
+					"name1": "value1",
+					"name2": "value2",
+					"name3": "value3",
+				},
 			},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 

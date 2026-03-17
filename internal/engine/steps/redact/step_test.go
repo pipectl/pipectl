@@ -72,12 +72,15 @@ func TestExecuteRedactsJSONFields(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Data: map[string]interface{}{
-				"name":  "Alice",
-				"email": "alice@example.com",
-				"ssn":   "123-45-6789",
-				"age":   42,
+			Records: []map[string]interface{}{
+				{
+					"name":  "Alice",
+					"email": "alice@example.com",
+					"ssn":   "123-45-6789",
+					"age":   42,
+				},
 			},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 
@@ -96,8 +99,8 @@ func TestExecuteRedactsJSONFields(t *testing.T) {
 		"ssn":   "***********",
 		"age":   42,
 	}
-	if !reflect.DeepEqual(out.Data, expected) {
-		t.Fatalf("unexpected redacted JSON data:\nexpected: %#v\ngot: %#v", expected, out.Data)
+	if !reflect.DeepEqual(out.Records[0], expected) {
+		t.Fatalf("unexpected redacted JSON data:\nexpected: %#v\ngot: %#v", expected, out.Records[0])
 	}
 }
 

@@ -60,7 +60,11 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, 
 
 	// Set the request body from the step payload
 	if method == http.MethodPost || method == http.MethodPut || method == http.MethodPatch || method == http.MethodDelete {
-		jsonBody, _ := json.Marshal(inputPayload)
+		jsonInput, ok := inputPayload.(*payload.JSON)
+		if !ok {
+			return nil, fmt.Errorf("http-transform received invalid payload type %v", inputPayload.Type())
+		}
+		jsonBody, _ := json.Marshal(jsonInput.Value())
 		bodyReader = bytes.NewBuffer(jsonBody)
 	}
 
@@ -118,11 +122,7 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, 
 
 	switch expectedFormat {
 	case payload.JSONType:
-		var data map[string]interface{}
-		if err := json.Unmarshal(body, &data); err != nil {
-			return nil, fmt.Errorf("Error parsing JSON response: %s\n", err)
-		}
-		return &payload.JSON{Data: data}, nil
+		return payload.Read(body, payload.JSONType)
 
 	case payload.CSVType:
 		rows, err := csv.NewReader(bytes.NewReader(body)).ReadAll()

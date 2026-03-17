@@ -38,11 +38,14 @@ func TestExecuteAppliesDefaultsToMissingJSONFields(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Data: map[string]interface{}{
-				"name":     "Alice",
-				"country":  "NZ",
-				"password": "super-secret",
+			Records: []map[string]interface{}{
+				{
+					"name":     "Alice",
+					"country":  "NZ",
+					"password": "super-secret",
+				},
 			},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 
@@ -61,8 +64,8 @@ func TestExecuteAppliesDefaultsToMissingJSONFields(t *testing.T) {
 		"password": "super-secret",
 		"age":      18,
 	}
-	if !reflect.DeepEqual(out.Data, expected) {
-		t.Fatalf("unexpected defaulted JSON data:\nexpected: %#v\ngot: %#v", expected, out.Data)
+	if !reflect.DeepEqual(out.Records[0], expected) {
+		t.Fatalf("unexpected defaulted JSON data:\nexpected: %#v\ngot: %#v", expected, out.Records[0])
 	}
 }
 
@@ -82,8 +85,8 @@ func TestExecuteInitializesNilJSONMap(t *testing.T) {
 	}
 
 	out := ctx.Payload.(*payload.JSON)
-	if out.Data["country"] != "AU" {
-		t.Fatalf("expected default field to be set, got %#v", out.Data)
+	if out.Records[0]["country"] != "AU" {
+		t.Fatalf("expected default field to be set, got %#v", out.Records)
 	}
 }
 

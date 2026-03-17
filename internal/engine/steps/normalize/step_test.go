@@ -111,11 +111,14 @@ func TestExecuteNormalizesJSONFields(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Data: map[string]interface{}{
-				"name":   "  Alice  ",
-				"status": " ACTIVE ",
-				"count":  7,
+			Records: []map[string]interface{}{
+				{
+					"name":   "  Alice  ",
+					"status": " ACTIVE ",
+					"count":  7,
+				},
 			},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 
@@ -133,8 +136,8 @@ func TestExecuteNormalizesJSONFields(t *testing.T) {
 		"status": " active ",
 		"count":  7,
 	}
-	if !reflect.DeepEqual(out.Data, expected) {
-		t.Fatalf("unexpected normalized JSON data:\nexpected: %#v\ngot: %#v", expected, out.Data)
+	if !reflect.DeepEqual(out.Records[0], expected) {
+		t.Fatalf("unexpected normalized JSON data:\nexpected: %#v\ngot: %#v", expected, out.Records[0])
 	}
 }
 

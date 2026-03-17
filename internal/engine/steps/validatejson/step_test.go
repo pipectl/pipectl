@@ -39,7 +39,10 @@ func TestExecuteValidJSONAgainstSchemaFile(t *testing.T) {
 
 	step := &Step{Schema: schemaPath}
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"email": "alice@example.com"}},
+		Payload: &payload.JSON{
+			Records: []map[string]interface{}{{"email": "alice@example.com"}},
+			Shape:   payload.JSONObjectShape,
+		},
 	}
 
 	if err := step.Execute(ctx); err != nil {
@@ -50,7 +53,10 @@ func TestExecuteValidJSONAgainstSchemaFile(t *testing.T) {
 func TestExecuteReturnsValidationError(t *testing.T) {
 	step := &Step{Schema: `{"type":"object","required":["email"],"properties":{"email":{"type":"string"}}}`}
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"id": 123}},
+		Payload: &payload.JSON{
+			Records: []map[string]interface{}{{"id": 123}},
+			Shape:   payload.JSONObjectShape,
+		},
 	}
 
 	err := step.Execute(ctx)
@@ -68,7 +74,10 @@ func TestExecuteReturnsValidationError(t *testing.T) {
 func TestExecuteReturnsErrorWhenSchemaIsMissing(t *testing.T) {
 	step := &Step{Schema: " "}
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.JSON{Data: map[string]interface{}{"email": "alice@example.com"}},
+		Payload: &payload.JSON{
+			Records: []map[string]interface{}{{"email": "alice@example.com"}},
+			Shape:   payload.JSONObjectShape,
+		},
 	}
 
 	err := step.Execute(ctx)
