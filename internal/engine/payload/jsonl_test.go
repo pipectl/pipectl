@@ -94,3 +94,30 @@ func TestWriteJSONLReturnsErrorForCSVRowLengthMismatch(t *testing.T) {
 	assertContains(t, err.Error(), "row 2")
 	assertContains(t, err.Error(), "expected 2")
 }
+
+func TestWriteCSVConvertsJSONLPayloadWithNestedObjects(t *testing.T) {
+	jsonlPayload := &JSONL{
+		Items: []map[string]interface{}{
+			{
+				"id": float64(1),
+				"address": map[string]interface{}{
+					"city": "Sydney",
+				},
+			},
+			{
+				"id":   float64(2),
+				"tags": []interface{}{"new"},
+			},
+		},
+	}
+
+	output := captureStdout(t, func() {
+		if err := Write(jsonlPayload, CSVType); err != nil {
+			t.Fatalf("Write returned error: %v", err)
+		}
+	})
+
+	assertContains(t, output, "address.city,id,tags\n")
+	assertContains(t, output, "Sydney,1,\n")
+	assertContains(t, output, ",2,\"[\"\"new\"\"]\"\n")
+}

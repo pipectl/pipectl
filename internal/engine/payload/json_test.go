@@ -130,6 +130,71 @@ func TestWriteJSONPreservesArrayShape(t *testing.T) {
 	assertContains(t, output, `"id": 2`)
 }
 
+func TestWriteCSVConvertsJSONPayloadWithNestedObjects(t *testing.T) {
+	jsonPayload := &JSON{
+		Items: []map[string]interface{}{
+			{
+				"name": "John Smith",
+				"address": map[string]interface{}{
+					"city":    "Sydney",
+					"country": "AU",
+				},
+			},
+		},
+		Shape: JSONObjectShape,
+	}
+
+	output := captureStdout(t, func() {
+		if err := Write(jsonPayload, CSVType); err != nil {
+			t.Fatalf("Write returned error: %v", err)
+		}
+	})
+
+	assertContains(t, output, "address.city,address.country,name\n")
+	assertContains(t, output, "Sydney,AU,John Smith\n")
+}
+
+func TestWriteCSVConvertsJSONArrayFieldsToJSONString(t *testing.T) {
+	jsonPayload := &JSON{
+		Items: []map[string]interface{}{
+			{
+				"id":   float64(1),
+				"tags": []interface{}{"new", "vip"},
+			},
+		},
+		Shape: JSONObjectShape,
+	}
+
+	output := captureStdout(t, func() {
+		if err := Write(jsonPayload, CSVType); err != nil {
+			t.Fatalf("Write returned error: %v", err)
+		}
+	})
+
+	assertContains(t, output, "id,tags\n")
+	assertContains(t, output, "1,\"[\"\"new\"\",\"\"vip\"\"]\"\n")
+}
+
+func TestWriteCSVIncludesFlattenedKeysFromAllJSONRecords(t *testing.T) {
+	jsonPayload := &JSON{
+		Items: []map[string]interface{}{
+			{"id": float64(1), "name": "alice"},
+			{"id": float64(2), "address": map[string]interface{}{"city": "Sydney"}},
+		},
+		Shape: JSONArrayShape,
+	}
+
+	output := captureStdout(t, func() {
+		if err := Write(jsonPayload, CSVType); err != nil {
+			t.Fatalf("Write returned error: %v", err)
+		}
+	})
+
+	assertContains(t, output, "address.city,id,name\n")
+	assertContains(t, output, "Sydney,2,\n")
+	assertContains(t, output, ",1,alice\n")
+}
+
 func captureStdout(t *testing.T, fn func()) string {
 	t.Helper()
 

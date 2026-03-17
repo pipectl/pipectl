@@ -33,4 +33,4 @@ steps:
       message: Final record count
 
 output:
-  format: jsonl
+  format: csv

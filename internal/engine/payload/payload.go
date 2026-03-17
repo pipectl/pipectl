@@ -6,6 +6,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -193,10 +194,16 @@ func Write(payload Payload, format string) error {
 
 		// JSON to CSV
 		case JSONType:
-			// TODO convert JSON payload to CSV
+			jsonPayload, _ := payload.(*JSON)
+			if err := writeJSONRecordsAsCSV(jsonPayload.Items); err != nil {
+				return err
+			}
 
 		case JSONLType:
-			// TODO convert JSONL payload to CSV
+			jsonlPayload, _ := payload.(*JSONL)
+			if err := writeJSONRecordsAsCSV(jsonlPayload.Items); err != nil {
+				return err
+			}
 
 		default:
 			return fmt.Errorf("Cannot convert to CSV")
@@ -233,4 +240,109 @@ func csvRowsToRecords(rows [][]string) ([]map[string]interface{}, error) {
 	}
 
 	return records, nil
+}
+
+func writeJSONRecordsAsCSV(records []map[string]interface{}) error {
+	rows, err := jsonRecordsToCSVRows(records)
+	if err != nil {
+		return err
+	}
+
+	buf := new(bytes.Buffer)
+	csvWriter := csv.NewWriter(buf)
+	if err := csvWriter.WriteAll(rows); err != nil {
+		fmt.Println("Error writing CSV:", err)
+		return err
+	}
+
+	fmt.Print(buf.String())
+	return nil
+}
+
+func jsonRecordsToCSVRows(records []map[string]interface{}) ([][]string, error) {
+	if len(records) == 0 {
+		return [][]string{}, nil
+	}
+
+	headerSet := make(map[string]struct{})
+	for _, record := range records {
+		flattened, err := flattenJSONRecord(record)
+		if err != nil {
+			return nil, err
+		}
+		for key := range flattened {
+			headerSet[key] = struct{}{}
+		}
+	}
+
+	headers := make([]string, 0, len(headerSet))
+	for key := range headerSet {
+		headers = append(headers, key)
+	}
+	sort.Strings(headers)
+
+	rows := make([][]string, 0, len(records)+1)
+	rows = append(rows, headers)
+
+	for _, record := range records {
+		flattened, err := flattenJSONRecord(record)
+		if err != nil {
+			return nil, err
+		}
+
+		row := make([]string, len(headers))
+		for index, header := range headers {
+			row[index] = flattened[header]
+		}
+		rows = append(rows, row)
+	}
+
+	return rows, nil
+}
+
+func flattenJSONRecord(record map[string]interface{}) (map[string]string, error) {
+	flattened := make(map[string]string)
+	for key, value := range record {
+		if err := flattenJSONValue(flattened, key, value); err != nil {
+			return nil, err
+		}
+	}
+
+	return flattened, nil
+}
+
+func flattenJSONValue(flattened map[string]string, key string, value interface{}) error {
+	switch typed := value.(type) {
+	case map[string]interface{}:
+		for nestedKey, nestedValue := range typed {
+			childKey := nestedKey
+			if key != "" {
+				childKey = key + "." + nestedKey
+			}
+			if err := flattenJSONValue(flattened, childKey, nestedValue); err != nil {
+				return err
+			}
+		}
+		return nil
+	case []interface{}:
+		encoded, err := json.Marshal(typed)
+		if err != nil {
+			return fmt.Errorf("marshal JSON array field %q: %w", key, err)
+		}
+		flattened[key] = string(encoded)
+		return nil
+	case nil:
+		flattened[key] = ""
+		return nil
+	case string:
+		flattened[key] = typed
+		return nil
+	default:
+		encoded, err := json.Marshal(typed)
+		if err != nil {
+			return fmt.Errorf("marshal JSON field %q: %w", key, err)
+		}
+		flattened[key] = strings.Trim(string(encoded), "\"")
+		return nil
+	}
 }
