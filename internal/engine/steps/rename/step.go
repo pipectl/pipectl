@@ -17,7 +17,7 @@ func (s *Step) Name() string {
 
 func (s *Step) Supports(p payload.Payload) bool {
 	switch p.(type) {
-	case payload.RecordPayload, *payload.CSV:
+	case payload.JSONRecordPayload, *payload.CSV:
 		return true
 	default:
 		return false
@@ -25,9 +25,9 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
-	recordPayload, recordOk := context.Payload.(payload.RecordPayload)
-	if recordOk {
-		return s.renameJSON(recordPayload)
+	jsonPayload, jsonOk := context.Payload.(payload.JSONRecordPayload)
+	if jsonOk {
+		return s.renameJSON(jsonPayload)
 	}
 
 	csvPayload, csvOk := context.Payload.(*payload.CSV)
@@ -38,8 +38,8 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	return fmt.Errorf("%v received invalid payload type %v", s.Name(), context.Payload.Type())
 }
 
-func (s *Step) renameJSON(recordPayload payload.RecordPayload) error {
-	for _, record := range recordPayload.GetRecords() {
+func (s *Step) renameJSON(jsonPayload payload.JSONRecordPayload) error {
+	for _, record := range jsonPayload.Records() {
 		if record == nil {
 			continue
 		}

@@ -75,7 +75,7 @@ func TestExecuteRedactsJSONFields(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{
+			Items: []map[string]interface{}{
 				{
 					"name":  "Alice",
 					"email": "alice@example.com",
@@ -102,8 +102,8 @@ func TestExecuteRedactsJSONFields(t *testing.T) {
 		"ssn":   "***********",
 		"age":   42,
 	}
-	if !reflect.DeepEqual(out.Records[0], expected) {
-		t.Fatalf("unexpected redacted JSON data:\nexpected: %#v\ngot: %#v", expected, out.Records[0])
+	if !reflect.DeepEqual(out.Items[0], expected) {
+		t.Fatalf("unexpected redacted JSON data:\nexpected: %#v\ngot: %#v", expected, out.Items[0])
 	}
 }
 
@@ -115,7 +115,7 @@ func TestExecuteRedactsJSONLFields(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSONL{
-			Records: []map[string]interface{}{
+			Items: []map[string]interface{}{
 				{"email": "alice@example.com"},
 			},
 		},
@@ -126,8 +126,8 @@ func TestExecuteRedactsJSONLFields(t *testing.T) {
 	}
 
 	out := ctx.Payload.(*payload.JSONL)
-	if out.Records[0]["email"] != "*****************" {
-		t.Fatalf("unexpected redacted JSONL data: %#v", out.Records[0])
+	if out.Items[0]["email"] != "*****************" {
+		t.Fatalf("unexpected redacted JSONL data: %#v", out.Items[0])
 	}
 }
 

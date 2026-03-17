@@ -48,8 +48,8 @@ func TestExecuteWithBodyMethods(t *testing.T) {
 
 			ctx := &engine.ExecutionContext{
 				Payload: &payload.JSON{
-					Records: []map[string]interface{}{{"a": "b"}},
-					Shape:   payload.JSONObjectShape,
+					Items: []map[string]interface{}{{"a": "b"}},
+					Shape: payload.JSONObjectShape,
 				},
 			}
 
@@ -124,8 +124,8 @@ func TestExecuteWithTimeoutInSeconds(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{{"a": "b"}},
-			Shape:   payload.JSONObjectShape,
+			Items: []map[string]interface{}{{"a": "b"}},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 
@@ -178,7 +178,7 @@ func TestExecuteWithJSONLPayloadUsesNDJSONContentType(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSONL{
-			Records: []map[string]interface{}{
+			Items: []map[string]interface{}{
 				{"id": 1},
 				{"id": 2},
 			},
@@ -193,8 +193,8 @@ func TestExecuteWithJSONLPayloadUsesNDJSONContentType(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected payload.JSONL, got %T", ctx.Payload)
 	}
-	if len(out.Records) != 1 || out.Records[0]["ok"] != true {
-		t.Fatalf("unexpected JSONL response payload: %#v", out.Records)
+	if len(out.Items) != 1 || out.Items[0]["ok"] != true {
+		t.Fatalf("unexpected JSONL response payload: %#v", out.Items)
 	}
 }
 
@@ -213,8 +213,8 @@ func TestExecuteWithExpectFormatJSONMismatch(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{{"a": "b"}},
-			Shape:   payload.JSONObjectShape,
+			Items: []map[string]interface{}{{"a": "b"}},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 
@@ -242,8 +242,8 @@ func TestExecuteWithExpectFormatCSV(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{{"a": "b"}},
-			Shape:   payload.JSONObjectShape,
+			Items: []map[string]interface{}{{"a": "b"}},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 
@@ -277,8 +277,8 @@ func TestExecuteWithoutProxy(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{{"a": "b"}},
-			Shape:   payload.JSONObjectShape,
+			Items: []map[string]interface{}{{"a": "b"}},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 
@@ -290,8 +290,8 @@ func TestExecuteWithoutProxy(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected payload.JSON, got %T", ctx.Payload)
 	}
-	if got, ok := out.Records[0]["from"]; !ok || got != "target" {
-		t.Fatalf("unexpected response payload: %#v", out.Records)
+	if got, ok := out.Items[0]["from"]; !ok || got != "target" {
+		t.Fatalf("unexpected response payload: %#v", out.Items)
 	}
 }
 
@@ -320,8 +320,8 @@ func TestExecuteWithHeaders(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{{"a": "b"}},
-			Shape:   payload.JSONObjectShape,
+			Items: []map[string]interface{}{{"a": "b"}},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 
@@ -333,8 +333,8 @@ func TestExecuteWithHeaders(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected payload.JSON, got %T", ctx.Payload)
 	}
-	if got, ok := out.Records[0]["from"]; !ok || got != "target-with-headers" {
-		t.Fatalf("unexpected response payload: %#v", out.Records)
+	if got, ok := out.Items[0]["from"]; !ok || got != "target-with-headers" {
+		t.Fatalf("unexpected response payload: %#v", out.Items)
 	}
 }
 
@@ -384,8 +384,8 @@ func TestExecuteWithProxy(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{{"a": "b"}},
-			Shape:   payload.JSONObjectShape,
+			Items: []map[string]interface{}{{"a": "b"}},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 
@@ -403,8 +403,8 @@ func TestExecuteWithProxy(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected payload.JSON, got %T", ctx.Payload)
 	}
-	if got, ok := out.Records[0]["from"]; !ok || got != "target-via-proxy" {
-		t.Fatalf("unexpected response payload: %#v", out.Records)
+	if got, ok := out.Items[0]["from"]; !ok || got != "target-via-proxy" {
+		t.Fatalf("unexpected response payload: %#v", out.Items)
 	}
 }
 
@@ -417,8 +417,8 @@ func TestExecuteWithInvalidProxyURL(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{{"a": "b"}},
-			Shape:   payload.JSONObjectShape,
+			Items: []map[string]interface{}{{"a": "b"}},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 

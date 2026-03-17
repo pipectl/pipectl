@@ -40,7 +40,7 @@ func TestExecuteRenamesJSONFields(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{
+			Items: []map[string]interface{}{
 				{
 					"firstName": "Alice",
 					"lastName":  "Lee",
@@ -65,8 +65,8 @@ func TestExecuteRenamesJSONFields(t *testing.T) {
 		"last_name":  "Lee",
 		"age":        29,
 	}
-	if !reflect.DeepEqual(out.Records[0], expected) {
-		t.Fatalf("unexpected renamed JSON data:\nexpected: %#v\ngot: %#v", expected, out.Records[0])
+	if !reflect.DeepEqual(out.Items[0], expected) {
+		t.Fatalf("unexpected renamed JSON data:\nexpected: %#v\ngot: %#v", expected, out.Items[0])
 	}
 }
 
@@ -79,7 +79,7 @@ func TestExecuteRenamesJSONLFields(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSONL{
-			Records: []map[string]interface{}{
+			Items: []map[string]interface{}{
 				{"firstName": "Alice"},
 			},
 		},
@@ -90,8 +90,8 @@ func TestExecuteRenamesJSONLFields(t *testing.T) {
 	}
 
 	out := ctx.Payload.(*payload.JSONL)
-	if out.Records[0]["first_name"] != "Alice" {
-		t.Fatalf("unexpected renamed JSONL data: %#v", out.Records[0])
+	if out.Items[0]["first_name"] != "Alice" {
+		t.Fatalf("unexpected renamed JSONL data: %#v", out.Items[0])
 	}
 }
 

@@ -40,7 +40,7 @@ func TestExecutePrintsJSONLSample(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSONL{
-			Records: []map[string]interface{}{
+			Items: []map[string]interface{}{
 				{"id": 1, "name": "alice"},
 				{"id": 2, "name": "bob"},
 			},

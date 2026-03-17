@@ -25,8 +25,8 @@ func Read(input []byte, format string) (Payload, error) {
 		switch data := value.(type) {
 		case map[string]interface{}:
 			return &JSON{
-				Records: []map[string]interface{}{data},
-				Shape:   JSONObjectShape,
+				Items: []map[string]interface{}{data},
+				Shape: JSONObjectShape,
 			}, nil
 		case []interface{}:
 			records := make([]map[string]interface{}, 0, len(data))
@@ -38,8 +38,8 @@ func Read(input []byte, format string) (Payload, error) {
 				records = append(records, record)
 			}
 			return &JSON{
-				Records: records,
-				Shape:   JSONArrayShape,
+				Items: records,
+				Shape: JSONArrayShape,
 			}, nil
 		default:
 			return nil, fmt.Errorf("invalid JSON input: expected object or array of objects")
@@ -71,7 +71,7 @@ func Read(input []byte, format string) (Payload, error) {
 			return nil, fmt.Errorf("invalid JSONL input: %w", err)
 		}
 
-		return &JSONL{Records: records}, nil
+		return &JSONL{Items: records}, nil
 
 	case CSVType:
 		rows, err := csv.NewReader(bytes.NewReader(input)).ReadAll()
@@ -123,7 +123,7 @@ func Write(payload Payload, format string) error {
 		switch payload.Type() {
 		case JSONLType:
 			jsonlPayload, _ := payload.(*JSONL)
-			for _, record := range jsonlPayload.Records {
+			for _, record := range jsonlPayload.Items {
 				output, err := json.Marshal(record)
 				if err != nil {
 					fmt.Println("Error marshalling JSONL:", err)
@@ -134,7 +134,7 @@ func Write(payload Payload, format string) error {
 
 		case JSONType:
 			jsonPayload, _ := payload.(*JSON)
-			for _, record := range jsonPayload.Records {
+			for _, record := range jsonPayload.Items {
 				output, err := json.Marshal(record)
 				if err != nil {
 					fmt.Println("Error marshalling JSONL:", err)

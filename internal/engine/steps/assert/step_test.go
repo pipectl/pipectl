@@ -71,7 +71,7 @@ func TestExecuteSucceedsForJSON(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{
+			Items: []map[string]interface{}{
 				{
 					"email": "alice@example.com",
 					"name":  "Alice",
@@ -99,7 +99,7 @@ func TestExecuteSucceedsForJSONL(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSONL{
-			Records: []map[string]interface{}{
+			Items: []map[string]interface{}{
 				{"email": "alice@example.com"},
 				{"email": "bob@example.com"},
 			},
@@ -119,8 +119,8 @@ func TestExecuteFailsWhenRecordCountBelowMinimum(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{{"email": "alice@example.com"}},
-			Shape:   payload.JSONObjectShape,
+			Items: []map[string]interface{}{{"email": "alice@example.com"}},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 

@@ -4,7 +4,7 @@ import "testing"
 
 func TestJSONLType(t *testing.T) {
 	jsonlPayload := &JSONL{
-		Records: []map[string]interface{}{
+		Items: []map[string]interface{}{
 			{"id": 1, "name": "alice"},
 		},
 	}
@@ -24,11 +24,11 @@ func TestReadJSONLParsesEachLineAsRecord(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected payload.JSONL, got %T", got)
 	}
-	if len(jsonlPayload.Records) != 2 {
-		t.Fatalf("expected 2 records, got %d", len(jsonlPayload.Records))
+	if len(jsonlPayload.Items) != 2 {
+		t.Fatalf("expected 2 records, got %d", len(jsonlPayload.Items))
 	}
-	if jsonlPayload.Records[1]["id"] != float64(2) {
-		t.Fatalf("unexpected records: %#v", jsonlPayload.Records)
+	if jsonlPayload.Items[1]["id"] != float64(2) {
+		t.Fatalf("unexpected records: %#v", jsonlPayload.Items)
 	}
 }
 
@@ -43,7 +43,7 @@ func TestReadJSONLRejectsNonObjectLine(t *testing.T) {
 
 func TestWriteJSONLPreservesLineDelimitedOutput(t *testing.T) {
 	jsonlPayload := &JSONL{
-		Records: []map[string]interface{}{
+		Items: []map[string]interface{}{
 			{"id": 1},
 			{"id": 2},
 		},

@@ -20,7 +20,7 @@ func (s *Step) Name() string {
 
 func (s *Step) Supports(p payload.Payload) bool {
 	switch p.(type) {
-	case payload.RecordPayload, *payload.CSV:
+	case payload.JSONRecordPayload, *payload.CSV:
 		return true
 	default:
 		return false
@@ -29,7 +29,7 @@ func (s *Step) Supports(p payload.Payload) bool {
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
 	switch context.Payload.(type) {
-	case *payload.CSV, *payload.JSON, *payload.JSONL:
+	case payload.JSONRecordPayload, *payload.CSV:
 	default:
 		return fmt.Errorf("%v received invalid payload type %v", s.Name(), context.Payload.Type())
 	}
@@ -80,8 +80,8 @@ func (s *Step) fieldExists(p payload.Payload) bool {
 			}
 		}
 		return false
-	case payload.RecordPayload:
-		for _, record := range v.GetRecords() {
+	case payload.JSONRecordPayload:
+		for _, record := range v.Records() {
 			if _, exists := record[s.FieldExists]; exists {
 				return true
 			}

@@ -10,7 +10,7 @@ import (
 
 func TestJSONType(t *testing.T) {
 	jsonPayload := &JSON{
-		Records: []map[string]interface{}{
+		Items: []map[string]interface{}{
 			{"id": 1, "name": "alice"},
 		},
 		Shape: JSONObjectShape,
@@ -23,7 +23,7 @@ func TestJSONType(t *testing.T) {
 
 func TestJSONRecordCount(t *testing.T) {
 	jsonPayload := &JSON{
-		Records: []map[string]interface{}{
+		Items: []map[string]interface{}{
 			{"id": 1},
 			{"id": 2},
 		},
@@ -48,11 +48,11 @@ func TestReadJSONTreatsObjectAsSingleRecord(t *testing.T) {
 	if jsonPayload.Shape != JSONObjectShape {
 		t.Fatalf("expected shape %q, got %q", JSONObjectShape, jsonPayload.Shape)
 	}
-	if len(jsonPayload.Records) != 1 {
-		t.Fatalf("expected 1 record, got %d", len(jsonPayload.Records))
+	if len(jsonPayload.Items) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(jsonPayload.Items))
 	}
-	if jsonPayload.Records[0]["name"] != "alice" {
-		t.Fatalf("unexpected records: %#v", jsonPayload.Records)
+	if jsonPayload.Items[0]["name"] != "alice" {
+		t.Fatalf("unexpected records: %#v", jsonPayload.Items)
 	}
 }
 
@@ -66,8 +66,8 @@ func TestReadJSONTreatsArrayAsRecords(t *testing.T) {
 	if jsonPayload.Shape != JSONArrayShape {
 		t.Fatalf("expected shape %q, got %q", JSONArrayShape, jsonPayload.Shape)
 	}
-	if len(jsonPayload.Records) != 2 {
-		t.Fatalf("expected 2 records, got %d", len(jsonPayload.Records))
+	if len(jsonPayload.Items) != 2 {
+		t.Fatalf("expected 2 records, got %d", len(jsonPayload.Items))
 	}
 }
 
@@ -91,7 +91,7 @@ func TestReadJSONRejectsMixedArray(t *testing.T) {
 
 func TestWriteJSONPreservesObjectShape(t *testing.T) {
 	jsonPayload := &JSON{
-		Records: []map[string]interface{}{
+		Items: []map[string]interface{}{
 			{"id": 1, "name": "alice"},
 		},
 		Shape: JSONObjectShape,
@@ -112,7 +112,7 @@ func TestWriteJSONPreservesObjectShape(t *testing.T) {
 
 func TestWriteJSONPreservesArrayShape(t *testing.T) {
 	jsonPayload := &JSON{
-		Records: []map[string]interface{}{
+		Items: []map[string]interface{}{
 			{"id": 1},
 			{"id": 2},
 		},

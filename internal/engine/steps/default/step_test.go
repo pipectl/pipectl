@@ -2,6 +2,7 @@ package _default
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/shanebell/pipectl/internal/engine"
@@ -41,7 +42,7 @@ func TestExecuteAppliesDefaultsToMissingJSONFields(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{
+			Items: []map[string]interface{}{
 				{
 					"name":     "Alice",
 					"country":  "NZ",
@@ -67,12 +68,12 @@ func TestExecuteAppliesDefaultsToMissingJSONFields(t *testing.T) {
 		"password": "super-secret",
 		"age":      18,
 	}
-	if !reflect.DeepEqual(out.Records[0], expected) {
-		t.Fatalf("unexpected defaulted JSON data:\nexpected: %#v\ngot: %#v", expected, out.Records[0])
+	if !reflect.DeepEqual(out.Items[0], expected) {
+		t.Fatalf("unexpected defaulted JSON data:\nexpected: %#v\ngot: %#v", expected, out.Items[0])
 	}
 }
 
-func TestExecuteInitializesNilJSONMap(t *testing.T) {
+func TestExecuteReturnsErrorForEmptyJSONPayload(t *testing.T) {
 	step := &Step{
 		Fields: map[string]interface{}{
 			"country": "AU",
@@ -83,13 +84,12 @@ func TestExecuteInitializesNilJSONMap(t *testing.T) {
 		Payload: &payload.JSON{},
 	}
 
-	if err := step.Execute(ctx); err != nil {
-		t.Fatalf("execute returned error: %v", err)
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected error for empty JSON payload")
 	}
-
-	out := ctx.Payload.(*payload.JSON)
-	if out.Records[0]["country"] != "AU" {
-		t.Fatalf("expected default field to be set, got %#v", out.Records)
+	if !strings.Contains(err.Error(), "requires at least one JSON record") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 
@@ -102,7 +102,7 @@ func TestExecuteAppliesDefaultsToMissingJSONLFields(t *testing.T) {
 
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSONL{
-			Records: []map[string]interface{}{
+			Items: []map[string]interface{}{
 				{"name": "Alice"},
 				{"name": "Bob", "country": "NZ"},
 			},
@@ -117,8 +117,28 @@ func TestExecuteAppliesDefaultsToMissingJSONLFields(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected payload.JSONL, got %T", ctx.Payload)
 	}
-	if out.Records[0]["country"] != "AU" || out.Records[1]["country"] != "NZ" {
-		t.Fatalf("unexpected JSONL records: %#v", out.Records)
+	if out.Items[0]["country"] != "AU" || out.Items[1]["country"] != "NZ" {
+		t.Fatalf("unexpected JSONL records: %#v", out.Items)
+	}
+}
+
+func TestExecuteReturnsErrorForEmptyJSONLPayload(t *testing.T) {
+	step := &Step{
+		Fields: map[string]interface{}{
+			"country": "AU",
+		},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSONL{},
+	}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected error for empty JSONL payload")
+	}
+	if !strings.Contains(err.Error(), "requires at least one JSON record") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 

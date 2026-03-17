@@ -21,7 +21,7 @@ func (s *Step) Name() string {
 
 func (s *Step) Supports(p payload.Payload) bool {
 	switch p.(type) {
-	case payload.RecordPayload, *payload.CSV:
+	case payload.JSONRecordPayload, *payload.CSV:
 		return true
 	default:
 		return false
@@ -69,8 +69,8 @@ func (s *Step) printSample(p payload.Payload) {
 		for _, row := range rows {
 			fmt.Println(strings.Join(row, ","))
 		}
-	case payload.RecordPayload:
-		records := v.GetRecords()
+	case payload.JSONRecordPayload:
+		records := v.Records()
 		if len(records) == 0 {
 			return
 		}

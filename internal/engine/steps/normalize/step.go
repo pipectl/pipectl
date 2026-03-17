@@ -18,7 +18,7 @@ func (s *Step) Name() string {
 
 func (s *Step) Supports(p payload.Payload) bool {
 	switch p.(type) {
-	case payload.RecordPayload, *payload.CSV:
+	case payload.JSONRecordPayload, *payload.CSV:
 		return true
 	default:
 		return false
@@ -26,9 +26,9 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
-	recordPayload, recordOk := context.Payload.(payload.RecordPayload)
-	if recordOk {
-		return s.normalizeJSON(recordPayload)
+	jsonPayload, jsonOk := context.Payload.(payload.JSONRecordPayload)
+	if jsonOk {
+		return s.normalizeJSON(jsonPayload)
 	}
 
 	csvPayload, csvOk := context.Payload.(*payload.CSV)
@@ -71,8 +71,8 @@ func (s *Step) normalizeValue(value string, strategy string) string {
 	return fn(value)
 }
 
-func (s *Step) normalizeJSON(recordPayload payload.RecordPayload) error {
-	for _, record := range recordPayload.GetRecords() {
+func (s *Step) normalizeJSON(jsonPayload payload.JSONRecordPayload) error {
+	for _, record := range jsonPayload.Records() {
 		if record == nil {
 			continue
 		}

@@ -37,7 +37,7 @@ func (s *Step) Name() string {
 
 func (s *Step) Supports(p payload.Payload) bool {
 	switch p.(type) {
-	case payload.RecordPayload:
+	case payload.JSONRecordPayload:
 		return true
 	default:
 		return false
@@ -194,7 +194,7 @@ func contentTypeMatchesFormat(mediaType string, expectedFormat string) bool {
 
 func marshalJSONL(input *payload.JSONL) ([]byte, error) {
 	var body bytes.Buffer
-	for _, record := range input.Records {
+	for _, record := range input.Items {
 		raw, err := json.Marshal(record)
 		if err != nil {
 			return nil, err

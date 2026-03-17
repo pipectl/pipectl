@@ -3,7 +3,7 @@ package payload
 const JSONLType string = "jsonl"
 
 type JSONL struct {
-	Records []map[string]interface{}
+	Items []map[string]interface{}
 }
 
 func (p *JSONL) Type() string {
@@ -11,19 +11,13 @@ func (p *JSONL) Type() string {
 }
 
 func (p *JSONL) RecordCount() int {
-	return len(p.Records)
+	return len(p.Items)
 }
 
-func (p *JSONL) GetRecords() []map[string]interface{} {
-	return p.Records
-}
-
-func (p *JSONL) EnsureRecords() {
-	if p.Records == nil {
-		p.Records = []map[string]interface{}{{}}
-	}
+func (p *JSONL) Records() []map[string]interface{} {
+	return p.Items
 }
 
 func (p *JSONL) Value() interface{} {
-	return p.Records
+	return p.Items
 }

@@ -43,8 +43,8 @@ func TestExecuteValidJSONAgainstSchemaFile(t *testing.T) {
 	step := &Step{Schema: schemaPath}
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{{"email": "alice@example.com"}},
-			Shape:   payload.JSONObjectShape,
+			Items: []map[string]interface{}{{"email": "alice@example.com"}},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 
@@ -57,8 +57,8 @@ func TestExecuteReturnsValidationError(t *testing.T) {
 	step := &Step{Schema: `{"type":"object","required":["email"],"properties":{"email":{"type":"string"}}}`}
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{{"id": 123}},
-			Shape:   payload.JSONObjectShape,
+			Items: []map[string]interface{}{{"id": 123}},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 
@@ -78,7 +78,7 @@ func TestExecuteValidatesEachJSONLRecordAgainstSchema(t *testing.T) {
 	step := &Step{Schema: `{"type":"object","required":["email"],"properties":{"email":{"type":"string"}}}`}
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSONL{
-			Records: []map[string]interface{}{
+			Items: []map[string]interface{}{
 				{"email": "alice@example.com"},
 				{"email": "bob@example.com"},
 			},
@@ -94,7 +94,7 @@ func TestExecuteReturnsRecordIndexedErrorForInvalidJSONL(t *testing.T) {
 	step := &Step{Schema: `{"type":"object","required":["email"],"properties":{"email":{"type":"string"}}}`}
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSONL{
-			Records: []map[string]interface{}{
+			Items: []map[string]interface{}{
 				{"email": "alice@example.com"},
 				{"id": 123},
 			},
@@ -117,8 +117,8 @@ func TestExecuteReturnsErrorWhenSchemaIsMissing(t *testing.T) {
 	step := &Step{Schema: " "}
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.JSON{
-			Records: []map[string]interface{}{{"email": "alice@example.com"}},
-			Shape:   payload.JSONObjectShape,
+			Items: []map[string]interface{}{{"email": "alice@example.com"}},
+			Shape: payload.JSONObjectShape,
 		},
 	}
 

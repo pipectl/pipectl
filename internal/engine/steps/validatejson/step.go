@@ -20,7 +20,7 @@ func (s *Step) Name() string {
 
 func (s *Step) Supports(p payload.Payload) bool {
 	switch p.(type) {
-	case payload.RecordPayload:
+	case payload.JSONRecordPayload:
 		return true
 	default:
 		return false
@@ -36,8 +36,8 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 
 	switch value := context.Payload.(type) {
 	case *payload.JSONL:
-		return s.validateJSONLRecords(schemaLoader, value.GetRecords())
-	case payload.RecordPayload:
+		return s.validateJSONLRecords(schemaLoader, value.Records())
+	case payload.JSONRecordPayload:
 		return s.validateJSONPayload(schemaLoader, value.Value())
 	default:
 		return fmt.Errorf("%v received invalid payload type %v", s.Name(), context.Payload.Type())
