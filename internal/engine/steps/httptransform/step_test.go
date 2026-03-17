@@ -154,7 +154,7 @@ func TestExecuteWithExpectFormatJSONMismatch(t *testing.T) {
 	step := &Step{
 		URL:          target.URL,
 		Method:       http.MethodPost,
-		ExpectFormat: "json",
+		ExpectFormat: payload.JSONType,
 	}
 
 	ctx := &engine.ExecutionContext{
@@ -180,7 +180,7 @@ func TestExecuteWithExpectFormatCSV(t *testing.T) {
 	step := &Step{
 		URL:          target.URL,
 		Method:       http.MethodPost,
-		ExpectFormat: "csv",
+		ExpectFormat: payload.CSVType,
 	}
 
 	ctx := &engine.ExecutionContext{

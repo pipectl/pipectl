@@ -14,14 +14,14 @@ type Payload interface {
 func Read(input []byte, format string) (Payload, error) {
 	switch format {
 
-	case "json":
+	case JSONType:
 		var data map[string]interface{}
 		if err := json.Unmarshal(input, &data); err != nil {
 			return nil, err
 		}
 		return &JSON{Data: data}, nil
 
-	case "csv":
+	case CSVType:
 		rows, err := csv.NewReader(bytes.NewReader(input)).ReadAll()
 		if err != nil {
 			panic(err)
@@ -34,12 +34,12 @@ func Read(input []byte, format string) (Payload, error) {
 }
 
 func Write(payload Payload, format string) error {
-	if format == "json" {
+	if format == JSONType {
 
 		// TODO: which payload types can be converted to JSON?
 		switch payload.Type() {
 
-		case "json":
+		case JSONType:
 			jsonPayload, _ := payload.(*JSON)
 			output, err := json.MarshalIndent(jsonPayload.Data, "", "  ")
 			if err != nil {
@@ -48,7 +48,7 @@ func Write(payload Payload, format string) error {
 			}
 			fmt.Println(string(output))
 
-		case "csv":
+		case CSVType:
 			csvPayload, _ := payload.(*CSV)
 			// TODO how to convert from CSV to JSON?
 			fmt.Println("TODO: convert CSV to JSON")
@@ -58,9 +58,9 @@ func Write(payload Payload, format string) error {
 			return fmt.Errorf("Cannot convert to JSON")
 		}
 
-	} else if format == "csv" {
+	} else if format == CSVType {
 		switch payload.Type() {
-		case "csv":
+		case CSVType:
 			csvPayload, _ := payload.(*CSV)
 			buf := new(bytes.Buffer)
 			csvWriter := csv.NewWriter(buf)
@@ -70,7 +70,7 @@ func Write(payload Payload, format string) error {
 			}
 			fmt.Println(buf.String())
 
-		case "json":
+		case JSONType:
 			// TODO convert JSON to CSV
 
 		default:
