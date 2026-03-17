@@ -49,4 +49,4 @@ steps:
       field-exists: firstName
 
 output:
-  format: csv
+  format: jsonl

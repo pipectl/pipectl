@@ -58,3 +58,39 @@ func TestWriteJSONLPreservesLineDelimitedOutput(t *testing.T) {
 	assertContains(t, output, "{\"id\":1}\n")
 	assertContains(t, output, "{\"id\":2}\n")
 }
+
+func TestWriteJSONLConvertsCSVRowsToLineDelimitedObjects(t *testing.T) {
+	csvPayload := &CSV{
+		Rows: [][]string{
+			{"id", "name"},
+			{"1", "alice"},
+			{"2", "bob"},
+		},
+	}
+
+	output := captureStdout(t, func() {
+		if err := Write(csvPayload, JSONLType); err != nil {
+			t.Fatalf("Write returned error: %v", err)
+		}
+	})
+
+	assertContains(t, output, "{\"id\":\"1\",\"name\":\"alice\"}\n")
+	assertContains(t, output, "{\"id\":\"2\",\"name\":\"bob\"}\n")
+}
+
+func TestWriteJSONLReturnsErrorForCSVRowLengthMismatch(t *testing.T) {
+	csvPayload := &CSV{
+		Rows: [][]string{
+			{"id", "name"},
+			{"1"},
+		},
+	}
+
+	err := Write(csvPayload, JSONLType)
+	if err == nil {
+		t.Fatal("expected error for row length mismatch")
+	}
+
+	assertContains(t, err.Error(), "row 2")
+	assertContains(t, err.Error(), "expected 2")
+}
