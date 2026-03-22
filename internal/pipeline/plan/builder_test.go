@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/shanebell/pipectl/internal/engine/steps/assert"
+	"github.com/shanebell/pipectl/internal/engine/steps/cast"
 	"github.com/shanebell/pipectl/internal/engine/steps/convert"
 	"github.com/shanebell/pipectl/internal/engine/steps/count"
 	"github.com/shanebell/pipectl/internal/engine/steps/default"
@@ -95,6 +96,48 @@ func TestBuildDefaultStep(t *testing.T) {
 		if got := defaultStep.Fields[key]; got != value {
 			t.Fatalf("unexpected default value for %q: got %v want %v", key, got, value)
 		}
+	}
+}
+
+func TestBuildCastStep(t *testing.T) {
+	pipeline := spec.Pipeline{
+		Steps: []spec.StepWrapper{
+			{
+				Step: &spec.CastStep{
+					Fields: map[string]spec.CastField{
+						"age": {
+							Type: "int",
+						},
+						"active": {
+							Type:        "bool",
+							TrueValues:  []string{"yes"},
+							FalseValues: []string{"no"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	executableSteps, err := Build(pipeline)
+	if err != nil {
+		t.Fatalf("build returned error: %v", err)
+	}
+
+	if len(executableSteps) != 1 {
+		t.Fatalf("unexpected step count: got %d want %d", len(executableSteps), 1)
+	}
+
+	castStep, ok := executableSteps[0].(*cast.Step)
+	if !ok {
+		t.Fatalf("expected *cast.Step, got %T", executableSteps[0])
+	}
+
+	if got := castStep.Fields["age"].Type; got != "int" {
+		t.Fatalf("unexpected age type: got %q want %q", got, "int")
+	}
+	if got := castStep.Fields["active"].TrueValues; len(got) != 1 || got[0] != "yes" {
+		t.Fatalf("unexpected active true_values: %#v", got)
 	}
 }
 

@@ -56,6 +56,11 @@ steps:
   - log:
       message: "Converted payload back to JSON"
 
+  - cast:
+      fields:
+        headers.Content-Length:
+          type: int
+
   - count:
       message: Final record count
 

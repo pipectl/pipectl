@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Cast test" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="pipectl" />
+    <working_directory value="$PROJECT_DIR$" />
+    <parameters value="run ./examples/json/cast-test.yaml" />
+    <kind value="PACKAGE" />
+    <package value="github.com/shanebell/pipectl/cmd/pipectl" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/cmd/pipectl/main.go" />
+    <redirect_input value="true" />
+    <input_file value="$PROJECT_DIR$/examples/json/input/cast-test.json" />
+    <method v="2" />
+  </configuration>
+</component>

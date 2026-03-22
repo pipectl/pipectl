@@ -1,0 +1,58 @@
+id: cast-test
+
+input:
+  format: json
+
+steps:
+  - log:
+      message: "Initial payload"
+
+  - cast:
+      fields:
+        age:
+          type: int
+        pi:
+          type: int
+        score:
+          type: float
+        active:
+          type: bool
+        enabled:
+          type: bool
+        disabled:
+          type: bool
+        createdAt:
+          type: time
+          format: "2006-01-02"
+        processedAt:
+          type: time
+        visits:
+          type: string
+        verified:
+          type: string
+        ratio:
+          type: int
+        headers.Content-Length:
+          type: int
+        items:
+          type: int
+        scores[0]:
+          type: float
+        flags[1].active:
+          type: bool
+        metrics.latencies:
+          type: float
+        custom.on:
+          type: bool
+          true_values: ["enabled"]
+          false_values: ["disabled"]
+        custom.off:
+          type: bool
+          true_values: ["enabled"]
+          false_values: ["disabled"]
+
+  - log:
+      message: "Final payload"
+
+output:
+  format: json

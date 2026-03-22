@@ -1,0 +1,45 @@
+{
+  "name": " John Smith ",
+  "active": "yes",
+  "age": "25",
+  "pi": "3.14",
+  "score": "98.5",
+  "enabled": 1,
+  "disabled": 0,
+  "createdAt": "2021-01-01",
+  "processedAt": "2021-01-01T12:34:56Z",
+  "visits": 12.5,
+  "verified": true,
+  "ratio": 9.9,
+  "headers": {
+    "Content-Length": "232"
+  },
+  "items": [
+    "1",
+    "2.5",
+    "3"
+  ],
+  "scores": [
+    "10.5",
+    "11.5"
+  ],
+  "flags": [
+    {
+      "active": "no"
+    },
+    {
+      "active": "yes"
+    }
+  ],
+  "metrics": {
+    "latencies": [
+      "1.25",
+      "2.5",
+      "3"
+    ]
+  },
+  "custom": {
+    "on": "enabled",
+    "off": "disabled"
+  }
+}

@@ -10,6 +10,7 @@ var stepRegistry = map[string]func() Step{
 	"validate-json":  func() Step { return &ValidateJSONStep{} },
 	"normalize":      func() Step { return &NormalizeStep{} },
 	"default":        func() Step { return &DefaultStep{} },
+	"cast":           func() Step { return &CastStep{} },
 	"convert":        func() Step { return &ConvertStep{} },
 	"assert":         func() Step { return &AssertStep{} },
 	"rename":         func() Step { return &RenameStep{} },

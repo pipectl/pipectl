@@ -5,6 +5,7 @@ import (
 
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/engine/steps/assert"
+	"github.com/shanebell/pipectl/internal/engine/steps/cast"
 	"github.com/shanebell/pipectl/internal/engine/steps/convert"
 	"github.com/shanebell/pipectl/internal/engine/steps/count"
 	"github.com/shanebell/pipectl/internal/engine/steps/default"
@@ -45,6 +46,19 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 	case *spec.DefaultStep:
 		return &_default.Step{
 			Fields: s.Fields,
+		}, nil
+	case *spec.CastStep:
+		fields := make(map[string]cast.Field, len(s.Fields))
+		for name, field := range s.Fields {
+			fields[name] = cast.Field{
+				Type:        field.Type,
+				Format:      field.Format,
+				TrueValues:  field.TrueValues,
+				FalseValues: field.FalseValues,
+			}
+		}
+		return &cast.Step{
+			Fields: fields,
 		}, nil
 	case *spec.ConvertStep:
 		return &convert.Step{

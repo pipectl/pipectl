@@ -75,6 +75,111 @@ func TestStepWrapperUnmarshalDefaultStep(t *testing.T) {
 	}
 }
 
+func TestStepWrapperUnmarshalCastStep(t *testing.T) {
+	raw := []byte(`cast:
+  fields:
+    age:
+      type: int
+    created_at:
+      type: time
+      format: "2006-01-02"
+    active:
+      type: bool
+      true_values: ["yes", "1"]
+      false_values: ["no", "0"]
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	castStep, ok := step.Step.(*CastStep)
+	if !ok {
+		t.Fatalf("expected *CastStep, got %T", step.Step)
+	}
+
+	if got := castStep.Fields["age"].Type; got != "int" {
+		t.Fatalf("unexpected age type: got %q want %q", got, "int")
+	}
+	if got := castStep.Fields["created_at"].Format; got != "2006-01-02" {
+		t.Fatalf("unexpected created_at format: got %q want %q", got, "2006-01-02")
+	}
+	if got := castStep.Fields["active"].TrueValues; len(got) != 2 || got[0] != "yes" || got[1] != "1" {
+		t.Fatalf("unexpected active true_values: %#v", got)
+	}
+}
+
+func TestStepWrapperUnmarshalCastStepRejectsInvalidType(t *testing.T) {
+	raw := []byte(`cast:
+  fields:
+    age:
+      type: decimal
+`)
+
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for invalid cast type")
+	}
+	if !strings.Contains(err.Error(), `cast field "age" type must be one of: int, float, bool, time, string`) {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStepWrapperUnmarshalCastStepRejectsInvalidOptionCombinations(t *testing.T) {
+	tests := []struct {
+		name    string
+		raw     string
+		message string
+	}{
+		{
+			name: "format on non-time field",
+			raw: `cast:
+  fields:
+    age:
+      type: int
+      format: "2006-01-02"
+`,
+			message: `cast field "age" format is only supported for type time`,
+		},
+		{
+			name: "bool values on non-bool field",
+			raw: `cast:
+  fields:
+    age:
+      type: int
+      true_values: ["yes"]
+`,
+			message: `cast field "age" true_values/false_values are only supported for type bool`,
+		},
+		{
+			name: "overlapping bool values",
+			raw: `cast:
+  fields:
+    active:
+      type: bool
+      true_values: ["yes"]
+      false_values: ["yes"]
+`,
+			message: `cast field "active" bool true_values and false_values must not overlap`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			err := yaml.Unmarshal([]byte(tt.raw), &step)
+			if err == nil {
+				t.Fatal("expected unmarshal error")
+			}
+			if !strings.Contains(err.Error(), tt.message) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
 func TestStepWrapperUnmarshalConvertStep(t *testing.T) {
 	raw := []byte(`convert:
   format: jsonl
