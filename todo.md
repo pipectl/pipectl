@@ -1,14 +1,78 @@
 # TODO
 
-### Payload
+## Error handling
+
+Detailed error handling. eg:
+
+```
+filter failed: field 'country' not found in record
+```
+
+or
+
+```
+[step 4: filter] field 'country' not found
+```
+
+## CLI
+
+- `--dry-run`
+- `--verbose`
+- Write output to a file - eg: `pipectl run pipeline.yaml -o output.csv`
+
+## Logging
+
+Change fmt.Printf() statements to logging?
+
+## Payload
 
 - TODO
     - Support JSONL
-      - But only allow 1 object per line
-      - `invalid JSONL: expected object per line, got array` 
+        - But only allow 1 object per line
+        - `invalid JSONL: expected object per line, got array`
     - Support arrays of JSON objects
 
+
 ## Steps
+
+### Cast
+
+Convert types.
+
+```yaml
+- cast:
+    field: age
+    type: int
+```
+
+- TODO
+    - Which casts are supported?
+
+### Dedupe
+
+Remove duplicates
+
+```yaml
+- dedupe:
+    by: email
+```
+
+### Sort
+
+eg:
+
+```yaml
+- sort:
+  by: created_at
+  order: desc
+```
+
+### Limit
+
+```yaml
+- limit:
+    count: 100
+```
 
 ### Convert
 
@@ -142,19 +206,6 @@ Note: Some overlap with `normalize`.
         - `floor`
         - `ceil`
 
-### Cast
-
-Convert types.
-
-```yaml
-- cast:
-    field: age
-    type: int
-```
-
-- TODO
-    - Which casts are supported?
-
 ### Mask
 
 Different from redact.
@@ -168,15 +219,6 @@ Different from redact.
 - TODO
     - Add support for CSV
     - Add support for JSON
-
-### Dedupe
-
-Remove duplicates
-
-```yaml
-- dedupe:
-    by: email
-```
 
 ### Enrich
 
