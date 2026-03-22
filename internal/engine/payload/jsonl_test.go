@@ -49,11 +49,7 @@ func TestWriteJSONLPreservesLineDelimitedOutput(t *testing.T) {
 		},
 	}
 
-	output := captureStdout(t, func() {
-		if err := Write(jsonlPayload, JSONLType); err != nil {
-			t.Fatalf("Write returned error: %v", err)
-		}
-	})
+	output := captureWriteOutput(t, jsonlPayload, JSONLType)
 
 	assertContains(t, output, "{\"id\":1}\n")
 	assertContains(t, output, "{\"id\":2}\n")
@@ -68,11 +64,7 @@ func TestWriteJSONLConvertsCSVRowsToLineDelimitedObjects(t *testing.T) {
 		},
 	}
 
-	output := captureStdout(t, func() {
-		if err := Write(csvPayload, JSONLType); err != nil {
-			t.Fatalf("Write returned error: %v", err)
-		}
-	})
+	output := captureWriteOutput(t, csvPayload, JSONLType)
 
 	assertContains(t, output, "{\"id\":\"1\",\"name\":\"alice\"}\n")
 	assertContains(t, output, "{\"id\":\"2\",\"name\":\"bob\"}\n")
@@ -86,7 +78,7 @@ func TestWriteJSONLReturnsErrorForCSVRowLengthMismatch(t *testing.T) {
 		},
 	}
 
-	err := Write(csvPayload, JSONLType)
+	err := Write(csvPayload, JSONLType, nil)
 	if err == nil {
 		t.Fatal("expected error for row length mismatch")
 	}
@@ -111,11 +103,7 @@ func TestWriteCSVConvertsJSONLPayloadWithNestedObjects(t *testing.T) {
 		},
 	}
 
-	output := captureStdout(t, func() {
-		if err := Write(jsonlPayload, CSVType); err != nil {
-			t.Fatalf("Write returned error: %v", err)
-		}
-	})
+	output := captureWriteOutput(t, jsonlPayload, CSVType)
 
 	assertContains(t, output, "address.city,id,tags\n")
 	assertContains(t, output, "Sydney,1,\n")

@@ -41,11 +41,7 @@ func TestWriteJSONConvertsCSVRowsToJSONArray(t *testing.T) {
 		},
 	}
 
-	output := captureStdout(t, func() {
-		if err := Write(csvPayload, JSONType); err != nil {
-			t.Fatalf("Write returned error: %v", err)
-		}
-	})
+	output := captureWriteOutput(t, csvPayload, JSONType)
 
 	assertContains(t, output, "[\n")
 	assertContains(t, output, `"id": "1"`)
@@ -62,11 +58,7 @@ func TestWriteJSONConvertsNestedCSVFieldsAndArrays(t *testing.T) {
 		},
 	}
 
-	output := captureStdout(t, func() {
-		if err := Write(csvPayload, JSONType); err != nil {
-			t.Fatalf("Write returned error: %v", err)
-		}
-	})
+	output := captureWriteOutput(t, csvPayload, JSONType)
 
 	assertContains(t, output, `"name": " John Smith "`)
 	assertContains(t, output, `"nested": {`)
@@ -84,11 +76,7 @@ func TestWriteJSONConvertsHeaderOnlyCSVToEmptyJSONArray(t *testing.T) {
 		},
 	}
 
-	output := captureStdout(t, func() {
-		if err := Write(csvPayload, JSONType); err != nil {
-			t.Fatalf("Write returned error: %v", err)
-		}
-	})
+	output := captureWriteOutput(t, csvPayload, JSONType)
 
 	if strings.TrimSpace(output) != "[]" {
 		t.Fatalf("expected empty JSON array, got %q", output)
@@ -103,7 +91,7 @@ func TestWriteJSONReturnsErrorForCSVRowLengthMismatch(t *testing.T) {
 		},
 	}
 
-	err := Write(csvPayload, JSONType)
+	err := Write(csvPayload, JSONType, nil)
 	if err == nil {
 		t.Fatal("expected error for row length mismatch")
 	}
@@ -120,7 +108,7 @@ func TestWriteJSONReturnsErrorForConflictingNestedCSVFields(t *testing.T) {
 		},
 	}
 
-	err := Write(csvPayload, JSONType)
+	err := Write(csvPayload, JSONType, nil)
 	if err == nil {
 		t.Fatal("expected error for conflicting nested fields")
 	}

@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/engine/payload"
@@ -20,7 +21,7 @@ func log(p spec.Pipeline) {
 	fmt.Printf("- Output: %s\n", p.Output.Format)
 }
 
-func Run(path string, input []byte) error {
+func Run(path string, input []byte, output io.Writer) error {
 	p, err := spec.Load(path)
 	if err != nil {
 		return err
@@ -48,7 +49,7 @@ func Run(path string, input []byte) error {
 	}
 
 	fmt.Printf("\nOutput:\n")
-	if err := payload.Write(ctx.Payload, p.Output.Format); err != nil {
+	if err := payload.Write(ctx.Payload, p.Output.Format, output); err != nil {
 		return err
 	}
 

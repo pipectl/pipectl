@@ -1,3 +1,3 @@
 .idea
-pipectl
 /.gocache/
+/pipectl

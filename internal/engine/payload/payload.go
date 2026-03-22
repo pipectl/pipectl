@@ -6,6 +6,8 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"sort"
 	"strings"
 )
@@ -154,40 +156,43 @@ func Convert(payload Payload, format string) (Payload, error) {
 	}
 }
 
-func Write(payload Payload, format string) error {
+func Write(payload Payload, format string, writer io.Writer) error {
 	converted, err := Convert(payload, format)
 	if err != nil {
 		return err
+	}
+
+	if writer == nil {
+		writer = os.Stdout
 	}
 
 	switch typed := converted.(type) {
 	case *JSON:
 		output, err := json.MarshalIndent(typed.Value(), "", "  ")
 		if err != nil {
-			fmt.Println("Error marshalling JSON:", err)
-			return err
+			return fmt.Errorf("marshal JSON output: %w", err)
 		}
-		fmt.Println(string(output))
-		return nil
+		_, err = fmt.Fprintln(writer, string(output))
+		return err
 	case *JSONL:
 		for _, record := range typed.Items {
 			output, err := json.Marshal(record)
 			if err != nil {
-				fmt.Println("Error marshalling JSONL:", err)
+				return fmt.Errorf("marshal JSONL output: %w", err)
+			}
+			if _, err := fmt.Fprintln(writer, string(output)); err != nil {
 				return err
 			}
-			fmt.Println(string(output))
 		}
 		return nil
 	case *CSV:
 		buf := new(bytes.Buffer)
 		csvWriter := csv.NewWriter(buf)
 		if err := csvWriter.WriteAll(typed.Rows); err != nil {
-			fmt.Println("Error writing CSV:", err)
-			return err
+			return fmt.Errorf("write CSV output: %w", err)
 		}
-		fmt.Println(buf.String())
-		return nil
+		_, err := fmt.Fprintln(writer, buf.String())
+		return err
 	default:
 		return fmt.Errorf("unsupported converted payload type: %T", converted)
 	}

@@ -2,8 +2,6 @@ package payload
 
 import (
 	"bytes"
-	"io"
-	"os"
 	"strings"
 	"testing"
 )
@@ -97,11 +95,7 @@ func TestWriteJSONPreservesObjectShape(t *testing.T) {
 		Shape: JSONObjectShape,
 	}
 
-	output := captureStdout(t, func() {
-		if err := Write(jsonPayload, JSONType); err != nil {
-			t.Fatalf("Write returned error: %v", err)
-		}
-	})
+	output := captureWriteOutput(t, jsonPayload, JSONType)
 
 	if strings.Contains(output, "[") {
 		t.Fatalf("expected object output, got %q", output)
@@ -119,11 +113,7 @@ func TestWriteJSONPreservesArrayShape(t *testing.T) {
 		Shape: JSONArrayShape,
 	}
 
-	output := captureStdout(t, func() {
-		if err := Write(jsonPayload, JSONType); err != nil {
-			t.Fatalf("Write returned error: %v", err)
-		}
-	})
+	output := captureWriteOutput(t, jsonPayload, JSONType)
 
 	assertContains(t, output, "[\n")
 	assertContains(t, output, `"id": 1`)
@@ -144,11 +134,7 @@ func TestWriteCSVConvertsJSONPayloadWithNestedObjects(t *testing.T) {
 		Shape: JSONObjectShape,
 	}
 
-	output := captureStdout(t, func() {
-		if err := Write(jsonPayload, CSVType); err != nil {
-			t.Fatalf("Write returned error: %v", err)
-		}
-	})
+	output := captureWriteOutput(t, jsonPayload, CSVType)
 
 	assertContains(t, output, "address.city,address.country,name\n")
 	assertContains(t, output, "Sydney,AU,John Smith\n")
@@ -165,11 +151,7 @@ func TestWriteCSVConvertsJSONArrayFieldsToJSONString(t *testing.T) {
 		Shape: JSONObjectShape,
 	}
 
-	output := captureStdout(t, func() {
-		if err := Write(jsonPayload, CSVType); err != nil {
-			t.Fatalf("Write returned error: %v", err)
-		}
-	})
+	output := captureWriteOutput(t, jsonPayload, CSVType)
 
 	assertContains(t, output, "id,tags\n")
 	assertContains(t, output, "1,\"[\"\"new\"\",\"\"vip\"\"]\"\n")
@@ -184,41 +166,19 @@ func TestWriteCSVIncludesFlattenedKeysFromAllJSONRecords(t *testing.T) {
 		Shape: JSONArrayShape,
 	}
 
-	output := captureStdout(t, func() {
-		if err := Write(jsonPayload, CSVType); err != nil {
-			t.Fatalf("Write returned error: %v", err)
-		}
-	})
+	output := captureWriteOutput(t, jsonPayload, CSVType)
 
 	assertContains(t, output, "address.city,id,name\n")
 	assertContains(t, output, "Sydney,2,\n")
 	assertContains(t, output, ",1,alice\n")
 }
 
-func captureStdout(t *testing.T, fn func()) string {
+func captureWriteOutput(t *testing.T, payload Payload, format string) string {
 	t.Helper()
 
-	original := os.Stdout
-	reader, writer, err := os.Pipe()
-	if err != nil {
-		t.Fatalf("pipe returned error: %v", err)
-	}
-	defer reader.Close()
-
-	os.Stdout = writer
-	defer func() {
-		os.Stdout = original
-	}()
-
-	fn()
-
-	if err := writer.Close(); err != nil {
-		t.Fatalf("closing writer returned error: %v", err)
-	}
-
 	var buf bytes.Buffer
-	if _, err := io.Copy(&buf, reader); err != nil {
-		t.Fatalf("reading stdout returned error: %v", err)
+	if err := Write(payload, format, &buf); err != nil {
+		t.Fatalf("Write returned error: %v", err)
 	}
 
 	return buf.String()
