@@ -23,12 +23,6 @@ Future enhancements:
 
 ```yaml
 - convert:
-    format: json
-    pretty: true
-```
-
-```yaml
-- convert:
     format: csv
     delimiter: ";"
 ```

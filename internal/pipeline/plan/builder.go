@@ -5,6 +5,7 @@ import (
 
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/engine/steps/assert"
+	"github.com/shanebell/pipectl/internal/engine/steps/convert"
 	"github.com/shanebell/pipectl/internal/engine/steps/count"
 	"github.com/shanebell/pipectl/internal/engine/steps/default"
 	"github.com/shanebell/pipectl/internal/engine/steps/filter"
@@ -45,6 +46,10 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 		return &_default.Step{
 			Fields: s.Fields,
 		}, nil
+	case *spec.ConvertStep:
+		return &convert.Step{
+			Format: s.Format,
+		}, nil
 	case *spec.AssertStep:
 		return &assert.Step{
 			MinRecords:   s.MinRecords,
@@ -71,9 +76,9 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 			Value: s.Equals,
 		}, nil
 	case *spec.LogStep:
-		count := true
+		recordCount := true
 		if s.Count != nil {
-			count = *s.Count
+			recordCount = *s.Count
 		}
 
 		sample := 10
@@ -83,7 +88,7 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 
 		return &_log.Step{
 			Message: s.Message,
-			Count:   count,
+			Count:   recordCount,
 			Sample:  sample,
 		}, nil
 	case *spec.CountStep:

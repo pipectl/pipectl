@@ -75,6 +75,41 @@ func TestStepWrapperUnmarshalDefaultStep(t *testing.T) {
 	}
 }
 
+func TestStepWrapperUnmarshalConvertStep(t *testing.T) {
+	raw := []byte(`convert:
+  format: jsonl
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	convertStep, ok := step.Step.(*ConvertStep)
+	if !ok {
+		t.Fatalf("expected *ConvertStep, got %T", step.Step)
+	}
+
+	if convertStep.Format != "jsonl" {
+		t.Fatalf("unexpected format: got %q want %q", convertStep.Format, "jsonl")
+	}
+}
+
+func TestStepWrapperUnmarshalConvertStepRejectsInvalidFormat(t *testing.T) {
+	raw := []byte(`convert:
+  format: xml
+`)
+
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for invalid convert format")
+	}
+	if !strings.Contains(err.Error(), "convert format must be one of: json, jsonl, csv") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestStepWrapperUnmarshalLogStep(t *testing.T) {
 	raw := []byte(`log:
   message: Payload after step 2

@@ -41,6 +41,21 @@ steps:
   - redact:
       fields: [data, origin]
 
+  - log:
+      message: "Payload before conversion"
+
+  - convert:
+      format: csv
+
+  - log:
+      message: "Converted payload to CSV"
+
+  - convert:
+      format: json
+
+  - log:
+      message: "Converted payload back to JSON"
+
   - count:
       message: Final record count
 

@@ -86,132 +86,111 @@ func Read(input []byte, format string) (Payload, error) {
 	}
 }
 
+func Convert(payload Payload, format string) (Payload, error) {
+	switch format {
+	case JSONType:
+		switch typed := payload.(type) {
+		case *JSON:
+			return &JSON{
+				Items: typed.Items,
+				Shape: typed.Shape,
+			}, nil
+		case *JSONL:
+			return &JSON{
+				Items: typed.Items,
+				Shape: JSONArrayShape,
+			}, nil
+		case *CSV:
+			records, err := csvRowsToRecords(typed.Rows)
+			if err != nil {
+				return nil, err
+			}
+			return &JSON{
+				Items: records,
+				Shape: JSONArrayShape,
+			}, nil
+		default:
+			return nil, fmt.Errorf("cannot convert %s payload to JSON", payload.Type())
+		}
+
+	case JSONLType:
+		switch typed := payload.(type) {
+		case *JSONL:
+			return &JSONL{Items: typed.Items}, nil
+		case *JSON:
+			return &JSONL{Items: typed.Items}, nil
+		case *CSV:
+			records, err := csvRowsToRecords(typed.Rows)
+			if err != nil {
+				return nil, err
+			}
+			return &JSONL{Items: records}, nil
+		default:
+			return nil, fmt.Errorf("cannot convert %s payload to JSONL", payload.Type())
+		}
+
+	case CSVType:
+		switch typed := payload.(type) {
+		case *CSV:
+			return &CSV{Rows: typed.Rows}, nil
+		case *JSON:
+			rows, err := jsonRecordsToCSVRows(typed.Items)
+			if err != nil {
+				return nil, err
+			}
+			return &CSV{Rows: rows}, nil
+		case *JSONL:
+			rows, err := jsonRecordsToCSVRows(typed.Items)
+			if err != nil {
+				return nil, err
+			}
+			return &CSV{Rows: rows}, nil
+		default:
+			return nil, fmt.Errorf("cannot convert %s payload to CSV", payload.Type())
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported output format: %s", format)
+	}
+}
+
 func Write(payload Payload, format string) error {
-	if format == JSONType {
-
-		switch payload.Type() {
-
-		// JSON to JSON
-		case JSONType:
-			jsonPayload, _ := payload.(*JSON)
-			output, err := json.MarshalIndent(jsonPayload.Value(), "", "  ")
-			if err != nil {
-				fmt.Println("Error marshalling JSON:", err)
-				return err
-			}
-			fmt.Println(string(output))
-
-		// JSONL to JSON
-		case JSONLType:
-			jsonlPayload, _ := payload.(*JSONL)
-			output, err := json.MarshalIndent(jsonlPayload.Value(), "", "  ")
-			if err != nil {
-				fmt.Println("Error marshalling JSON:", err)
-				return err
-			}
-			fmt.Println(string(output))
-
-		// CSV to JSON
-		case CSVType:
-			csvPayload, _ := payload.(*CSV)
-			records, err := csvRowsToRecords(csvPayload.Rows)
-			if err != nil {
-				return err
-			}
-
-			output, err := json.MarshalIndent(records, "", "  ")
-			if err != nil {
-				fmt.Println("Error marshalling JSON:", err)
-				return err
-			}
-			fmt.Println(string(output))
-
-		default:
-			return fmt.Errorf("Cannot convert to JSON")
-		}
-
-	} else if format == JSONLType {
-		switch payload.Type() {
-
-		// JSONL to JSONL
-		case JSONLType:
-			jsonlPayload, _ := payload.(*JSONL)
-			for _, record := range jsonlPayload.Items {
-				output, err := json.Marshal(record)
-				if err != nil {
-					fmt.Println("Error marshalling JSONL:", err)
-					return err
-				}
-				fmt.Println(string(output))
-			}
-
-		// JSON to JSONL
-		case JSONType:
-			jsonPayload, _ := payload.(*JSON)
-			for _, record := range jsonPayload.Items {
-				output, err := json.Marshal(record)
-				if err != nil {
-					fmt.Println("Error marshalling JSONL:", err)
-					return err
-				}
-				fmt.Println(string(output))
-			}
-
-		// CSV to JSONL
-		case CSVType:
-			csvPayload, _ := payload.(*CSV)
-			records, err := csvRowsToRecords(csvPayload.Rows)
-			if err != nil {
-				return err
-			}
-
-			for _, record := range records {
-				output, err := json.Marshal(record)
-				if err != nil {
-					fmt.Println("Error marshalling JSONL:", err)
-					return err
-				}
-				fmt.Println(string(output))
-			}
-
-		default:
-			return fmt.Errorf("Cannot convert to JSONL")
-		}
-
-	} else if format == CSVType {
-		switch payload.Type() {
-
-		// CSV to CSV
-		case CSVType:
-			csvPayload, _ := payload.(*CSV)
-			buf := new(bytes.Buffer)
-			csvWriter := csv.NewWriter(buf)
-			if err := csvWriter.WriteAll(csvPayload.Rows); err != nil {
-				fmt.Println("Error writing CSV:", err)
-				return err
-			}
-			fmt.Println(buf.String())
-
-		// JSON to CSV
-		case JSONType:
-			jsonPayload, _ := payload.(*JSON)
-			if err := writeJSONRecordsAsCSV(jsonPayload.Items); err != nil {
-				return err
-			}
-
-		case JSONLType:
-			jsonlPayload, _ := payload.(*JSONL)
-			if err := writeJSONRecordsAsCSV(jsonlPayload.Items); err != nil {
-				return err
-			}
-
-		default:
-			return fmt.Errorf("Cannot convert to CSV")
-		}
-
+	converted, err := Convert(payload, format)
+	if err != nil {
+		return err
 	}
 
-	return nil
+	switch typed := converted.(type) {
+	case *JSON:
+		output, err := json.MarshalIndent(typed.Value(), "", "  ")
+		if err != nil {
+			fmt.Println("Error marshalling JSON:", err)
+			return err
+		}
+		fmt.Println(string(output))
+		return nil
+	case *JSONL:
+		for _, record := range typed.Items {
+			output, err := json.Marshal(record)
+			if err != nil {
+				fmt.Println("Error marshalling JSONL:", err)
+				return err
+			}
+			fmt.Println(string(output))
+		}
+		return nil
+	case *CSV:
+		buf := new(bytes.Buffer)
+		csvWriter := csv.NewWriter(buf)
+		if err := csvWriter.WriteAll(typed.Rows); err != nil {
+			fmt.Println("Error writing CSV:", err)
+			return err
+		}
+		fmt.Println(buf.String())
+		return nil
+	default:
+		return fmt.Errorf("unsupported converted payload type: %T", converted)
+	}
 }
 
 func csvRowsToRecords(rows [][]string) ([]map[string]interface{}, error) {
@@ -234,7 +213,9 @@ func csvRowsToRecords(rows [][]string) ([]map[string]interface{}, error) {
 
 		record := make(map[string]interface{}, len(headers))
 		for columnIndex, header := range headers {
-			record[header] = row[columnIndex]
+			if err := assignCSVField(record, header, row[columnIndex]); err != nil {
+				return nil, fmt.Errorf("invalid CSV payload: row %d column %q: %w", rowIndex+2, header, err)
+			}
 		}
 		records = append(records, record)
 	}
@@ -242,21 +223,60 @@ func csvRowsToRecords(rows [][]string) ([]map[string]interface{}, error) {
 	return records, nil
 }
 
-func writeJSONRecordsAsCSV(records []map[string]interface{}) error {
-	rows, err := jsonRecordsToCSVRows(records)
-	if err != nil {
-		return err
+func assignCSVField(record map[string]interface{}, header, rawValue string) error {
+	parts := strings.Split(header, ".")
+	current := record
+
+	for i, part := range parts {
+		last := i == len(parts)-1
+		if last {
+			if _, exists := current[part]; exists {
+				return fmt.Errorf("duplicate field %q", headerForError(parts[:i+1]))
+			}
+
+			current[part] = parseCSVFieldValue(rawValue)
+			return nil
+		}
+
+		existing, exists := current[part]
+		if !exists {
+			child := make(map[string]interface{})
+			current[part] = child
+			current = child
+			continue
+		}
+
+		child, ok := existing.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("field %q conflicts with nested field %q", headerForError(parts[:i+1]), header)
+		}
+		current = child
 	}
 
-	buf := new(bytes.Buffer)
-	csvWriter := csv.NewWriter(buf)
-	if err := csvWriter.WriteAll(rows); err != nil {
-		fmt.Println("Error writing CSV:", err)
-		return err
-	}
-
-	fmt.Print(buf.String())
 	return nil
+}
+
+func parseCSVFieldValue(raw string) interface{} {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return raw
+	}
+
+	if strings.HasPrefix(trimmed, "[") || strings.HasPrefix(trimmed, "{") {
+		var decoded interface{}
+		if err := json.Unmarshal([]byte(trimmed), &decoded); err == nil {
+			switch decoded.(type) {
+			case []interface{}, map[string]interface{}:
+				return decoded
+			}
+		}
+	}
+
+	return raw
+}
+
+func headerForError(parts []string) string {
+	return strings.Join(parts, ".")
 }
 
 func jsonRecordsToCSVRows(records []map[string]interface{}) ([][]string, error) {

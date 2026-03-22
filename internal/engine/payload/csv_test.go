@@ -54,6 +54,29 @@ func TestWriteJSONConvertsCSVRowsToJSONArray(t *testing.T) {
 	assertContains(t, output, `"name": "bob"`)
 }
 
+func TestWriteJSONConvertsNestedCSVFieldsAndArrays(t *testing.T) {
+	csvPayload := &CSV{
+		Rows: [][]string{
+			{"name", "nested.name", "values"},
+			{" John Smith ", "nested value", `["quick","brown","fox"]`},
+		},
+	}
+
+	output := captureStdout(t, func() {
+		if err := Write(csvPayload, JSONType); err != nil {
+			t.Fatalf("Write returned error: %v", err)
+		}
+	})
+
+	assertContains(t, output, `"name": " John Smith "`)
+	assertContains(t, output, `"nested": {`)
+	assertContains(t, output, `"name": "nested value"`)
+	assertContains(t, output, `"values": [`)
+	assertContains(t, output, `"quick"`)
+	assertContains(t, output, `"brown"`)
+	assertContains(t, output, `"fox"`)
+}
+
 func TestWriteJSONConvertsHeaderOnlyCSVToEmptyJSONArray(t *testing.T) {
 	csvPayload := &CSV{
 		Rows: [][]string{
@@ -87,4 +110,20 @@ func TestWriteJSONReturnsErrorForCSVRowLengthMismatch(t *testing.T) {
 
 	assertContains(t, err.Error(), "row 2")
 	assertContains(t, err.Error(), "expected 2")
+}
+
+func TestWriteJSONReturnsErrorForConflictingNestedCSVFields(t *testing.T) {
+	csvPayload := &CSV{
+		Rows: [][]string{
+			{"nested", "nested.name"},
+			{"value", "nested value"},
+		},
+	}
+
+	err := Write(csvPayload, JSONType)
+	if err == nil {
+		t.Fatal("expected error for conflicting nested fields")
+	}
+
+	assertContains(t, err.Error(), `field "nested" conflicts with nested field "nested.name"`)
 }

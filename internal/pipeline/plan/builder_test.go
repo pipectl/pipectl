@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/shanebell/pipectl/internal/engine/steps/assert"
+	"github.com/shanebell/pipectl/internal/engine/steps/convert"
 	"github.com/shanebell/pipectl/internal/engine/steps/count"
 	"github.com/shanebell/pipectl/internal/engine/steps/default"
 	_log "github.com/shanebell/pipectl/internal/engine/steps/log"
@@ -97,6 +98,36 @@ func TestBuildDefaultStep(t *testing.T) {
 	}
 }
 
+func TestBuildConvertStep(t *testing.T) {
+	pipeline := spec.Pipeline{
+		Steps: []spec.StepWrapper{
+			{
+				Step: &spec.ConvertStep{
+					Format: "jsonl",
+				},
+			},
+		},
+	}
+
+	executableSteps, err := Build(pipeline)
+	if err != nil {
+		t.Fatalf("build returned error: %v", err)
+	}
+
+	if len(executableSteps) != 1 {
+		t.Fatalf("unexpected step count: got %d want %d", len(executableSteps), 1)
+	}
+
+	convertStep, ok := executableSteps[0].(*convert.Step)
+	if !ok {
+		t.Fatalf("expected *convert.Step, got %T", executableSteps[0])
+	}
+
+	if convertStep.Format != "jsonl" {
+		t.Fatalf("unexpected format: got %q want %q", convertStep.Format, "jsonl")
+	}
+}
+
 func TestBuildLogStepDefaults(t *testing.T) {
 	pipeline := spec.Pipeline{
 		Steps: []spec.StepWrapper{
@@ -132,14 +163,14 @@ func TestBuildLogStepDefaults(t *testing.T) {
 }
 
 func TestBuildLogStepCustomValues(t *testing.T) {
-	count := false
+	countRecords := false
 	sample := 3
 	pipeline := spec.Pipeline{
 		Steps: []spec.StepWrapper{
 			{
 				Step: &spec.LogStep{
 					Message: "after transform",
-					Count:   &count,
+					Count:   &countRecords,
 					Sample:  &sample,
 				},
 			},
@@ -198,15 +229,15 @@ func TestBuildCountStep(t *testing.T) {
 }
 
 func TestBuildAssertStep(t *testing.T) {
-	min := 10
-	max := 1000
+	minRecords := 10
+	maxRecords := 1000
 	equal := 100
 	pipeline := spec.Pipeline{
 		Steps: []spec.StepWrapper{
 			{
 				Step: &spec.AssertStep{
-					MinRecords:   &min,
-					MaxRecords:   &max,
+					MinRecords:   &minRecords,
+					MaxRecords:   &maxRecords,
 					RecordsEqual: &equal,
 					FieldExists:  "email",
 				},
