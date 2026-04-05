@@ -6,7 +6,6 @@ Roughly in priority order.
 
 ### Steps
 
-- `filter` — add JSON/JSONL support
 - `filter` — add basic operators (`equals`, `not-equals`, `contains`, `starts-with`)
 - `filter` — add multi-condition support (`all` / `any`)
 - `select` — add JSON/JSONL support
