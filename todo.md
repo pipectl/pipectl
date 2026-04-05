@@ -1,140 +1,81 @@
 # TODO
 
-## Error handling
+## MVP
 
-Detailed error handling. eg:
+Roughly in priority order.
+
+### Steps
+
+- `filter` — add JSON/JSONL support
+- `filter` — add basic operators (`equals`, `not-equals`, `contains`, `starts-with`)
+- `filter` — add multi-condition support (`all` / `any`)
+- `select` — add JSON/JSONL support
+- `sort` — order records by a field (asc/desc)
+- `dedupe` — remove duplicate records by key field
+- `cast` — add CSV support
+
+### CLI
+
+- `--dry-run` — validate the pipeline YAML without consuming stdin
+
+### Error handling
+
+Better error messages with step name, field name, and record index. eg:
 
 ```
-filter failed: field 'country' not found in record
+[step 4: filter] field 'country' not found in record
 ```
 
-or
+---
 
-```
-[step 4: filter] field 'country' not found
-```
+## Backlog
 
-## CLI
+Lower priority ideas for after MVP.
 
-- `--dry-run`
-- `--verbose`
-- Write output to a file - eg: `pipectl run pipeline.yaml -o output.csv`
+### Steps
 
-## Logging
+- `enrich` — add derived/computed fields using templates, eg: `"{{first_name}} {{last_name}}"`
+- `map` — field-level numeric and string transforms (multiply, divide, add, subtract, round, to_lower, etc.)
+- `mask` — partial redaction (eg: expose last 4 chars of credit card)
+- `http-request` — send payload to HTTP endpoint without replacing it (fire-and-forget style)
+- `http-transform` — add CSV payload support
 
-Change fmt.Printf() statements to logging?
+### Step enhancements
 
-## Payload
+- `normalize` — support pipe-separated strategy chains, eg: `trim|lower|collapse-spaces`
+- `filter` — combined `all`/`any` nesting (see design note below)
 
-- TODO
-    - Support JSONL
-        - But only allow 1 object per line
-        - `invalid JSONL: expected object per line, got array`
-    - Support arrays of JSON objects
+### Payload / format
 
+- CSV — configurable delimiter (eg: `delimiter: ";"`)
+- JSONL — stricter validation (one object per line, reject arrays)
 
-## Steps
+### Logging
 
-### Cast
+- Replace `fmt.Printf` calls with a proper logger
 
-Convert types.
+---
 
-```yaml
-- cast:
-    field: age
-    type: int
-```
+## Notes
 
-- TODO
-    - Which casts are supported?
+### Filter multi-condition design
 
-### Dedupe
+For combined `all`/`any` nesting, model the step representation like this:
 
-Remove duplicates
+```go
+type ConditionGroup struct {
+    All  []ConditionGroup
+    Any  []ConditionGroup
+    Rule *Rule
+}
 
-```yaml
-- dedupe:
-    by: email
-```
-
-### Sort
-
-eg:
-
-```yaml
-- sort:
-  by: created_at
-  order: desc
+type Rule struct {
+    Field string
+    Value interface{}
+}
 ```
 
-### Limit
-
-```yaml
-- limit:
-    count: 100
-```
-
-### Convert
-
-Convert the payload to a different format.
-
-```yaml
-- convert:
-    format: json | jsonl | csv
-```
-
-Future enhancements:
-
-```yaml
-- convert:
-    format: csv
-    delimiter: ";"
-```
-
-Conversions:
-
-| In    | Out   |
-|-------|-------|
-| CSV   | JSON  |
-| CSV   | JSONL |
-| JSON  | JSONL |
-| JSONL | JSON  |
-| JSON  | CSV   |
-| JSONL | CSV   |
-
-### Select
-
-- TODO
-    - Add support for JSON
-
-### Filter
-
-- Add support for JSON payloads
-- Add support for multiple conditions.
-
-AND example:
-
-```yaml
-- filter:
-    all:
-      - field: country
-        equals: AU
-      - field: status
-        equals: active
-```
-
-OR example:
-
-```yaml
-- filter:
-    any:
-      - field: country
-        equals: AU
-      - field: country
-        equals: NZ
-```
-
-Combination:
+Example YAML:
 
 ```yaml
 - filter:
@@ -146,86 +87,4 @@ Combination:
             equals: AU
           - field: country
             equals: NZ
-```
-
-Note: if doing the combined above, model the step representation like this:
-
-```go
-package steps
-
-type ConditionGroup struct {
-	All  []ConditionGroup
-	Any  []ConditionGroup
-	Rule *Rule
-}
-
-type Rule struct {
-	Field string
-	Value interface{}
-}
-```
-
-### HTTP Transform
-
-- Add support for posting CSV payloads
-
-### HTTP request
-
-- Add a separate step for HTTP requests
-- Does NOT transform the payload (the same payload is passed through)
-- Sends the payload to the HTTP endpoint
-- Fails on non 200 responses
-
-### Map
-
-Transform a field.
-
-Note: Some overlap with `normalize`.
-
-```yaml
-- map:
-    field: email
-    to_lower: true
-```
-
-```yaml
-- map:
-    field: price
-    multiply_by: 1.1
-```
-
-- TODO
-    - Which operations are supported? eg:
-        - `to_lower`
-        - `to_upper`
-        - `multiply_by`
-        - `divide_by`
-        - `add`
-        - `subtract`
-        - `round`
-        - `floor`
-        - `ceil`
-
-### Mask
-
-Different from redact.
-
-```yaml
-- mask:
-    field: credit_card
-    strategy: last4
-```
-
-- TODO
-    - Add support for CSV
-    - Add support for JSON
-
-### Enrich
-
-Add derived fields
-
-```yaml
-- enrich:
-    field: full_name
-    value: "{{first_name}} {{last_name}}"
 ```

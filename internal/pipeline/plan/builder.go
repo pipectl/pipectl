@@ -11,6 +11,7 @@ import (
 	"github.com/shanebell/pipectl/internal/engine/steps/default"
 	"github.com/shanebell/pipectl/internal/engine/steps/filter"
 	"github.com/shanebell/pipectl/internal/engine/steps/httptransform"
+	"github.com/shanebell/pipectl/internal/engine/steps/limit"
 	_log "github.com/shanebell/pipectl/internal/engine/steps/log"
 	"github.com/shanebell/pipectl/internal/engine/steps/normalize"
 	"github.com/shanebell/pipectl/internal/engine/steps/redact"
@@ -104,6 +105,10 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 			Message: s.Message,
 			Count:   recordCount,
 			Sample:  sample,
+		}, nil
+	case *spec.LimitStep:
+		return &limit.Step{
+			Count: s.Count,
 		}, nil
 	case *spec.CountStep:
 		return &count.Step{

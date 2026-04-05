@@ -1,15 +1,25 @@
-# Pipectl
+# pipectl
 
-Pipe Control - a pipeline execution tool
+A CLI tool for running YAML-defined data pipelines. Reads from `stdin`, applies an ordered sequence of steps, and writes to `stdout`.
 
-# Usage
+## Install
 
-## CSV example
+```bash
+go install github.com/shanebell/pipectl/cmd/pipectl@latest
+```
 
-Transform, filter and redact data from a CSV file:
+Or build from source:
+
+```bash
+go build ./cmd/pipectl
+```
+
+## Quick Start
+
+Define a pipeline in YAML:
 
 ```yaml
-id: customer-pipeline
+id: my-pipeline
 
 input:
   format: csv
@@ -17,56 +27,33 @@ input:
 steps:
   - normalize:
       fields:
+        email: lower
         country: upper
-        first_name: capitalize
-        last_name: capitalize
 
   - filter:
       field: country
       equals: AU
 
-  - assert:
-      min-records: 10
-      max-records: 1000
-      records-equal: 100
-      field-exists: email
-
   - redact:
-      fields: [credit_card, password]
+      fields: [credit_card]
       strategy: mask
 
 output:
-  format: csv
+  format: jsonl
 ```
 
-## JSON example
+Run it:
 
-Validate and transform JSON data and POST to an API endpoint
-
-```yaml
-id: customer-signup
-
-input:
-  format: json
-
-steps:
-  - validate-json:
-      schema: ./schema.json
-
-  - normalize:
-      fields:
-        email: lower
-        name: trim
-        string: collapse-spaces
-
-  - redact:
-      strategy: mask
-      fields: [credit_card, password]
-
-  - http-transform:
-      url: https://example.com/register-customer
-      method: POST
-
-output:
-  format: json
+```bash
+pipectl run my-pipeline.yaml < input.csv
 ```
+
+Write output to a file:
+
+```bash
+pipectl run my-pipeline.yaml -o output.jsonl < input.csv
+```
+
+## Documentation
+
+See [DOCS.md](DOCS.md) for the full step reference, all configuration options, and example pipelines.

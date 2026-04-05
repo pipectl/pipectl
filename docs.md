@@ -30,11 +30,18 @@ go run ./cmd/pipectl run examples/json/customer-signup-json.yaml < examples/json
 go run ./cmd/pipectl run examples/csv/customer-signup-csv.yaml < examples/csv/customer-signup.csv
 ```
 
+Write output to a file instead of `stdout`:
+
+```bash
+pipectl run pipeline.yaml -o output.json < input.json
+```
+
 Notes:
 
 - `run` requires exactly one argument: the pipeline file path.
 - Input is read from `stdin`. If nothing is piped in, the runtime still executes, but most pipelines will fail once the configured input format is parsed.
-- Output and step logs are written to `stdout`.
+- Step logs are always written to `stdout`. Only the final payload output is affected by `-o`.
+- `-o` / `--output`: optional path to write the pipeline output to a file.
 
 ## pipeline.yaml Format
 
@@ -102,6 +109,7 @@ Supported step types:
 - `validate-json`
 - `normalize`
 - `default`
+- `cast`
 - `convert`
 - `assert`
 - `rename`
@@ -204,6 +212,52 @@ Notes:
 - For JSON and JSONL, defaults are applied only when the field does not already exist.
 - For CSV, a missing column is added to the header and populated for all rows.
 - For CSV, an existing column is only filled where the cell is empty.
+
+### `cast`
+
+Converts field values to a different type.
+
+Supported payloads:
+
+- `json`
+- `jsonl`
+
+Options:
+
+- `fields`: map of field path to cast configuration
+
+Each field configuration supports:
+
+- `type`: required. One of `int`, `float`, `bool`, `time`, `string`
+- `format`: optional. Date/time parse format (Go layout string). Only valid for `type: time`. Defaults to RFC 3339.
+- `true_values`: optional list of strings to treat as `true`. Only valid for `type: bool`.
+- `false_values`: optional list of strings to treat as `false`. Only valid for `type: bool`.
+
+Example:
+
+```yaml
+- cast:
+    fields:
+      age:
+        type: int
+      price:
+        type: float
+      active:
+        type: bool
+        true_values: [yes, "1"]
+        false_values: [no, "0"]
+      created_at:
+        type: time
+        format: "2006-01-02"
+```
+
+Notes:
+
+- Field paths support dot notation and array indexing, eg: `user.address`, `tags[0]`.
+- For `type: bool`, default true values are `true`, `t`, `1`, `yes`, `y`, `on`. Default false values are `false`, `f`, `0`, `no`, `n`, `off`.
+- `true_values` and `false_values` must not overlap.
+- For `type: time`, the field value is parsed into a Go `time.Time`. The serialized output format depends on the output encoder.
+- Array fields are cast element-by-element.
 
 ### `convert`
 

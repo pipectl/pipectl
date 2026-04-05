@@ -11,6 +11,7 @@ Add a new pipeline step end-to-end: YAML parsing, planning, execution, and tests
 3. Add planner mapping in `internal/pipeline/plan/builder.go`.
 4. Implement executable step in `internal/engine/steps/<stepname>/step.go`.
 5. Add unit tests for both spec and engine step behavior.
+6. Update docs.md with info about the new step.
 
 ## Files Usually Touched
 
@@ -19,6 +20,7 @@ Add a new pipeline step end-to-end: YAML parsing, planning, execution, and tests
 - `internal/pipeline/plan/builder.go`
 - `internal/engine/steps/<stepname>/step.go`
 - `internal/engine/steps/<stepname>/step_test.go`
+- `docs.md`
 
 ## Spec Layer Requirements
 
