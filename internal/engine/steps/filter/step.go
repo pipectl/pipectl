@@ -18,7 +18,7 @@ func (s *Step) Name() string {
 
 func (s *Step) Supports(p payload.Payload) bool {
 	switch p.(type) {
-	case *payload.CSV:
+	case *payload.CSV, payload.JSONRecordPayload:
 		return true
 	default:
 		return false
@@ -26,8 +26,40 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
-	csvPayload := context.Payload.(*payload.CSV)
-	return s.filterCsv(csvPayload)
+	switch p := context.Payload.(type) {
+	case payload.JSONRecordPayload:
+		return s.filterJSON(p)
+	case *payload.CSV:
+		return s.filterCsv(p)
+	default:
+		return fmt.Errorf("filter: unsupported payload type %T", context.Payload)
+	}
+}
+
+func (s *Step) filterJSON(p payload.JSONRecordPayload) error {
+	records := p.Records()
+	filtered := records[:0]
+	for _, record := range records {
+		value, exists := record[s.Field]
+		if !exists {
+			fmt.Printf("- excluding record: field %q not found\n", s.Field)
+			continue
+		}
+		if fmt.Sprintf("%v", value) == s.Value {
+			filtered = append(filtered, record)
+		} else {
+			fmt.Printf("- excluding record: %v = %v\n", s.Field, value)
+		}
+	}
+
+	switch p := p.(type) {
+	case *payload.JSON:
+		p.Items = filtered
+	case *payload.JSONL:
+		p.Items = filtered
+	}
+
+	return nil
 }
 
 func (s *Step) filterCsv(csvPayload *payload.CSV) error {

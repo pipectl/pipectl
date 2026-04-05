@@ -399,11 +399,13 @@ Example:
 
 ### `filter`
 
-Keeps only CSV rows where one field matches a value.
+Keeps only records where one field matches a value.
 
 Supported payloads:
 
 - `csv`
+- `json`
+- `jsonl`
 
 Options:
 

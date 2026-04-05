@@ -29,14 +29,16 @@ steps:
       fields:
         credit_card: creditCard
 
-  - redact:
-      fields: [data, origin]
+  - filter:
+      field: email
+      equals: john.smith@email.com
 
   - limit:
       count: 2
 
   - count:
       message: Final record count
+
 
 output:
   format: json
