@@ -32,6 +32,9 @@ steps:
   - redact:
       fields: [data, origin]
 
+  - limit:
+      count: 2
+
   - count:
       message: Final record count
 

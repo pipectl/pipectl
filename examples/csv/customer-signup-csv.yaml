@@ -48,5 +48,8 @@ steps:
       records-equal: 20
       field-exists: firstName
 
+  - limit:
+      count: 10
+
 output:
   format: jsonl

@@ -8,6 +8,7 @@ import (
 	"github.com/shanebell/pipectl/internal/engine/steps/convert"
 	"github.com/shanebell/pipectl/internal/engine/steps/count"
 	"github.com/shanebell/pipectl/internal/engine/steps/default"
+	"github.com/shanebell/pipectl/internal/engine/steps/limit"
 	_log "github.com/shanebell/pipectl/internal/engine/steps/log"
 	"github.com/shanebell/pipectl/internal/engine/steps/rename"
 	"github.com/shanebell/pipectl/internal/pipeline/spec"
@@ -268,6 +269,36 @@ func TestBuildCountStep(t *testing.T) {
 
 	if countStep.Message != "records before output" {
 		t.Fatalf("unexpected message: got %q want %q", countStep.Message, "records before output")
+	}
+}
+
+func TestBuildLimitStep(t *testing.T) {
+	pipeline := spec.Pipeline{
+		Steps: []spec.StepWrapper{
+			{
+				Step: &spec.LimitStep{
+					Count: 25,
+				},
+			},
+		},
+	}
+
+	executableSteps, err := Build(pipeline)
+	if err != nil {
+		t.Fatalf("build returned error: %v", err)
+	}
+
+	if len(executableSteps) != 1 {
+		t.Fatalf("unexpected step count: got %d want %d", len(executableSteps), 1)
+	}
+
+	limitStep, ok := executableSteps[0].(*limit.Step)
+	if !ok {
+		t.Fatalf("expected *limit.Step, got %T", executableSteps[0])
+	}
+
+	if limitStep.Count != 25 {
+		t.Fatalf("unexpected count: got %d want 25", limitStep.Count)
 	}
 }
 

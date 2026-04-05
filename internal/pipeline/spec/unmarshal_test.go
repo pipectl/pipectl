@@ -342,6 +342,56 @@ func TestStepWrapperUnmarshalAssertStepValidatesRecordsEqualBounds(t *testing.T)
 	}
 }
 
+func TestStepWrapperUnmarshalLimitStep(t *testing.T) {
+	raw := []byte(`limit:
+  count: 50
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	limitStep, ok := step.Step.(*LimitStep)
+	if !ok {
+		t.Fatalf("expected *LimitStep, got %T", step.Step)
+	}
+
+	if limitStep.Count != 50 {
+		t.Fatalf("unexpected count: got %d want 50", limitStep.Count)
+	}
+}
+
+func TestStepWrapperUnmarshalLimitStepRejectsZero(t *testing.T) {
+	raw := []byte(`limit:
+  count: 0
+`)
+
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for count of 0")
+	}
+	if !strings.Contains(err.Error(), "limit count must be at least 1") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStepWrapperUnmarshalLimitStepRejectsNegativeCount(t *testing.T) {
+	raw := []byte(`limit:
+  count: -5
+`)
+
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for negative count")
+	}
+	if !strings.Contains(err.Error(), "limit count must be at least 1") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestStepWrapperUnmarshalAssertStepWithRecordsEqualOnly(t *testing.T) {
 	raw := []byte(`assert:
   records-equal: 16
