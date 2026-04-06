@@ -406,7 +406,7 @@ Notes:
 
 ### `filter`
 
-Keeps only records where one field matches a value.
+Keeps only records where one field matches a condition.
 
 Supported payloads:
 
@@ -416,16 +416,44 @@ Supported payloads:
 
 Options:
 
-- `field`: column name to test
-- `equals`: required match value
+- `field`: required. The field name to test.
+- `equals`: keep records where the field value equals this string.
+- `not-equals`: keep records where the field value does not equal this string.
+- `contains`: keep records where the field value contains this substring.
+- `starts-with`: keep records where the field value starts with this string.
 
-Example:
+Exactly one operator must be specified.
+
+Examples:
 
 ```yaml
 - filter:
     field: country
     equals: AU
 ```
+
+```yaml
+- filter:
+    field: status
+    not-equals: inactive
+```
+
+```yaml
+- filter:
+    field: email
+    contains: "@example.com"
+```
+
+```yaml
+- filter:
+    field: name
+    starts-with: Alice
+```
+
+Notes:
+
+- For JSON and JSONL, non-string field values are coerced to strings before comparison.
+- Records missing the specified field are always excluded.
 
 ### `limit`
 

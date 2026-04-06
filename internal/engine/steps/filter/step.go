@@ -2,13 +2,22 @@ package filter
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/engine/payload"
 )
 
+const (
+	OpEquals     = "equals"
+	OpNotEquals  = "not-equals"
+	OpContains   = "contains"
+	OpStartsWith = "starts-with"
+)
+
 type Step struct {
 	Field string
+	Op    string
 	Value string
 }
 
@@ -45,10 +54,11 @@ func (s *Step) filterJSON(p payload.JSONRecordPayload) error {
 			fmt.Printf("- excluding record: field %q not found\n", s.Field)
 			continue
 		}
-		if fmt.Sprintf("%v", value) == s.Value {
+		str := fmt.Sprintf("%v", value)
+		if s.matches(str) {
 			filtered = append(filtered, record)
 		} else {
-			fmt.Printf("- excluding record: %v = %v\n", s.Field, value)
+			fmt.Printf("- excluding record: %v %v %v\n", s.Field, s.Op, s.Value)
 		}
 	}
 
@@ -64,35 +74,40 @@ func (s *Step) filterJSON(p payload.JSONRecordPayload) error {
 
 func (s *Step) filterCsv(csvPayload *payload.CSV) error {
 	headerRow := csvPayload.Rows[0]
-	toFilter := make([]*string, len(headerRow))
+	colIndex := -1
 	for i, header := range headerRow {
 		if s.Field == header {
-			toFilter[i] = &s.Value
-		} else {
-			toFilter[i] = nil
+			colIndex = i
+			break
 		}
-
 	}
 
 	var filteredRows [][]string
 	filteredRows = append(filteredRows, headerRow)
 
 	for _, row := range csvPayload.Rows[1:] {
-		match := true
-		for i, value := range row {
-			filterValue := toFilter[i]
-			if filterValue != nil {
-				match = value == *filterValue
-			}
-		}
-
-		if match {
-			filteredRows = append(filteredRows, row)
-		} else {
+		if colIndex == -1 || !s.matches(row[colIndex]) {
 			fmt.Printf("- excluding row: %v\n", row[0:len(headerRow)])
+			continue
 		}
+		filteredRows = append(filteredRows, row)
 	}
 
 	csvPayload.Rows = filteredRows
 	return nil
+}
+
+func (s *Step) matches(value string) bool {
+	switch s.Op {
+	case OpEquals:
+		return value == s.Value
+	case OpNotEquals:
+		return value != s.Value
+	case OpContains:
+		return strings.Contains(value, s.Value)
+	case OpStartsWith:
+		return strings.HasPrefix(value, s.Value)
+	default:
+		return false
+	}
 }

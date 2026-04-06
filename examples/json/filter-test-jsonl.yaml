@@ -1,0 +1,36 @@
+id: filter-test-jsonl
+
+input:
+  format: jsonl
+
+steps:
+  - log:
+      message: "Initial payload"
+
+  - filter:
+      field: name
+      contains: Smith
+
+  - log:
+      message: "Payload after filtering by name contains Smith"
+
+  - filter:
+      field: name
+      not-equals: "Tony Smith"
+
+  - log:
+      message: "Payload after filtering by name not equals Tony Smith"
+
+  - filter:
+      field: gender
+      equals: "F"
+
+  - log:
+      message: "Payload after filtering by gender equals F"
+
+  - filter:
+      field: name
+      starts-with: "An"
+
+output:
+  format: json

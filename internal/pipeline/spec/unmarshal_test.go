@@ -411,3 +411,116 @@ func TestStepWrapperUnmarshalAssertStepWithRecordsEqualOnly(t *testing.T) {
 		t.Fatalf("unexpected records-equal: got %v want 16", assertStep.RecordsEqual)
 	}
 }
+
+func TestStepWrapperUnmarshalFilterStep(t *testing.T) {
+	tests := []struct {
+		name       string
+		raw        string
+		checkField func(*FilterStep) bool
+		wantField  string
+	}{
+		{
+			name: "equals",
+			raw: `filter:
+  field: status
+  equals: active
+`,
+			checkField: func(s *FilterStep) bool { return s.Equals == "active" },
+			wantField:  "Equals=active",
+		},
+		{
+			name: "not-equals",
+			raw: `filter:
+  field: status
+  not-equals: inactive
+`,
+			checkField: func(s *FilterStep) bool { return s.NotEquals == "inactive" },
+			wantField:  "NotEquals=inactive",
+		},
+		{
+			name: "contains",
+			raw: `filter:
+  field: email
+  contains: example
+`,
+			checkField: func(s *FilterStep) bool { return s.Contains == "example" },
+			wantField:  "Contains=example",
+		},
+		{
+			name: "starts-with",
+			raw: `filter:
+  field: email
+  starts-with: alice
+`,
+			checkField: func(s *FilterStep) bool { return s.StartsWith == "alice" },
+			wantField:  "StartsWith=alice",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			if err := yaml.Unmarshal([]byte(tt.raw), &step); err != nil {
+				t.Fatalf("unmarshal returned error: %v", err)
+			}
+
+			filterStep, ok := step.Step.(*FilterStep)
+			if !ok {
+				t.Fatalf("expected *FilterStep, got %T", step.Step)
+			}
+
+			if filterStep.Field != "status" && filterStep.Field != "email" {
+				t.Fatalf("unexpected field: got %q", filterStep.Field)
+			}
+
+			if !tt.checkField(filterStep) {
+				t.Fatalf("expected %s to be set", tt.wantField)
+			}
+		})
+	}
+}
+
+func TestStepWrapperUnmarshalFilterStepValidation(t *testing.T) {
+	tests := []struct {
+		name    string
+		raw     string
+		message string
+	}{
+		{
+			name: "missing field",
+			raw: `filter:
+  equals: active
+`,
+			message: "filter field is required",
+		},
+		{
+			name: "missing operator",
+			raw: `filter:
+  field: status
+`,
+			message: "filter requires exactly one operator",
+		},
+		{
+			name: "multiple operators",
+			raw: `filter:
+  field: status
+  equals: active
+  not-equals: inactive
+`,
+			message: "filter requires exactly one operator",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			err := yaml.Unmarshal([]byte(tt.raw), &step)
+			if err == nil {
+				t.Fatal("expected unmarshal error")
+			}
+			if !strings.Contains(err.Error(), tt.message) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}

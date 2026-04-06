@@ -86,9 +86,21 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 			Fields: s.Fields,
 		}, nil
 	case *spec.FilterStep:
+		var op, value string
+		switch {
+		case s.Equals != "":
+			op, value = filter.OpEquals, s.Equals
+		case s.NotEquals != "":
+			op, value = filter.OpNotEquals, s.NotEquals
+		case s.Contains != "":
+			op, value = filter.OpContains, s.Contains
+		case s.StartsWith != "":
+			op, value = filter.OpStartsWith, s.StartsWith
+		}
 		return &filter.Step{
 			Field: s.Field,
-			Value: s.Equals,
+			Op:    op,
+			Value: value,
 		}, nil
 	case *spec.LogStep:
 		recordCount := true
