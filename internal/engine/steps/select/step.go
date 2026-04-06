@@ -35,7 +35,7 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	case *payload.CSV:
 		return s.selectCsv(p)
 	default:
-		return fmt.Errorf("select: unsupported payload type %T", context.Payload)
+		return fmt.Errorf("unsupported payload type %T", context.Payload)
 	}
 }
 

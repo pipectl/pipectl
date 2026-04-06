@@ -41,7 +41,7 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	case payload.JSONRecordPayload:
 		return s.validateJSONPayload(schemaLoader, value.Value())
 	default:
-		return fmt.Errorf("%v received invalid payload type %v", s.Name(), context.Payload.Type())
+		return fmt.Errorf("unsupported payload type %T", context.Payload)
 	}
 }
 

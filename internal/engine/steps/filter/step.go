@@ -46,7 +46,7 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	case *payload.CSV:
 		return s.filterCsv(p, context.Logger)
 	default:
-		return fmt.Errorf("filter: unsupported payload type %T", context.Payload)
+		return fmt.Errorf("unsupported payload type %T", context.Payload)
 	}
 }
 

@@ -7,7 +7,6 @@ Roughly in priority order.
 ### Steps
 
 - `filter` — add multi-condition support (`all` / `any`)
-- `filter` — add `ends-with` operator (symmetric with `starts-with`)
 - `dedupe` — remove duplicate records by key field
 - `cast` — add CSV support
 - `normalize` — validate unknown strategies at parse time instead of silently ignoring them
@@ -42,12 +41,7 @@ Lower priority ideas for after MVP.
 
 ### Payload / format
 
-- CSV — configurable delimiter (eg: `delimiter: ";"`)
 - JSONL — stricter validation (one object per line, reject arrays)
-
-### Logging
-
-- Replace `fmt.Printf` calls with a proper logger
 
 ---
 

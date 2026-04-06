@@ -31,7 +31,7 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	switch context.Payload.(type) {
 	case payload.JSONRecordPayload, *payload.CSV:
 	default:
-		return fmt.Errorf("%v received invalid payload type %v", s.Name(), context.Payload.Type())
+		return fmt.Errorf("unsupported payload type %T", context.Payload)
 	}
 
 	recordCount := context.Payload.RecordCount()

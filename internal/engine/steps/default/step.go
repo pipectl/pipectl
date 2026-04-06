@@ -39,7 +39,7 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 		return s.defaultCSV(csvPayload)
 	}
 
-	return fmt.Errorf("%v received invalid payload type %v", s.Name(), context.Payload.Type())
+	return fmt.Errorf("unsupported payload type %T", context.Payload)
 }
 
 func (s *Step) defaultJSON(jsonPayload payload.JSONRecordPayload) error {

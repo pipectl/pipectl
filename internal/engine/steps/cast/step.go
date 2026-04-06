@@ -48,7 +48,7 @@ func (s *Step) Supports(p payload.Payload) bool {
 func (s *Step) Execute(ctx *engine.ExecutionContext) error {
 	jsonPayload, ok := ctx.Payload.(payload.JSONRecordPayload)
 	if !ok {
-		return fmt.Errorf("%v received invalid payload type %v", s.Name(), ctx.Payload.Type())
+		return fmt.Errorf("unsupported payload type %T", ctx.Payload)
 	}
 
 	for fieldPath, config := range s.Fields {

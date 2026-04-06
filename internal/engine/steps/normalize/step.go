@@ -40,7 +40,7 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 		return s.normalizeCsv(csvPayload)
 	}
 
-	return fmt.Errorf("%v received invalid payload type %v", s.Name(), context.Payload.Type())
+	return fmt.Errorf("unsupported payload type %T", context.Payload)
 }
 
 var strategies = map[string]func(string) string{

@@ -114,12 +114,12 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, 
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Error calling HTTP service: %v\n", err)
+		return nil, fmt.Errorf("http request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Unexpected status code: %d\n", resp.StatusCode)
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
 	expectedFormat, err := s.resolveExpectedFormat()
@@ -132,7 +132,7 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, 
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("Error reading response body: %s\n", err)
+		return nil, fmt.Errorf("error reading response body: %w", err)
 	}
 
 	switch expectedFormat {
@@ -144,7 +144,7 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, 
 	case payload.CSVType:
 		rows, err := csv.NewReader(bytes.NewReader(body)).ReadAll()
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing CSV response: %s\n", err)
+			return nil, fmt.Errorf("error parsing CSV response: %w", err)
 		}
 		return &payload.CSV{Rows: rows}, nil
 	}

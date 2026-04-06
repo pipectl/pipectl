@@ -496,7 +496,7 @@ func TestExecuteFailsForUnsupportedPayload(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for unsupported payload")
 	}
-	if !strings.Contains(err.Error(), "cast received invalid payload type csv") {
+	if !strings.Contains(err.Error(), "unsupported payload type") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

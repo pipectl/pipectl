@@ -103,10 +103,10 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 			op, value = filter.OpEndsWith, s.EndsWith
 		case s.GreaterThan != "":
 			op = filter.OpGreaterThan
-			numericValue, _ = strconv.ParseFloat(s.GreaterThan, 64)
+			numericValue, _ = strconv.ParseFloat(s.GreaterThan, 64) // already validated as a number in spec
 		case s.LessThan != "":
 			op = filter.OpLessThan
-			numericValue, _ = strconv.ParseFloat(s.LessThan, 64)
+			numericValue, _ = strconv.ParseFloat(s.LessThan, 64) // already validated as a number in spec
 		}
 		return &filter.Step{
 			Field:        s.Field,

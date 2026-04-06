@@ -37,7 +37,7 @@ func (s *Step) Execute(ctx *engine.ExecutionContext) error {
 	switch p := ctx.Payload.(type) {
 	case *payload.JSON:
 		if p.Shape != payload.JSONArrayShape {
-			return fmt.Errorf("sort: cannot sort a JSON object payload, only JSON arrays are supported")
+			return fmt.Errorf("cannot sort a JSON object payload, only JSON arrays are supported")
 		}
 		sort.SliceStable(p.Items, s.jsonLess(p.Items))
 		ctx.Logger.Debug("  sorted %d records by %s %s", len(p.Items), s.Field, s.Direction)
@@ -49,7 +49,7 @@ func (s *Step) Execute(ctx *engine.ExecutionContext) error {
 	case *payload.CSV:
 		return s.sortCSV(p, ctx.Logger)
 	default:
-		return fmt.Errorf("sort: unsupported payload type %T", ctx.Payload)
+		return fmt.Errorf("unsupported payload type %T", ctx.Payload)
 	}
 }
 
