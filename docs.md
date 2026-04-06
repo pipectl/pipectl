@@ -81,7 +81,6 @@ Other parsed fields currently exist in the schema but are not used by the runtim
 - `encoding`
 - `schema`
 - `delimiter`
-- `has_header`
 - `max_size`
 
 ### `output`

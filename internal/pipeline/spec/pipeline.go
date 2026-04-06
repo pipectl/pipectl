@@ -19,7 +19,6 @@ type Input struct {
 	Encoding  string `yaml:"encoding,omitempty"`
 	Schema    string `yaml:"schema,omitempty"`
 	Delimiter string `yaml:"delimiter,omitempty"`
-	HasHeader bool   `yaml:"has_header,omitempty"`
 	MaxSize   int    `yaml:"max_size,omitempty"`
 }
 
