@@ -9,7 +9,7 @@ import (
 	"github.com/shanebell/pipectl/internal/pipeline/spec"
 )
 
-func Run(path string, input []byte, output io.Writer, verbose bool) error {
+func Run(path string, input []byte, output io.Writer, verbose bool, dryRun bool) error {
 	p, err := spec.Load(path)
 	if err != nil {
 		return err
@@ -25,6 +25,14 @@ func Run(path string, input []byte, output io.Writer, verbose bool) error {
 	executableSteps, err := plan.Build(p)
 	if err != nil {
 		return err
+	}
+
+	if dryRun {
+		logger.Log("dry run: %d steps would execute", len(executableSteps))
+		for i, step := range executableSteps {
+			logger.Log("  %d. %s", i+1, step.Name())
+		}
+		return nil
 	}
 
 	pipelineEngine := engine.New(executableSteps)
