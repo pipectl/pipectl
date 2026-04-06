@@ -48,3 +48,4 @@ Add a new pipeline step end-to-end: YAML parsing, planning, execution, and tests
 - `go test ./...` passes.
 - pipeline can parse and execute the new step.
 - step is wired in spec registry and planner switch.
+- `docs.md` has a complete entry: supported payloads, all options with accepted values and defaults, notes for non-obvious behavior, and at least one example.

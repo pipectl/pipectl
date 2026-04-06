@@ -36,12 +36,26 @@ Write output to a file instead of `stdout`:
 pipectl run pipeline.yaml -o output.json < input.json
 ```
 
+Enable verbose logging to see step-level detail (excluded record counts, sort results, cast operations, etc.):
+
+```bash
+pipectl run pipeline.yaml --verbose < input.json
+```
+
+Validate the pipeline and print the execution plan without running any steps:
+
+```bash
+pipectl run pipeline.yaml --dry-run
+```
+
 Notes:
 
 - `run` requires exactly one argument: the pipeline file path.
 - Input is read from `stdin`. If nothing is piped in, the runtime still executes, but most pipelines will fail once the configured input format is parsed.
 - Step logs are always written to `stdout`. Only the final payload output is affected by `-o`.
 - `-o` / `--output`: optional path to write the pipeline output to a file.
+- `-v` / `--verbose`: optional flag to enable verbose logging. Shows per-step debug output such as record counts, field operations, and sort results.
+- `--dry-run`: validates the pipeline config and prints the ordered step list without executing any steps or reading `stdin`.
 
 ## pipeline.yaml Format
 
@@ -415,6 +429,8 @@ Options:
 - `not-equals`: keep records where the field value does not equal this string.
 - `contains`: keep records where the field value contains this substring.
 - `starts-with`: keep records where the field value starts with this string.
+- `greater-than`: keep records where the field value is numerically greater than the specified number.
+- `less-than`: keep records where the field value is numerically less than the specified number.
 
 Exactly one operator must be specified.
 
@@ -444,10 +460,24 @@ Examples:
     starts-with: Alice
 ```
 
+```yaml
+- filter:
+    field: age
+    greater-than: 18
+```
+
+```yaml
+- filter:
+    field: price
+    less-than: 100
+```
+
 Notes:
 
 - For JSON and JSONL, non-string field values are coerced to strings before comparison.
 - Records missing the specified field are always excluded.
+- `greater-than` and `less-than` require the field value to be parseable as a number; records where the value is not numeric will cause the step to fail.
+- For `equals` and `not-equals`, when both the field value and the configured value parse as numbers, numeric comparison is used. Otherwise string comparison is used.
 
 ### `sort`
 
@@ -599,7 +629,7 @@ Notes:
 - Only HTTP `200 OK` responses are accepted.
 - Response `Content-Type` must match `expect-format`.
 - Request bodies are only sent for `POST`, `PUT`, `PATCH`, and `DELETE`.
-- For JSONL requests without an explicit `Content-Type`, the step sends `application/x-ndjson`.
+- For JSONL requests without an explicit `Content-Type`, the step sends `application/x-ndjson`. For JSON requests, no `Content-Type` is set automatically — set it explicitly in `headers` if the target service requires it.
 
 ## Example Pipelines
 

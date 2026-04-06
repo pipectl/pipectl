@@ -12,14 +12,6 @@ Roughly in priority order.
 - `cast` — add CSV support
 - `normalize` — validate unknown strategies at parse time instead of silently ignoring them
 
-### CLI
-
-- `--dry-run` — validate the pipeline YAML without consuming stdin
-
-### Docs
-
-- `filter` step reference is missing `greater-than` and `less-than` operators (implemented but undocumented)
-
 ### Error handling
 
 Better error messages with step name, field name, and record index. eg:
