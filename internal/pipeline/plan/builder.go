@@ -18,6 +18,7 @@ import (
 	"github.com/shanebell/pipectl/internal/engine/steps/redact"
 	"github.com/shanebell/pipectl/internal/engine/steps/rename"
 	"github.com/shanebell/pipectl/internal/engine/steps/select"
+	_sort "github.com/shanebell/pipectl/internal/engine/steps/sort"
 	"github.com/shanebell/pipectl/internal/engine/steps/validatejson"
 	"github.com/shanebell/pipectl/internal/pipeline/spec"
 )
@@ -134,6 +135,11 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 	case *spec.CountStep:
 		return &count.Step{
 			Message: s.Message,
+		}, nil
+	case *spec.SortStep:
+		return &_sort.Step{
+			Field:     s.Field,
+			Direction: s.Direction,
 		}, nil
 	case *spec.HTTPTransformStep:
 		return &httptransform.Step{

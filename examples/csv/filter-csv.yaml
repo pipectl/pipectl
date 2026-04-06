@@ -8,6 +8,13 @@ steps:
       message: "Initial payload"
       count: false
 
+  - sort:
+      field: age
+
+  - log:
+      message: "After sort by age"
+      count: false
+
   - filter:
       field: age
       greater-than: 25

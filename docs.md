@@ -72,16 +72,10 @@ Top-level fields:
 
 ### `input`
 
-Supported runtime field:
+Supported fields:
 
-- `format`: `json`, `jsonl`, or `csv`
-
-Other parsed fields currently exist in the schema but are not used by the runtime:
-
-- `encoding`
-- `schema`
-- `delimiter`
-- `max_size`
+- `format`: required. `json`, `jsonl`, or `csv`
+- `delimiter`: optional. A single character to use as the CSV field separator. Defaults to `,`. Only applies when `format` is `csv`.
 
 ### `output`
 
@@ -115,6 +109,7 @@ Supported step types:
 - `redact`
 - `select`
 - `filter`
+- `sort`
 - `limit`
 - `log`
 - `count`
@@ -453,6 +448,41 @@ Notes:
 
 - For JSON and JSONL, non-string field values are coerced to strings before comparison.
 - Records missing the specified field are always excluded.
+
+### `sort`
+
+Sorts records by a single field.
+
+Supported payloads:
+
+- `json` (arrays only)
+- `jsonl`
+- `csv`
+
+Options:
+
+- `field`: required. The field name to sort by.
+- `direction`: optional. `asc` or `desc`. Defaults to `asc`.
+
+Example:
+
+```yaml
+- sort:
+    field: last_name
+```
+
+```yaml
+- sort:
+    field: created_at
+    direction: desc
+```
+
+Notes:
+
+- Records with a missing or null field value are sorted last regardless of direction.
+- For CSV, empty string values are treated as missing and sorted last.
+- When field values parse as numbers, numeric ordering is used. Otherwise, string ordering is used.
+- JSON object payloads (single record) are not supported — only JSON arrays.
 
 ### `limit`
 

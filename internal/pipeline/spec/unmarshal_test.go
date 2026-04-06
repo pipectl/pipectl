@@ -412,6 +412,92 @@ func TestStepWrapperUnmarshalAssertStepWithRecordsEqualOnly(t *testing.T) {
 	}
 }
 
+func TestStepWrapperUnmarshalSortStep(t *testing.T) {
+	tests := []struct {
+		name      string
+		raw       string
+		direction string
+	}{
+		{
+			name: "defaults to asc",
+			raw: `sort:
+  field: name
+`,
+			direction: "asc",
+		},
+		{
+			name: "explicit asc",
+			raw: `sort:
+  field: name
+  direction: asc
+`,
+			direction: "asc",
+		},
+		{
+			name: "explicit desc",
+			raw: `sort:
+  field: name
+  direction: desc
+`,
+			direction: "desc",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			if err := yaml.Unmarshal([]byte(tt.raw), &step); err != nil {
+				t.Fatalf("unmarshal returned error: %v", err)
+			}
+			sortStep, ok := step.Step.(*SortStep)
+			if !ok {
+				t.Fatalf("expected *SortStep, got %T", step.Step)
+			}
+			if sortStep.Field != "name" {
+				t.Fatalf("unexpected field: got %q want %q", sortStep.Field, "name")
+			}
+			if sortStep.Direction != tt.direction {
+				t.Fatalf("unexpected direction: got %q want %q", sortStep.Direction, tt.direction)
+			}
+		})
+	}
+}
+
+func TestStepWrapperUnmarshalSortStepValidation(t *testing.T) {
+	tests := []struct {
+		name    string
+		raw     string
+		message string
+	}{
+		{
+			name:    "missing field",
+			raw:     `sort: {}`,
+			message: "sort field is required",
+		},
+		{
+			name: "invalid direction",
+			raw: `sort:
+  field: name
+  direction: random
+`,
+			message: "sort direction must be asc or desc",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			err := yaml.Unmarshal([]byte(tt.raw), &step)
+			if err == nil {
+				t.Fatal("expected unmarshal error")
+			}
+			if !strings.Contains(err.Error(), tt.message) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
 func TestStepWrapperUnmarshalFilterStep(t *testing.T) {
 	tests := []struct {
 		name       string
