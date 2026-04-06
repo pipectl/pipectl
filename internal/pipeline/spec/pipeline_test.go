@@ -25,6 +25,42 @@ steps: []
 	}
 }
 
+func TestLoadRejectsInvalidInputFormat(t *testing.T) {
+	content := `id: test
+input:
+  format: xml
+output:
+  format: json
+steps: []
+`
+	path := writeTempPipeline(t, content)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected error for invalid input format")
+	}
+	if err.Error() != "input format must be one of: json, jsonl, csv" {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestLoadRejectsInvalidOutputFormat(t *testing.T) {
+	content := `id: test
+input:
+  format: json
+output:
+  format: xml
+steps: []
+`
+	path := writeTempPipeline(t, content)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected error for invalid output format")
+	}
+	if err.Error() != "output format must be one of: json, jsonl, csv" {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestLoadAcceptsSingleCharDelimiter(t *testing.T) {
 	content := `id: test
 input:

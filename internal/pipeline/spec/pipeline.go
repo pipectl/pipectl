@@ -7,6 +7,8 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
+var validFormats = []string{"json", "jsonl", "csv"}
+
 type Pipeline struct {
 	ID     string        `yaml:"id"`
 	Input  Input         `yaml:"input"`
@@ -34,9 +36,26 @@ func Load(path string) (Pipeline, error) {
 		return Pipeline{}, fmt.Errorf("decode pipeline: %w", err)
 	}
 
+	if !isValidFormat(p.Input.Format) {
+		return Pipeline{}, fmt.Errorf("input format must be one of: json, jsonl, csv")
+	}
+
 	if p.Input.Delimiter != "" && len([]rune(p.Input.Delimiter)) != 1 {
 		return Pipeline{}, fmt.Errorf("input delimiter must be a single character")
 	}
 
+	if !isValidFormat(p.Output.Format) {
+		return Pipeline{}, fmt.Errorf("output format must be one of: json, jsonl, csv")
+	}
+
 	return p, nil
+}
+
+func isValidFormat(f string) bool {
+	for _, v := range validFormats {
+		if f == v {
+			return true
+		}
+	}
+	return false
 }

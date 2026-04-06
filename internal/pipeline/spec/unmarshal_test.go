@@ -644,3 +644,310 @@ func TestStepWrapperUnmarshalFilterStepValidation(t *testing.T) {
 		})
 	}
 }
+
+func TestStepWrapperUnmarshalValidateJSONStep(t *testing.T) {
+	raw := []byte(`validate-json:
+  schema: ./schema.json
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	validateStep, ok := step.Step.(*ValidateJSONStep)
+	if !ok {
+		t.Fatalf("expected *ValidateJSONStep, got %T", step.Step)
+	}
+
+	if validateStep.Schema != "./schema.json" {
+		t.Fatalf("unexpected schema: got %q want %q", validateStep.Schema, "./schema.json")
+	}
+}
+
+func TestStepWrapperUnmarshalValidateJSONStepRejectsMissingSchema(t *testing.T) {
+	tests := []struct {
+		name string
+		raw  string
+	}{
+		{name: "empty schema", raw: `validate-json: {}`},
+		{name: "whitespace schema", raw: "validate-json:\n  schema: \"   \"\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			err := yaml.Unmarshal([]byte(tt.raw), &step)
+			if err == nil {
+				t.Fatal("expected unmarshal error")
+			}
+			if !strings.Contains(err.Error(), "validate-json schema is required") {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestStepWrapperUnmarshalNormalizeStep(t *testing.T) {
+	raw := []byte(`normalize:
+  fields:
+    email: lower
+    name: trim
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	normalizeStep, ok := step.Step.(*NormalizeStep)
+	if !ok {
+		t.Fatalf("expected *NormalizeStep, got %T", step.Step)
+	}
+
+	if normalizeStep.Fields["email"] != "lower" {
+		t.Fatalf("unexpected strategy for email: got %q want %q", normalizeStep.Fields["email"], "lower")
+	}
+}
+
+func TestStepWrapperUnmarshalNormalizeStepValidation(t *testing.T) {
+	tests := []struct {
+		name    string
+		raw     string
+		message string
+	}{
+		{
+			name:    "empty fields",
+			raw:     `normalize: {}`,
+			message: "normalize requires at least one field",
+		},
+		{
+			name:    "invalid strategy",
+			raw:     "normalize:\n  fields:\n    email: lowr\n",
+			message: `normalize field "email" has unknown strategy "lowr"`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			err := yaml.Unmarshal([]byte(tt.raw), &step)
+			if err == nil {
+				t.Fatal("expected unmarshal error")
+			}
+			if !strings.Contains(err.Error(), tt.message) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestStepWrapperUnmarshalRedactStep(t *testing.T) {
+	raw := []byte(`redact:
+  fields: [password, credit_card]
+  strategy: mask
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	redactStep, ok := step.Step.(*RedactStep)
+	if !ok {
+		t.Fatalf("expected *RedactStep, got %T", step.Step)
+	}
+
+	if redactStep.Strategy != "mask" {
+		t.Fatalf("unexpected strategy: got %q want %q", redactStep.Strategy, "mask")
+	}
+	if len(redactStep.Fields) != 2 {
+		t.Fatalf("unexpected field count: got %d want 2", len(redactStep.Fields))
+	}
+}
+
+func TestStepWrapperUnmarshalRedactStepValidation(t *testing.T) {
+	tests := []struct {
+		name    string
+		raw     string
+		message string
+	}{
+		{
+			name:    "empty fields",
+			raw:     `redact: {}`,
+			message: "redact requires at least one field",
+		},
+		{
+			name:    "invalid strategy",
+			raw:     "redact:\n  fields: [password]\n  strategy: hash\n",
+			message: "redact strategy must be one of: mask, sha256",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			err := yaml.Unmarshal([]byte(tt.raw), &step)
+			if err == nil {
+				t.Fatal("expected unmarshal error")
+			}
+			if !strings.Contains(err.Error(), tt.message) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestStepWrapperUnmarshalSelectStep(t *testing.T) {
+	raw := []byte(`select:
+  fields: [email, name]
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	selectStep, ok := step.Step.(*SelectStep)
+	if !ok {
+		t.Fatalf("expected *SelectStep, got %T", step.Step)
+	}
+
+	if len(selectStep.Fields) != 2 {
+		t.Fatalf("unexpected field count: got %d want 2", len(selectStep.Fields))
+	}
+}
+
+func TestStepWrapperUnmarshalSelectStepRejectsEmptyFields(t *testing.T) {
+	raw := []byte(`select: {}`)
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for empty fields")
+	}
+	if !strings.Contains(err.Error(), "select requires at least one field") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStepWrapperUnmarshalDefaultStepRejectsEmptyFields(t *testing.T) {
+	raw := []byte(`default: {}`)
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for empty fields")
+	}
+	if !strings.Contains(err.Error(), "default requires at least one field") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStepWrapperUnmarshalRenameStepRejectsEmptyFields(t *testing.T) {
+	raw := []byte(`rename: {}`)
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for empty fields")
+	}
+	if !strings.Contains(err.Error(), "rename requires at least one field") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStepWrapperUnmarshalHTTPTransformStep(t *testing.T) {
+	raw := []byte(`http-transform:
+  url: https://example.com/transform
+  method: POST
+  timeout: 30
+  expect-format: json
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	httpStep, ok := step.Step.(*HTTPTransformStep)
+	if !ok {
+		t.Fatalf("expected *HTTPTransformStep, got %T", step.Step)
+	}
+
+	if httpStep.URL != "https://example.com/transform" {
+		t.Fatalf("unexpected url: got %q", httpStep.URL)
+	}
+	if httpStep.Method != "POST" {
+		t.Fatalf("unexpected method: got %q want %q", httpStep.Method, "POST")
+	}
+	if httpStep.Timeout != 30 {
+		t.Fatalf("unexpected timeout: got %d want 30", httpStep.Timeout)
+	}
+}
+
+func TestStepWrapperUnmarshalHTTPTransformStepNormalisesMethodCase(t *testing.T) {
+	raw := []byte(`http-transform:
+  url: https://example.com/transform
+  method: post
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	httpStep := step.Step.(*HTTPTransformStep)
+	if httpStep.Method != "POST" {
+		t.Fatalf("expected method to be normalised to uppercase: got %q want %q", httpStep.Method, "POST")
+	}
+}
+
+func TestStepWrapperUnmarshalHTTPTransformStepValidation(t *testing.T) {
+	tests := []struct {
+		name    string
+		raw     string
+		message string
+	}{
+		{
+			name:    "missing url",
+			raw:     "http-transform:\n  method: POST\n",
+			message: "http-transform url is required",
+		},
+		{
+			name:    "missing method",
+			raw:     "http-transform:\n  url: https://example.com\n",
+			message: "http-transform method is required",
+		},
+		{
+			name:    "invalid method",
+			raw:     "http-transform:\n  url: https://example.com\n  method: SEND\n",
+			message: "http-transform method must be one of",
+		},
+		{
+			name:    "negative timeout",
+			raw:     "http-transform:\n  url: https://example.com\n  method: POST\n  timeout: -1\n",
+			message: "http-transform timeout must be >= 0",
+		},
+		{
+			name:    "timeout exceeds maximum",
+			raw:     "http-transform:\n  url: https://example.com\n  method: POST\n  timeout: 301\n",
+			message: "http-transform timeout must be <= 300 seconds",
+		},
+		{
+			name:    "invalid expect-format",
+			raw:     "http-transform:\n  url: https://example.com\n  method: POST\n  expect-format: xml\n",
+			message: "http-transform expect-format must be one of: json, jsonl, csv",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			err := yaml.Unmarshal([]byte(tt.raw), &step)
+			if err == nil {
+				t.Fatal("expected unmarshal error")
+			}
+			if !strings.Contains(err.Error(), tt.message) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
