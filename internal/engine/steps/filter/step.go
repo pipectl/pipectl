@@ -14,6 +14,7 @@ const (
 	OpNotEquals   = "not-equals"
 	OpContains    = "contains"
 	OpStartsWith  = "starts-with"
+	OpEndsWith    = "ends-with"
 	OpGreaterThan = "greater-than"
 	OpLessThan    = "less-than"
 )
@@ -151,6 +152,8 @@ func (s *Step) matches(value string) (bool, error) {
 		return strings.Contains(value, s.Value), nil
 	case OpStartsWith:
 		return strings.HasPrefix(value, s.Value), nil
+	case OpEndsWith:
+		return strings.HasSuffix(value, s.Value), nil
 	case OpGreaterThan:
 		f, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
 		if err != nil {

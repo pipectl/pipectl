@@ -429,6 +429,7 @@ Options:
 - `not-equals`: keep records where the field value does not equal this string.
 - `contains`: keep records where the field value contains this substring.
 - `starts-with`: keep records where the field value starts with this string.
+- `ends-with`: keep records where the field value ends with this string.
 - `greater-than`: keep records where the field value is numerically greater than the specified number.
 - `less-than`: keep records where the field value is numerically less than the specified number.
 
@@ -458,6 +459,12 @@ Examples:
 - filter:
     field: name
     starts-with: Alice
+```
+
+```yaml
+- filter:
+    field: email
+    ends-with: "@example.com"
 ```
 
 ```yaml

@@ -99,6 +99,8 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 			op, value = filter.OpContains, s.Contains
 		case s.StartsWith != "":
 			op, value = filter.OpStartsWith, s.StartsWith
+		case s.EndsWith != "":
+			op, value = filter.OpEndsWith, s.EndsWith
 		case s.GreaterThan != "":
 			op = filter.OpGreaterThan
 			numericValue, _ = strconv.ParseFloat(s.GreaterThan, 64)

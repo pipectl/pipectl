@@ -104,6 +104,20 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 			},
 		},
 		{
+			name:  "ends-with",
+			op:    OpEndsWith,
+			value: ".org",
+			rows: [][]string{
+				{"id", "email"},
+				{"1", "alice@example.com"},
+				{"2", "bob@example.org"},
+			},
+			expected: [][]string{
+				{"id", "email"},
+				{"2", "bob@example.org"},
+			},
+		},
+		{
 			name:  "greater-than",
 			op:    OpGreaterThan,
 			value: "30",
@@ -143,7 +157,7 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 			}
 			step := &Step{Field: "status", Op: tt.op, Value: tt.value, NumericValue: numericValue}
 			switch tt.op {
-			case OpContains, OpStartsWith:
+			case OpContains, OpStartsWith, OpEndsWith:
 				step.Field = "email"
 			case OpGreaterThan, OpLessThan:
 				step.Field = "age"
@@ -228,6 +242,19 @@ func TestExecuteFiltersJSONRecords(t *testing.T) {
 			},
 			expected: []map[string]interface{}{
 				{"id": "1", "email": "alice@example.com"},
+			},
+		},
+		{
+			name:  "ends-with",
+			op:    OpEndsWith,
+			field: "email",
+			value: ".org",
+			items: []map[string]interface{}{
+				{"id": "1", "email": "alice@example.com"},
+				{"id": "2", "email": "bob@example.org"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "2", "email": "bob@example.org"},
 			},
 		},
 		{
