@@ -380,15 +380,17 @@ Notes:
 
 ### `select`
 
-Keeps only selected CSV columns.
+Keeps only selected fields in JSON, JSONL, or CSV payloads.
 
 Supported payloads:
 
+- `json`
+- `jsonl`
 - `csv`
 
 Options:
 
-- `fields`: list of column names to keep
+- `fields`: list of field names to keep
 
 Example:
 
@@ -396,6 +398,11 @@ Example:
 - select:
     fields: [first_name, email, dob]
 ```
+
+Notes:
+
+- For JSON and JSONL, fields missing from a record are silently omitted.
+- For CSV, only the specified column names are kept.
 
 ### `filter`
 

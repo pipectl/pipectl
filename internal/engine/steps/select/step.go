@@ -18,7 +18,7 @@ func (s *Step) Name() string {
 
 func (s *Step) Supports(p payload.Payload) bool {
 	switch p.(type) {
-	case *payload.CSV:
+	case *payload.CSV, payload.JSONRecordPayload:
 		return true
 	default:
 		return false
@@ -26,8 +26,38 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
-	csvPayload := context.Payload.(*payload.CSV)
-	return s.selectCsv(csvPayload)
+	switch p := context.Payload.(type) {
+	case payload.JSONRecordPayload:
+		return s.selectJSON(p)
+	case *payload.CSV:
+		return s.selectCsv(p)
+	default:
+		return fmt.Errorf("select: unsupported payload type %T", context.Payload)
+	}
+}
+
+func (s *Step) selectJSON(p payload.JSONRecordPayload) error {
+	fmt.Printf("- selecting fields: %v\n", s.Fields)
+
+	records := p.Records()
+	for i, record := range records {
+		selected := make(map[string]interface{}, len(s.Fields))
+		for _, field := range s.Fields {
+			if value, exists := record[field]; exists {
+				selected[field] = value
+			}
+		}
+		records[i] = selected
+	}
+
+	switch typed := p.(type) {
+	case *payload.JSON:
+		typed.Items = records
+	case *payload.JSONL:
+		typed.Items = records
+	}
+
+	return nil
 }
 
 func (s *Step) selectCsv(csvPayload *payload.CSV) error {
