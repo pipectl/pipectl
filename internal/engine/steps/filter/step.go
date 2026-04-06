@@ -37,29 +37,30 @@ func (s *Step) Supports(p payload.Payload) bool {
 func (s *Step) Execute(context *engine.ExecutionContext) error {
 	switch p := context.Payload.(type) {
 	case payload.JSONRecordPayload:
-		return s.filterJSON(p)
+		return s.filterJSON(p, context.Logger)
 	case *payload.CSV:
-		return s.filterCsv(p)
+		return s.filterCsv(p, context.Logger)
 	default:
 		return fmt.Errorf("filter: unsupported payload type %T", context.Payload)
 	}
 }
 
-func (s *Step) filterJSON(p payload.JSONRecordPayload) error {
+func (s *Step) filterJSON(p payload.JSONRecordPayload, logger *engine.Logger) error {
 	records := p.Records()
 	filtered := records[:0]
+	excluded := 0
+
 	for _, record := range records {
 		value, exists := record[s.Field]
-		if !exists {
-			fmt.Printf("- excluding record: field %q not found\n", s.Field)
+		if !exists || !s.matches(fmt.Sprintf("%v", value)) {
+			excluded++
 			continue
 		}
-		str := fmt.Sprintf("%v", value)
-		if s.matches(str) {
-			filtered = append(filtered, record)
-		} else {
-			fmt.Printf("- excluding record: %v %v %v\n", s.Field, s.Op, s.Value)
-		}
+		filtered = append(filtered, record)
+	}
+
+	if excluded > 0 {
+		logger.Debug("  excluded %d records (%s %s %q)", excluded, s.Field, s.Op, s.Value)
 	}
 
 	switch p := p.(type) {
@@ -72,7 +73,7 @@ func (s *Step) filterJSON(p payload.JSONRecordPayload) error {
 	return nil
 }
 
-func (s *Step) filterCsv(csvPayload *payload.CSV) error {
+func (s *Step) filterCsv(csvPayload *payload.CSV, logger *engine.Logger) error {
 	headerRow := csvPayload.Rows[0]
 	colIndex := -1
 	for i, header := range headerRow {
@@ -84,13 +85,18 @@ func (s *Step) filterCsv(csvPayload *payload.CSV) error {
 
 	var filteredRows [][]string
 	filteredRows = append(filteredRows, headerRow)
+	excluded := 0
 
 	for _, row := range csvPayload.Rows[1:] {
 		if colIndex == -1 || !s.matches(row[colIndex]) {
-			fmt.Printf("- excluding row: %v\n", row[0:len(headerRow)])
+			excluded++
 			continue
 		}
 		filteredRows = append(filteredRows, row)
+	}
+
+	if excluded > 0 {
+		logger.Debug("  excluded %d rows (%s %s %q)", excluded, s.Field, s.Op, s.Value)
 	}
 
 	csvPayload.Rows = filteredRows

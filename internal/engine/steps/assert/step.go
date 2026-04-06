@@ -35,34 +35,34 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	}
 
 	recordCount := context.Payload.RecordCount()
-	fmt.Printf("- assert records: actual=%d\n", recordCount)
+	context.Logger.Debug("  records: %d", recordCount)
 
 	if s.RecordsEqual != nil {
-		fmt.Printf("- assert records-equal: expected=%d\n", *s.RecordsEqual)
+		context.Logger.Debug("  records-equal: %d", *s.RecordsEqual)
 		if recordCount != *s.RecordsEqual {
 			return fmt.Errorf("assert failed: records %d is not equal to expected %d", recordCount, *s.RecordsEqual)
 		}
 	}
 
 	if s.MinRecords != nil {
-		fmt.Printf("- assert min-records: expected >= %d\n", *s.MinRecords)
-	}
-	if s.MinRecords != nil && recordCount < *s.MinRecords {
-		return fmt.Errorf("assert failed: records %d is less than minimum %d", recordCount, *s.MinRecords)
+		context.Logger.Debug("  min-records: >= %d", *s.MinRecords)
+		if recordCount < *s.MinRecords {
+			return fmt.Errorf("assert failed: records %d is less than minimum %d", recordCount, *s.MinRecords)
+		}
 	}
 
 	if s.MaxRecords != nil {
-		fmt.Printf("- assert max-records: expected <= %d\n", *s.MaxRecords)
-	}
-	if s.MaxRecords != nil && recordCount > *s.MaxRecords {
-		return fmt.Errorf("assert failed: records %d is greater than maximum %d", recordCount, *s.MaxRecords)
+		context.Logger.Debug("  max-records: <= %d", *s.MaxRecords)
+		if recordCount > *s.MaxRecords {
+			return fmt.Errorf("assert failed: records %d is greater than maximum %d", recordCount, *s.MaxRecords)
+		}
 	}
 
 	if s.FieldExists != "" {
-		fmt.Printf("- assert field-exists: %q\n", s.FieldExists)
-	}
-	if s.FieldExists != "" && !s.fieldExists(context.Payload) {
-		return fmt.Errorf("assert failed: field %q does not exist", s.FieldExists)
+		context.Logger.Debug("  field-exists: %q", s.FieldExists)
+		if !s.fieldExists(context.Payload) {
+			return fmt.Errorf("assert failed: field %q does not exist", s.FieldExists)
+		}
 	}
 
 	return nil

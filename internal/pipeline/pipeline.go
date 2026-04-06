@@ -1,7 +1,6 @@
 package pipeline
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/shanebell/pipectl/internal/engine"
@@ -10,24 +9,18 @@ import (
 	"github.com/shanebell/pipectl/internal/pipeline/spec"
 )
 
-func log(p spec.Pipeline) {
-	fmt.Printf("Executing pipeline\n")
-	fmt.Printf("- ID: %s\n", p.ID)
-	fmt.Printf("- Input: %s\n", p.Input.Format)
-	fmt.Println("- Steps:")
-	for i, step := range p.Steps {
-		fmt.Printf("  %v. %s\n", i+1, step.Step.StepType())
-	}
-	fmt.Printf("- Output: %s\n", p.Output.Format)
-}
-
-func Run(path string, input []byte, output io.Writer) error {
+func Run(path string, input []byte, output io.Writer, verbose bool) error {
 	p, err := spec.Load(path)
 	if err != nil {
 		return err
 	}
 
-	log(p)
+	logger := engine.NewLogger(verbose)
+
+	logger.Log("pipeline: %s [%s → %s, %d steps]", p.ID, p.Input.Format, p.Output.Format, len(p.Steps))
+	for i, step := range p.Steps {
+		logger.Debug("  %d. %s", i+1, step.Step.StepType())
+	}
 
 	executableSteps, err := plan.Build(p)
 	if err != nil {
@@ -41,17 +34,11 @@ func Run(path string, input []byte, output io.Writer) error {
 		return err
 	}
 
-	ctx := &engine.ExecutionContext{Payload: inputPayload}
+	ctx := &engine.ExecutionContext{Payload: inputPayload, Logger: logger}
 
-	fmt.Printf("\nRunning steps...\n")
 	if err := pipelineEngine.Run(ctx); err != nil {
 		return err
 	}
 
-	fmt.Printf("\nOutput:\n")
-	if err := payload.Write(ctx.Payload, p.Output.Format, output); err != nil {
-		return err
-	}
-
-	return nil
+	return payload.Write(ctx.Payload, p.Output.Format, output)
 }

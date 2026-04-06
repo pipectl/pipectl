@@ -26,6 +26,10 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
+	for field, strategy := range s.Fields {
+		context.Logger.Debug("  %s: %s", field, strategy)
+	}
+
 	jsonPayload, jsonOk := context.Payload.(payload.JSONRecordPayload)
 	if jsonOk {
 		return s.normalizeJSON(jsonPayload)
@@ -61,8 +65,6 @@ var strategies = map[string]func(string) string{
 }
 
 func (s *Step) normalizeValue(value string, strategy string) string {
-	fmt.Printf("- normalizing value: '%v' with strategy: %v\n", value, strategy)
-
 	// TODO handle multiple strategies pipe separated eg: "trim|lower"
 	fn, ok := strategies[strategy]
 	if !ok {

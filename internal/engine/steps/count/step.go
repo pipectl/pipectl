@@ -1,8 +1,6 @@
 package count
 
 import (
-	"fmt"
-
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/engine/payload"
 )
@@ -26,9 +24,8 @@ func (s *Step) Supports(p payload.Payload) bool {
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
 	if s.Message != "" {
-		fmt.Printf("- message: %s\n", s.Message)
+		context.Logger.Log("  message: %s", s.Message)
 	}
-
-	fmt.Printf("- records: %d\n", context.Payload.RecordCount())
+	context.Logger.Log("  records: %d", context.Payload.RecordCount())
 	return nil
 }

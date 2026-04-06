@@ -45,9 +45,9 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
-	fmt.Printf("- transforming via HTTP %v to URL: %v\n", s.Method, s.URL)
+	context.Logger.Debug("  %s %s", strings.ToUpper(s.Method), s.URL)
 	if s.Proxy != "" {
-		fmt.Printf("- using proxy: %v\n", s.Proxy)
+		context.Logger.Debug("  proxy: %s", s.Proxy)
 	}
 
 	transformedPayload, err := s.transformPayload(context.Payload)

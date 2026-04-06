@@ -2,7 +2,7 @@
   <configuration default="false" name="Filter test CSV" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="pipectl" />
     <working_directory value="$PROJECT_DIR$" />
-    <parameters value="run ./examples/csv/filter-csv.yaml" />
+    <parameters value="run --verbose ./examples/csv/filter-csv.yaml" />
     <kind value="PACKAGE" />
     <package value="github.com/shanebell/pipectl/cmd/pipectl" />
     <directory value="$PROJECT_DIR$" />

@@ -6,4 +6,5 @@ import (
 
 type ExecutionContext struct {
 	Payload payload.Payload
+	Logger  *Logger
 }

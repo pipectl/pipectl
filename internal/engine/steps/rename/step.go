@@ -25,6 +25,10 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
+	for from, to := range s.Fields {
+		context.Logger.Debug("  %s → %s", from, to)
+	}
+
 	jsonPayload, jsonOk := context.Payload.(payload.JSONRecordPayload)
 	if jsonOk {
 		return s.renameJSON(jsonPayload)
@@ -50,7 +54,6 @@ func (s *Step) renameJSON(jsonPayload payload.JSONRecordPayload) error {
 				continue
 			}
 
-			fmt.Printf("- renaming field: %v => %v\n", from, to)
 			record[to] = value
 			delete(record, from)
 		}
@@ -66,13 +69,9 @@ func (s *Step) renameCSV(csvPayload *payload.CSV) error {
 
 	headerRow := csvPayload.Rows[0]
 	for i, header := range headerRow {
-		to, ok := s.Fields[header]
-		if !ok {
-			continue
+		if to, ok := s.Fields[header]; ok {
+			headerRow[i] = to
 		}
-
-		fmt.Printf("- renaming field: %v => %v\n", header, to)
-		headerRow[i] = to
 	}
 
 	return nil

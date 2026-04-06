@@ -2,7 +2,6 @@ package _log
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/shanebell/pipectl/internal/engine"
@@ -30,18 +29,18 @@ func (s *Step) Supports(p payload.Payload) bool {
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
 	if s.Message != "" {
-		fmt.Printf("- message: %s\n", s.Message)
+		context.Logger.Log("  message: %s", s.Message)
 	}
 
 	if s.Count {
-		fmt.Printf("- records: %d\n", context.Payload.RecordCount())
+		context.Logger.Log("  records: %d", context.Payload.RecordCount())
 	}
 
-	s.printSample(context.Payload)
+	s.printSample(context.Logger, context.Payload)
 	return nil
 }
 
-func (s *Step) printSample(p payload.Payload) {
+func (s *Step) printSample(logger *engine.Logger, p payload.Payload) {
 	limit := s.Sample
 	if limit < 0 {
 		limit = 0
@@ -56,18 +55,18 @@ func (s *Step) printSample(p payload.Payload) {
 			return
 		}
 		if len(v.Rows) <= 1 {
-			fmt.Printf("- sample (%d):\n", 0)
-			fmt.Println(strings.Join(v.Rows[0], ","))
+			logger.Log("  sample (0):")
+			logger.Log("    %s", strings.Join(v.Rows[0], ","))
 			return
 		}
 		rows := v.Rows[1:]
 		if len(rows) > limit {
 			rows = rows[:limit]
 		}
-		fmt.Printf("- sample (%d):\n", len(rows))
-		fmt.Println(strings.Join(v.Rows[0], ","))
+		logger.Log("  sample (%d):", len(rows))
+		logger.Log("    %s", strings.Join(v.Rows[0], ","))
 		for _, row := range rows {
-			fmt.Println(strings.Join(row, ","))
+			logger.Log("    %s", strings.Join(row, ","))
 		}
 	case payload.JSONRecordPayload:
 		records := v.Records()
@@ -77,14 +76,14 @@ func (s *Step) printSample(p payload.Payload) {
 		if len(records) > limit {
 			records = records[:limit]
 		}
-		fmt.Printf("- sample (%d):\n", len(records))
+		logger.Log("  sample (%d):", len(records))
 		for _, record := range records {
 			raw, err := json.Marshal(record)
 			if err != nil {
-				fmt.Printf("%v\n", record)
+				logger.Log("    %v", record)
 				continue
 			}
-			fmt.Println(string(raw))
+			logger.Log("    %s", string(raw))
 		}
 	}
 }

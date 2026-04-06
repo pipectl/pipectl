@@ -51,6 +51,10 @@ func (s *Step) Execute(ctx *engine.ExecutionContext) error {
 		return fmt.Errorf("%v received invalid payload type %v", s.Name(), ctx.Payload.Type())
 	}
 
+	for fieldPath, config := range s.Fields {
+		ctx.Logger.Debug("  %s → %s", fieldPath, config.Type)
+	}
+
 	for recordIndex, record := range jsonPayload.Records() {
 		if record == nil {
 			continue
@@ -67,7 +71,6 @@ func (s *Step) Execute(ctx *engine.ExecutionContext) error {
 				return fmt.Errorf("cast field %q in record %d: %w", fieldPath, recordIndex+1, err)
 			}
 
-			fmt.Printf("- casting field: %v => %s\n", fieldPath, config.Type)
 			if err := assign(casted); err != nil {
 				return fmt.Errorf("cast field %q in record %d: %w", fieldPath, recordIndex+1, err)
 			}

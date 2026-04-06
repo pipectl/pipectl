@@ -25,6 +25,10 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
+	for key, value := range s.Fields {
+		context.Logger.Debug("  %s: %v", key, value)
+	}
+
 	jsonPayload, jsonOk := context.Payload.(payload.JSONRecordPayload)
 	if jsonOk {
 		return s.defaultJSON(jsonPayload)
@@ -53,8 +57,6 @@ func (s *Step) defaultJSON(jsonPayload payload.JSONRecordPayload) error {
 			if _, exists := record[key]; exists {
 				continue
 			}
-
-			fmt.Printf("- applying default: %v => %v\n", key, value)
 			record[key] = value
 		}
 	}
@@ -77,7 +79,6 @@ func (s *Step) defaultCSV(csvPayload *payload.CSV) error {
 		defaultValue := stringify(value)
 		fieldIndex, exists := headerIndex[key]
 		if !exists {
-			fmt.Printf("- adding default column: %v => %v\n", key, defaultValue)
 			headerRow = append(headerRow, key)
 			csvPayload.Rows[0] = headerRow
 			fieldIndex = len(headerRow) - 1
@@ -90,7 +91,6 @@ func (s *Step) defaultCSV(csvPayload *payload.CSV) error {
 			continue
 		}
 
-		fmt.Printf("- applying default for CSV field: %v => %v\n", key, defaultValue)
 		for i := 1; i < len(csvPayload.Rows); i++ {
 			row := csvPayload.Rows[i]
 			if len(row) <= fieldIndex {

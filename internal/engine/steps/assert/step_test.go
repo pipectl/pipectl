@@ -1,8 +1,7 @@
 package assert
 
 import (
-	"io"
-	"os"
+	"bytes"
 	"strings"
 	"testing"
 
@@ -217,7 +216,9 @@ func TestExecuteLogsAssertions(t *testing.T) {
 		FieldExists:  "email",
 	}
 
+	var buf bytes.Buffer
 	ctx := &engine.ExecutionContext{
+		Logger: engine.NewLoggerWithWriter(&buf, true),
 		Payload: &payload.CSV{
 			Rows: [][]string{
 				{"name", "email"},
@@ -227,46 +228,16 @@ func TestExecuteLogsAssertions(t *testing.T) {
 		},
 	}
 
-	output := captureStdout(t, func() {
-		if err := step.Execute(ctx); err != nil {
-			t.Fatalf("execute returned error: %v", err)
-		}
-	})
-
-	assertContains(t, output, "- assert records: actual=2\n")
-	assertContains(t, output, "- assert records-equal: expected=2\n")
-	assertContains(t, output, "- assert min-records: expected >= 1\n")
-	assertContains(t, output, "- assert max-records: expected <= 2\n")
-	assertContains(t, output, "- assert field-exists: \"email\"\n")
-}
-
-func captureStdout(t *testing.T, fn func()) string {
-	t.Helper()
-
-	original := os.Stdout
-	reader, writer, err := os.Pipe()
-	if err != nil {
-		t.Fatalf("pipe returned error: %v", err)
-	}
-	defer reader.Close()
-
-	os.Stdout = writer
-	defer func() {
-		os.Stdout = original
-	}()
-
-	fn()
-
-	if err := writer.Close(); err != nil {
-		t.Fatalf("closing writer returned error: %v", err)
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
 	}
 
-	out, err := io.ReadAll(reader)
-	if err != nil {
-		t.Fatalf("reading stdout returned error: %v", err)
-	}
-
-	return string(out)
+	output := buf.String()
+	assertContains(t, output, "  records: 2")
+	assertContains(t, output, "  records-equal: 2")
+	assertContains(t, output, "  min-records: >= 1")
+	assertContains(t, output, "  max-records: <= 2")
+	assertContains(t, output, `  field-exists: "email"`)
 }
 
 func assertContains(t *testing.T, value, expected string) {

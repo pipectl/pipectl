@@ -30,6 +30,12 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
+	strategy := s.Strategy
+	if strategy == "" {
+		strategy = "remove"
+	}
+	context.Logger.Debug("  fields: [%s] (%s)", strings.Join(s.Fields, ", "), strategy)
+
 	jsonPayload, jsonOk := context.Payload.(payload.JSONRecordPayload)
 	if jsonOk {
 		return s.redactJson(jsonPayload)
@@ -53,7 +59,6 @@ func (s *Step) redactCsv(csvPayload *payload.CSV) error {
 	for _, row := range csvPayload.Rows[1:] {
 		for i, value := range row {
 			if toRedact[i] {
-				fmt.Printf("- redacting field: %v, value: %v\n", headerRow[i], value)
 				row[i] = s.redactSingleValue(value)
 			}
 		}
@@ -73,13 +78,8 @@ func (s *Step) redactJson(jsonPayload payload.JSONRecordPayload) error {
 		for k, v := range record {
 			if slices.Contains(s.Fields, k) {
 				switch value := v.(type) {
-
 				case string:
-					fmt.Printf("- redacting field: %v, value: '%v'\n", k, v)
 					record[k] = s.redactSingleValue(value)
-
-				default:
-					fmt.Printf("Cannot redact field %v of unsupported type %T\n", k, v)
 				}
 			}
 		}
@@ -89,8 +89,6 @@ func (s *Step) redactJson(jsonPayload payload.JSONRecordPayload) error {
 }
 
 func (s *Step) redactSingleValue(value string) string {
-	// TODO print something useful when strategy is not defined
-	fmt.Printf("- redacting text: %v with strategy %s\n", value, s.Strategy)
 	switch s.Strategy {
 	case "mask":
 		return strings.Repeat("*", len(value))

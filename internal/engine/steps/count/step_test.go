@@ -1,9 +1,8 @@
 package count
 
 import (
+	"bytes"
 	"fmt"
-	"io"
-	"os"
 	"strings"
 	"testing"
 
@@ -41,26 +40,27 @@ func TestExecutePrintsRawRecordCountWithoutCommas(t *testing.T) {
 	}
 
 	step := &Step{}
+	var buf bytes.Buffer
 	ctx := &engine.ExecutionContext{
-		Payload: &payload.CSV{
-			Rows: rows,
-		},
+		Logger:  engine.NewLoggerWithWriter(&buf, false),
+		Payload: &payload.CSV{Rows: rows},
 	}
 
-	output := captureStdout(t, func() {
-		if err := step.Execute(ctx); err != nil {
-			t.Fatalf("execute returned error: %v", err)
-		}
-	})
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
 
-	assertContains(t, output, "- records: 1223\n")
-	assertNotContains(t, output, "- records: 1,223")
+	output := buf.String()
+	assertContains(t, output, "  records: 1223")
+	assertNotContains(t, output, "1,223")
 	assertNotContains(t, output, "message:")
 }
 
 func TestExecutePrintsMessageLikeLogStep(t *testing.T) {
 	step := &Step{Message: "Message goes here"}
+	var buf bytes.Buffer
 	ctx := &engine.ExecutionContext{
+		Logger: engine.NewLoggerWithWriter(&buf, false),
 		Payload: &payload.JSON{
 			Items: []map[string]interface{}{
 				{
@@ -73,43 +73,13 @@ func TestExecutePrintsMessageLikeLogStep(t *testing.T) {
 		},
 	}
 
-	output := captureStdout(t, func() {
-		if err := step.Execute(ctx); err != nil {
-			t.Fatalf("execute returned error: %v", err)
-		}
-	})
-
-	assertContains(t, output, "- message: Message goes here\n")
-	assertContains(t, output, "- records: 1\n")
-}
-
-func captureStdout(t *testing.T, fn func()) string {
-	t.Helper()
-
-	original := os.Stdout
-	reader, writer, err := os.Pipe()
-	if err != nil {
-		t.Fatalf("pipe returned error: %v", err)
-	}
-	defer reader.Close()
-
-	os.Stdout = writer
-	defer func() {
-		os.Stdout = original
-	}()
-
-	fn()
-
-	if err := writer.Close(); err != nil {
-		t.Fatalf("closing writer returned error: %v", err)
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
 	}
 
-	out, err := io.ReadAll(reader)
-	if err != nil {
-		t.Fatalf("reading stdout returned error: %v", err)
-	}
-
-	return string(out)
+	output := buf.String()
+	assertContains(t, output, "  message: Message goes here")
+	assertContains(t, output, "  records: 1")
 }
 
 func assertContains(t *testing.T, value, expected string) {

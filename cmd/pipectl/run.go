@@ -11,6 +11,7 @@ import (
 )
 
 var outputPath string
+var verbose bool
 
 var runCommand = &cobra.Command{
 	Use:   "run pipeline.yaml",
@@ -45,7 +46,7 @@ var runCommand = &cobra.Command{
 			output = file
 		}
 
-		if err := pipeline.Run(path, input, output); err != nil {
+		if err := pipeline.Run(path, input, output, verbose); err != nil {
 			return fmt.Errorf("pipeline failed: %w", err)
 		}
 
@@ -55,5 +56,6 @@ var runCommand = &cobra.Command{
 
 func init() {
 	runCommand.Flags().StringVarP(&outputPath, "output", "o", "", "Write pipeline output to file")
+	runCommand.Flags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
 	rootCommand.AddCommand(runCommand)
 }

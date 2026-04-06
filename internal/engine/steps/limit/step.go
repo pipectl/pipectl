@@ -1,8 +1,6 @@
 package limit
 
 import (
-	"fmt"
-
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/engine/payload"
 )
@@ -45,9 +43,9 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 
 	after := context.Payload.RecordCount()
 	if before > after {
-		fmt.Printf("- limited %d records to %d\n", before, after)
+		context.Logger.Debug("  limited %d records to %d", before, after)
 	} else {
-		fmt.Printf("- %d records (limit of %d not reached)\n", after, s.Count)
+		context.Logger.Debug("  %d records (limit of %d not reached)", after, s.Count)
 	}
 
 	return nil

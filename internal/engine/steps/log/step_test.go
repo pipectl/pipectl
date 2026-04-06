@@ -1,8 +1,7 @@
 package _log
 
 import (
-	"io"
-	"os"
+	"bytes"
 	"strings"
 	"testing"
 
@@ -38,7 +37,9 @@ func TestExecutePrintsJSONLSample(t *testing.T) {
 		Sample: 1,
 	}
 
+	var buf bytes.Buffer
 	ctx := &engine.ExecutionContext{
+		Logger: engine.NewLoggerWithWriter(&buf, false),
 		Payload: &payload.JSONL{
 			Items: []map[string]interface{}{
 				{"id": 1, "name": "alice"},
@@ -47,14 +48,13 @@ func TestExecutePrintsJSONLSample(t *testing.T) {
 		},
 	}
 
-	output := captureStdout(t, func() {
-		if err := step.Execute(ctx); err != nil {
-			t.Fatalf("execute returned error: %v", err)
-		}
-	})
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
 
-	assertContains(t, output, "- records: 2\n")
-	assertContains(t, output, "- sample (1):\n")
+	output := buf.String()
+	assertContains(t, output, "  records: 2")
+	assertContains(t, output, "  sample (1):")
 	assertContains(t, output, `"name":"alice"`)
 	assertNotContains(t, output, `"name":"bob"`)
 }
@@ -65,7 +65,9 @@ func TestExecuteDefaultsMessageCountAndSample(t *testing.T) {
 		Sample: 10,
 	}
 
+	var buf bytes.Buffer
 	ctx := &engine.ExecutionContext{
+		Logger: engine.NewLoggerWithWriter(&buf, false),
 		Payload: &payload.CSV{
 			Rows: [][]string{
 				{"id", "name"},
@@ -75,18 +77,17 @@ func TestExecuteDefaultsMessageCountAndSample(t *testing.T) {
 		},
 	}
 
-	output := captureStdout(t, func() {
-		if err := step.Execute(ctx); err != nil {
-			t.Fatalf("execute returned error: %v", err)
-		}
-	})
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
 
+	output := buf.String()
 	assertNotContains(t, output, "message:")
-	assertContains(t, output, "- records: 2\n")
-	assertContains(t, output, "- sample (2):\n")
-	assertContains(t, output, "id,name\n")
-	assertContains(t, output, "1,alice\n")
-	assertContains(t, output, "2,bob\n")
+	assertContains(t, output, "  records: 2")
+	assertContains(t, output, "  sample (2):")
+	assertContains(t, output, "id,name")
+	assertContains(t, output, "1,alice")
+	assertContains(t, output, "2,bob")
 }
 
 func TestExecutePrintsMessageAndRespectsCountAndSample(t *testing.T) {
@@ -96,7 +97,9 @@ func TestExecutePrintsMessageAndRespectsCountAndSample(t *testing.T) {
 		Sample:  1,
 	}
 
+	var buf bytes.Buffer
 	ctx := &engine.ExecutionContext{
+		Logger: engine.NewLoggerWithWriter(&buf, false),
 		Payload: &payload.CSV{
 			Rows: [][]string{
 				{"id", "name"},
@@ -106,47 +109,17 @@ func TestExecutePrintsMessageAndRespectsCountAndSample(t *testing.T) {
 		},
 	}
 
-	output := captureStdout(t, func() {
-		if err := step.Execute(ctx); err != nil {
-			t.Fatalf("execute returned error: %v", err)
-		}
-	})
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
 
-	assertContains(t, output, "- message: Payload after step 2\n")
+	output := buf.String()
+	assertContains(t, output, "  message: Payload after step 2")
 	assertNotContains(t, output, "records:")
-	assertContains(t, output, "- sample (1):\n")
-	assertContains(t, output, "id,name\n")
-	assertContains(t, output, "1,alice\n")
-	assertNotContains(t, output, "2,bob\n")
-}
-
-func captureStdout(t *testing.T, fn func()) string {
-	t.Helper()
-
-	original := os.Stdout
-	reader, writer, err := os.Pipe()
-	if err != nil {
-		t.Fatalf("pipe returned error: %v", err)
-	}
-	defer reader.Close()
-
-	os.Stdout = writer
-	defer func() {
-		os.Stdout = original
-	}()
-
-	fn()
-
-	if err := writer.Close(); err != nil {
-		t.Fatalf("closing writer returned error: %v", err)
-	}
-
-	out, err := io.ReadAll(reader)
-	if err != nil {
-		t.Fatalf("reading stdout returned error: %v", err)
-	}
-
-	return string(out)
+	assertContains(t, output, "  sample (1):")
+	assertContains(t, output, "id,name")
+	assertContains(t, output, "1,alice")
+	assertNotContains(t, output, "2,bob")
 }
 
 func assertContains(t *testing.T, value, expected string) {

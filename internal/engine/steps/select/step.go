@@ -3,6 +3,7 @@ package _select
 import (
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/engine/payload"
@@ -26,6 +27,8 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
+	context.Logger.Debug("  fields: [%s]", strings.Join(s.Fields, ", "))
+
 	switch p := context.Payload.(type) {
 	case payload.JSONRecordPayload:
 		return s.selectJSON(p)
@@ -37,8 +40,6 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 }
 
 func (s *Step) selectJSON(p payload.JSONRecordPayload) error {
-	fmt.Printf("- selecting fields: %v\n", s.Fields)
-
 	records := p.Records()
 	for i, record := range records {
 		selected := make(map[string]interface{}, len(s.Fields))
@@ -61,8 +62,6 @@ func (s *Step) selectJSON(p payload.JSONRecordPayload) error {
 }
 
 func (s *Step) selectCsv(csvPayload *payload.CSV) error {
-	fmt.Printf("- selecting fields: %v\n", s.Fields)
-
 	headerRow := csvPayload.Rows[0]
 	toSelect := make([]bool, len(headerRow))
 	for i, header := range headerRow {

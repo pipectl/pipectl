@@ -28,7 +28,8 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
-	fmt.Printf("- validating JSON payload against schema %v\n", s.Schema)
+	context.Logger.Debug("  schema: %s", s.Schema)
+
 	schemaLoader, err := s.schemaLoader()
 	if err != nil {
 		return err
