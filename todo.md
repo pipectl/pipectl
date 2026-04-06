@@ -6,7 +6,6 @@ Roughly in priority order.
 
 ### Steps
 
-- `filter` — add basic operators (`equals`, `not-equals`, `contains`, `starts-with`)
 - `filter` — add multi-condition support (`all` / `any`)
 - `sort` — order records by a field (asc/desc)
 - `dedupe` — remove duplicate records by key field

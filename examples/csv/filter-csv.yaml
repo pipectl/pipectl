@@ -1,0 +1,28 @@
+id: filter-csv
+
+input:
+  format: csv
+
+steps:
+  - log:
+      message: "Initial payload"
+      count: false
+
+  - filter:
+      field: first_name
+      starts-with: "C"
+
+  - log:
+      message: "After filter by first_name starts with C"
+      count: false
+
+  - filter:
+      field: gender
+      equals: "male"
+
+  - log:
+      message: "After filter by gender equals male"
+      count: false
+
+output:
+  format: json
