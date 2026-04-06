@@ -32,6 +32,16 @@ func TestReadJSONLParsesEachLineAsRecord(t *testing.T) {
 	}
 }
 
+func TestReadJSONLRejectsBlankLine(t *testing.T) {
+	_, err := Read([]byte("{\"id\":1}\n\n{\"id\":2}\n"), JSONLType)
+	if err == nil {
+		t.Fatal("expected error for blank line in JSONL")
+	}
+
+	assertContains(t, err.Error(), "line 2")
+	assertContains(t, err.Error(), "blank lines are not permitted")
+}
+
 func TestReadJSONLRejectsNonObjectLine(t *testing.T) {
 	_, err := Read([]byte("{\"id\":1}\n[1,2,3]\n"), JSONLType)
 	if err == nil {

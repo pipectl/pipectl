@@ -11,14 +11,6 @@ Roughly in priority order.
 - `cast` — add CSV support
 - `normalize` — validate unknown strategies at parse time instead of silently ignoring them
 
-### Error handling
-
-Better error messages with step name, field name, and record index. eg:
-
-```
-[step 4: filter] field 'country' not found in record
-```
-
 ---
 
 ## Backlog
@@ -41,7 +33,6 @@ Lower priority ideas for after MVP.
 
 ### Payload / format
 
-- JSONL — stricter validation (one object per line, reject arrays)
 
 ---
 

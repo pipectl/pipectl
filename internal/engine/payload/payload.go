@@ -54,9 +54,9 @@ func Read(input []byte, format string) (Payload, error) {
 		lineNumber := 0
 		for scanner.Scan() {
 			lineNumber++
-			line := strings.TrimSpace(scanner.Text())
-			if line == "" {
-				continue
+			line := scanner.Text()
+			if strings.TrimSpace(line) == "" {
+				return nil, fmt.Errorf("invalid JSONL input on line %d: blank lines are not permitted", lineNumber)
 			}
 
 			var value interface{}
