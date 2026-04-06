@@ -455,6 +455,24 @@ func TestStepWrapperUnmarshalFilterStep(t *testing.T) {
 			checkField: func(s *FilterStep) bool { return s.StartsWith == "alice" },
 			wantField:  "StartsWith=alice",
 		},
+		{
+			name: "greater-than",
+			raw: `filter:
+  field: age
+  greater-than: 30
+`,
+			checkField: func(s *FilterStep) bool { return s.GreaterThan == "30" },
+			wantField:  "GreaterThan=30",
+		},
+		{
+			name: "less-than",
+			raw: `filter:
+  field: age
+  less-than: 30
+`,
+			checkField: func(s *FilterStep) bool { return s.LessThan == "30" },
+			wantField:  "LessThan=30",
+		},
 	}
 
 	for _, tt := range tests {
@@ -469,7 +487,7 @@ func TestStepWrapperUnmarshalFilterStep(t *testing.T) {
 				t.Fatalf("expected *FilterStep, got %T", step.Step)
 			}
 
-			if filterStep.Field != "status" && filterStep.Field != "email" {
+			if filterStep.Field != "status" && filterStep.Field != "email" && filterStep.Field != "age" {
 				t.Fatalf("unexpected field: got %q", filterStep.Field)
 			}
 
@@ -508,6 +526,22 @@ func TestStepWrapperUnmarshalFilterStepValidation(t *testing.T) {
   not-equals: inactive
 `,
 			message: "filter requires exactly one operator",
+		},
+		{
+			name: "greater-than non-numeric",
+			raw: `filter:
+  field: age
+  greater-than: abc
+`,
+			message: "filter greater-than must be a number",
+		},
+		{
+			name: "less-than non-numeric",
+			raw: `filter:
+  field: age
+  less-than: abc
+`,
+			message: "filter less-than must be a number",
 		},
 	}
 

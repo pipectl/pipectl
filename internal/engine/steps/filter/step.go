@@ -2,6 +2,7 @@ package filter
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/shanebell/pipectl/internal/engine"
@@ -9,16 +10,19 @@ import (
 )
 
 const (
-	OpEquals     = "equals"
-	OpNotEquals  = "not-equals"
-	OpContains   = "contains"
-	OpStartsWith = "starts-with"
+	OpEquals      = "equals"
+	OpNotEquals   = "not-equals"
+	OpContains    = "contains"
+	OpStartsWith  = "starts-with"
+	OpGreaterThan = "greater-than"
+	OpLessThan    = "less-than"
 )
 
 type Step struct {
-	Field string
-	Op    string
-	Value string
+	Field        string
+	Op           string
+	Value        string
+	NumericValue float64
 }
 
 func (s *Step) Name() string {
@@ -52,7 +56,15 @@ func (s *Step) filterJSON(p payload.JSONRecordPayload, logger *engine.Logger) er
 
 	for _, record := range records {
 		value, exists := record[s.Field]
-		if !exists || !s.matches(fmt.Sprintf("%v", value)) {
+		if !exists {
+			excluded++
+			continue
+		}
+		matched, err := s.matches(fmt.Sprintf("%v", value))
+		if err != nil {
+			return err
+		}
+		if !matched {
 			excluded++
 			continue
 		}
@@ -60,7 +72,7 @@ func (s *Step) filterJSON(p payload.JSONRecordPayload, logger *engine.Logger) er
 	}
 
 	if excluded > 0 {
-		logger.Debug("  excluded %d records (%s %s %q)", excluded, s.Field, s.Op, s.Value)
+		logger.Debug("  excluded %d records (%s %s %v)", excluded, s.Field, s.Op, s.logValue())
 	}
 
 	switch p := p.(type) {
@@ -88,7 +100,15 @@ func (s *Step) filterCsv(csvPayload *payload.CSV, logger *engine.Logger) error {
 	excluded := 0
 
 	for _, row := range csvPayload.Rows[1:] {
-		if colIndex == -1 || !s.matches(row[colIndex]) {
+		if colIndex == -1 {
+			excluded++
+			continue
+		}
+		matched, err := s.matches(row[colIndex])
+		if err != nil {
+			return err
+		}
+		if !matched {
 			excluded++
 			continue
 		}
@@ -96,24 +116,54 @@ func (s *Step) filterCsv(csvPayload *payload.CSV, logger *engine.Logger) error {
 	}
 
 	if excluded > 0 {
-		logger.Debug("  excluded %d rows (%s %s %q)", excluded, s.Field, s.Op, s.Value)
+		logger.Debug("  excluded %d rows (%s %s %v)", excluded, s.Field, s.Op, s.logValue())
 	}
 
 	csvPayload.Rows = filteredRows
 	return nil
 }
 
-func (s *Step) matches(value string) bool {
+func (s *Step) equalValues(fieldValue string) bool {
+	fField, errField := strconv.ParseFloat(strings.TrimSpace(fieldValue), 64)
+	fThreshold, errThreshold := strconv.ParseFloat(strings.TrimSpace(s.Value), 64)
+	if errField == nil && errThreshold == nil {
+		return fField == fThreshold
+	}
+	return fieldValue == s.Value
+}
+
+func (s *Step) logValue() interface{} {
+	switch s.Op {
+	case OpGreaterThan, OpLessThan:
+		return s.NumericValue
+	default:
+		return fmt.Sprintf("%q", s.Value)
+	}
+}
+
+func (s *Step) matches(value string) (bool, error) {
 	switch s.Op {
 	case OpEquals:
-		return value == s.Value
+		return s.equalValues(value), nil
 	case OpNotEquals:
-		return value != s.Value
+		return !s.equalValues(value), nil
 	case OpContains:
-		return strings.Contains(value, s.Value)
+		return strings.Contains(value, s.Value), nil
 	case OpStartsWith:
-		return strings.HasPrefix(value, s.Value)
+		return strings.HasPrefix(value, s.Value), nil
+	case OpGreaterThan:
+		f, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
+		if err != nil {
+			return false, fmt.Errorf("filter: field %q value %q is not a number", s.Field, value)
+		}
+		return f > s.NumericValue, nil
+	case OpLessThan:
+		f, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
+		if err != nil {
+			return false, fmt.Errorf("filter: field %q value %q is not a number", s.Field, value)
+		}
+		return f < s.NumericValue, nil
 	default:
-		return false
+		return false, nil
 	}
 }

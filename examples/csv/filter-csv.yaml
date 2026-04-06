@@ -9,6 +9,14 @@ steps:
       count: false
 
   - filter:
+      field: age
+      greater-than: 25
+
+  - log:
+      message: "After filter by age greater than 25"
+      count: false
+
+  - filter:
       field: first_name
       starts-with: "C"
 

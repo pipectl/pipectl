@@ -2,6 +2,7 @@ package plan
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/shanebell/pipectl/internal/engine"
 	"github.com/shanebell/pipectl/internal/engine/steps/assert"
@@ -87,6 +88,7 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 		}, nil
 	case *spec.FilterStep:
 		var op, value string
+		var numericValue float64
 		switch {
 		case s.Equals != "":
 			op, value = filter.OpEquals, s.Equals
@@ -96,11 +98,18 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 			op, value = filter.OpContains, s.Contains
 		case s.StartsWith != "":
 			op, value = filter.OpStartsWith, s.StartsWith
+		case s.GreaterThan != "":
+			op = filter.OpGreaterThan
+			numericValue, _ = strconv.ParseFloat(s.GreaterThan, 64)
+		case s.LessThan != "":
+			op = filter.OpLessThan
+			numericValue, _ = strconv.ParseFloat(s.LessThan, 64)
 		}
 		return &filter.Step{
-			Field: s.Field,
-			Op:    op,
-			Value: value,
+			Field:        s.Field,
+			Op:           op,
+			Value:        value,
+			NumericValue: numericValue,
 		}, nil
 	case *spec.LogStep:
 		recordCount := true
