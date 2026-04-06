@@ -8,7 +8,6 @@ Roughly in priority order.
 
 - `filter` — add basic operators (`equals`, `not-equals`, `contains`, `starts-with`)
 - `filter` — add multi-condition support (`all` / `any`)
-- `select` — add JSON/JSONL support
 - `sort` — order records by a field (asc/desc)
 - `dedupe` — remove duplicate records by key field
 - `cast` — add CSV support
