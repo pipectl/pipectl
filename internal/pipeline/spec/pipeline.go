@@ -16,9 +16,7 @@ type Pipeline struct {
 
 type Input struct {
 	Format    string `yaml:"format"`
-	Schema    string `yaml:"schema,omitempty"`
 	Delimiter string `yaml:"delimiter,omitempty"`
-	MaxSize   int    `yaml:"max_size,omitempty"`
 }
 
 type Output struct {
@@ -34,6 +32,10 @@ func Load(path string) (Pipeline, error) {
 	var p Pipeline
 	if err := yaml.Unmarshal(data, &p); err != nil {
 		return Pipeline{}, fmt.Errorf("decode pipeline: %w", err)
+	}
+
+	if p.Input.Delimiter != "" && len([]rune(p.Input.Delimiter)) != 1 {
+		return Pipeline{}, fmt.Errorf("input delimiter must be a single character")
 	}
 
 	return p, nil

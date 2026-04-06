@@ -29,7 +29,16 @@ func Run(path string, input []byte, output io.Writer, verbose bool) error {
 
 	pipelineEngine := engine.New(executableSteps)
 
-	inputPayload, err := payload.Read(input, p.Input.Format)
+	var inputPayload payload.Payload
+	if p.Input.Format == payload.CSVType {
+		var delimiter rune
+		if p.Input.Delimiter != "" {
+			delimiter = []rune(p.Input.Delimiter)[0]
+		}
+		inputPayload, err = payload.ReadCSV(input, delimiter)
+	} else {
+		inputPayload, err = payload.Read(input, p.Input.Format)
+	}
 	if err != nil {
 		return err
 	}

@@ -5,6 +5,55 @@ import (
 	"testing"
 )
 
+func TestReadCSVWithDefaultDelimiter(t *testing.T) {
+	input := []byte("id,name\n1,alice\n2,bob\n")
+	p, err := ReadCSV(input, 0)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	csv, ok := p.(*CSV)
+	if !ok {
+		t.Fatalf("expected *CSV, got %T", p)
+	}
+	if got := csv.RecordCount(); got != 2 {
+		t.Fatalf("expected 2 records, got %d", got)
+	}
+	if csv.Rows[1][1] != "alice" {
+		t.Fatalf("unexpected value: got %q want %q", csv.Rows[1][1], "alice")
+	}
+}
+
+func TestReadCSVWithCustomDelimiter(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		delimiter rune
+	}{
+		{name: "pipe", input: "id|name\n1|alice\n", delimiter: '|'},
+		{name: "tab", input: "id\tname\n1\talice\n", delimiter: '\t'},
+		{name: "semicolon", input: "id;name\n1;alice\n", delimiter: ';'},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p, err := ReadCSV([]byte(tt.input), tt.delimiter)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			csv, ok := p.(*CSV)
+			if !ok {
+				t.Fatalf("expected *CSV, got %T", p)
+			}
+			if csv.Rows[0][0] != "id" || csv.Rows[0][1] != "name" {
+				t.Fatalf("unexpected headers: %v", csv.Rows[0])
+			}
+			if csv.Rows[1][0] != "1" || csv.Rows[1][1] != "alice" {
+				t.Fatalf("unexpected row: %v", csv.Rows[1])
+			}
+		})
+	}
+}
+
 func TestCSVType(t *testing.T) {
 	csvPayload := &CSV{
 		Rows: [][]string{

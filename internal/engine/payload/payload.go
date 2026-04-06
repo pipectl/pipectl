@@ -76,16 +76,21 @@ func Read(input []byte, format string) (Payload, error) {
 
 		return &JSONL{Items: records}, nil
 
-	case CSVType:
-		rows, err := csv.NewReader(bytes.NewReader(input)).ReadAll()
-		if err != nil {
-			panic(err)
-		}
-		return &CSV{Rows: rows}, nil
-
 	default:
 		return nil, fmt.Errorf("unsupported input format")
 	}
+}
+
+func ReadCSV(input []byte, delimiter rune) (Payload, error) {
+	r := csv.NewReader(bytes.NewReader(input))
+	if delimiter != 0 {
+		r.Comma = delimiter
+	}
+	rows, err := r.ReadAll()
+	if err != nil {
+		return nil, fmt.Errorf("invalid CSV input: %w", err)
+	}
+	return &CSV{Rows: rows}, nil
 }
 
 func Convert(payload Payload, format string) (Payload, error) {
