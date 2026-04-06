@@ -16,7 +16,6 @@ type Pipeline struct {
 
 type Input struct {
 	Format    string `yaml:"format"`
-	Encoding  string `yaml:"encoding,omitempty"`
 	Schema    string `yaml:"schema,omitempty"`
 	Delimiter string `yaml:"delimiter,omitempty"`
 	MaxSize   int    `yaml:"max_size,omitempty"`
