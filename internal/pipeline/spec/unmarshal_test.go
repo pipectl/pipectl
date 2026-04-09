@@ -606,7 +606,7 @@ func TestStepWrapperUnmarshalFilterStepValidation(t *testing.T) {
 		{
 			name:    "empty step",
 			raw:     "filter:\n",
-			message: "filter field is required",
+			message: "filter requires a condition",
 		},
 		{
 			name: "missing field",

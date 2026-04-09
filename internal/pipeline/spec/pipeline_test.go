@@ -98,7 +98,7 @@ steps:
 	if !strings.Contains(err.Error(), "line 7") {
 		t.Fatalf("expected line number in error, got: %v", err)
 	}
-	if !strings.Contains(err.Error(), "filter field is required") {
+	if !strings.Contains(err.Error(), "filter requires a condition") {
 		t.Fatalf("expected validation message in error, got: %v", err)
 	}
 }

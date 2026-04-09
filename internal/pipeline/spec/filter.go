@@ -116,6 +116,10 @@ func (s *FilterStep) Validate() error {
 		return nil
 	}
 
+	if !hasFlat {
+		return fmt.Errorf("filter requires a condition: specify field with an operator, or use all/any for grouped conditions")
+	}
+
 	return validateFilterRule(s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.GreaterThan, s.LessThan)
 }
 

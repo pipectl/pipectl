@@ -32,13 +32,13 @@ func (w *StepWrapper) UnmarshalYAML(node ast.Node) error {
 	}
 
 	if len(raw) != 1 {
-		return fmt.Errorf("step must contain exactly one key")
+		return wrapWithLine(node, fmt.Errorf("step must contain exactly one key"))
 	}
 
 	for key, value := range raw {
 		factory, ok := stepRegistry[key]
 		if !ok {
-			return fmt.Errorf("unknown step type: %s", key)
+			return wrapWithLine(node, fmt.Errorf("unknown step type: %s", key))
 		}
 
 		step := factory()
