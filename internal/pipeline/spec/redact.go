@@ -25,9 +25,11 @@ func (s *RedactStep) UnmarshalYAML(b []byte) error {
 	if err := yaml.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-
 	*s = RedactStep(raw)
+	return s.Validate()
+}
 
+func (s *RedactStep) Validate() error {
 	if len(s.Fields) == 0 {
 		return fmt.Errorf("redact requires at least one field")
 	}

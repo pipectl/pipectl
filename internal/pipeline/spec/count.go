@@ -13,3 +13,5 @@ func (s *CountStep) StepType() string {
 func (s *CountStep) String() string {
 	return fmt.Sprintf("[%s] message=%q", s.StepType(), s.Message)
 }
+
+func (s *CountStep) Validate() error { return nil }

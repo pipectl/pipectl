@@ -2,13 +2,9 @@ package spec
 
 type Step interface {
 	StepType() string
-}
-
-// Validator is implemented by steps that require validation beyond YAML
-// unmarshaling. StepWrapper calls Validate after unmarshaling so that steps
-// with required configuration are caught even when the YAML value is null
-// (goccy/go-yaml skips custom UnmarshalYAML methods for null values).
-type Validator interface {
+	// Validate checks that the step is correctly configured. It is called by
+	// StepWrapper after unmarshaling, including when the YAML value is null,
+	// so every step must implement it even if it has no required configuration.
 	Validate() error
 }
 

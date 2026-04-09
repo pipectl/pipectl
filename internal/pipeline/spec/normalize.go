@@ -27,9 +27,11 @@ func (s *NormalizeStep) UnmarshalYAML(b []byte) error {
 	if err := yaml.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-
 	*s = NormalizeStep(raw)
+	return s.Validate()
+}
 
+func (s *NormalizeStep) Validate() error {
 	if len(s.Fields) == 0 {
 		return fmt.Errorf("normalize requires at least one field")
 	}

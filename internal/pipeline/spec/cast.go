@@ -32,9 +32,11 @@ func (s *CastStep) UnmarshalYAML(b []byte) error {
 	if err := yaml.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-
 	*s = CastStep(raw)
+	return s.Validate()
+}
 
+func (s *CastStep) Validate() error {
 	if len(s.Fields) == 0 {
 		return fmt.Errorf("cast requires at least one field")
 	}

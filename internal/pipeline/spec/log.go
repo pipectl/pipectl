@@ -15,3 +15,5 @@ func (s *LogStep) StepType() string {
 func (s *LogStep) String() string {
 	return fmt.Sprintf("[%s] message=%q count=%v sample=%v", s.StepType(), s.Message, s.Count, s.Sample)
 }
+
+func (s *LogStep) Validate() error { return nil }

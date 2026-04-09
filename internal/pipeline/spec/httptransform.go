@@ -32,18 +32,20 @@ func (s *HTTPTransformStep) UnmarshalYAML(b []byte) error {
 	if err := yaml.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-
 	*s = HTTPTransformStep(raw)
+	s.Method = strings.ToUpper(strings.TrimSpace(s.Method))
+	return s.Validate()
+}
 
+func (s *HTTPTransformStep) Validate() error {
 	if strings.TrimSpace(s.URL) == "" {
 		return fmt.Errorf("http-transform url is required")
 	}
 
-	if strings.TrimSpace(s.Method) == "" {
+	if s.Method == "" {
 		return fmt.Errorf("http-transform method is required")
 	}
 
-	s.Method = strings.ToUpper(strings.TrimSpace(s.Method))
 	validMethod := false
 	for _, m := range validHTTPMethods {
 		if s.Method == m {

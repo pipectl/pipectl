@@ -25,16 +25,19 @@ func (s *SortStep) UnmarshalYAML(b []byte) error {
 	if err := yaml.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-
 	*s = SortStep(raw)
+	if s.Direction == "" {
+		s.Direction = "asc"
+	}
+	return s.Validate()
+}
 
+func (s *SortStep) Validate() error {
 	if s.Field == "" {
 		return fmt.Errorf("sort field is required")
 	}
 
-	if s.Direction == "" {
-		s.Direction = "asc"
-	} else if s.Direction != "asc" && s.Direction != "desc" {
+	if s.Direction != "asc" && s.Direction != "desc" {
 		return fmt.Errorf("sort direction must be asc or desc")
 	}
 

@@ -45,10 +45,8 @@ func (w *StepWrapper) UnmarshalYAML(node ast.Node) error {
 		if err := yaml.Unmarshal(value, step); err != nil {
 			return wrapWithLine(node, err)
 		}
-		if v, ok := step.(Validator); ok {
-			if err := v.Validate(); err != nil {
-				return wrapWithLine(node, err)
-			}
+		if err := step.Validate(); err != nil {
+			return wrapWithLine(node, err)
 		}
 
 		w.Step = step

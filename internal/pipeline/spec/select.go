@@ -24,12 +24,13 @@ func (s *SelectStep) UnmarshalYAML(b []byte) error {
 	if err := yaml.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-
 	*s = SelectStep(raw)
+	return s.Validate()
+}
 
+func (s *SelectStep) Validate() error {
 	if len(s.Fields) == 0 {
 		return fmt.Errorf("select requires at least one field")
 	}
-
 	return nil
 }

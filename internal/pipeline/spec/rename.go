@@ -24,12 +24,13 @@ func (s *RenameStep) UnmarshalYAML(b []byte) error {
 	if err := yaml.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-
 	*s = RenameStep(raw)
+	return s.Validate()
+}
 
+func (s *RenameStep) Validate() error {
 	if len(s.Fields) == 0 {
 		return fmt.Errorf("rename requires at least one field")
 	}
-
 	return nil
 }

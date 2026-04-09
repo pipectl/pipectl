@@ -25,12 +25,13 @@ func (s *ValidateJSONStep) UnmarshalYAML(b []byte) error {
 	if err := yaml.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-
 	*s = ValidateJSONStep(raw)
+	return s.Validate()
+}
 
+func (s *ValidateJSONStep) Validate() error {
 	if strings.TrimSpace(s.Schema) == "" {
 		return fmt.Errorf("validate-json schema is required")
 	}
-
 	return nil
 }

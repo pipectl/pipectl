@@ -24,12 +24,13 @@ func (s *DefaultStep) UnmarshalYAML(b []byte) error {
 	if err := yaml.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-
 	*s = DefaultStep(raw)
+	return s.Validate()
+}
 
+func (s *DefaultStep) Validate() error {
 	if len(s.Fields) == 0 {
 		return fmt.Errorf("default requires at least one field")
 	}
-
 	return nil
 }

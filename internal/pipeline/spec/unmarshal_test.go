@@ -210,7 +210,7 @@ func TestStepWrapperUnmarshalConvertStepRejectsInvalidFormat(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected unmarshal error for invalid convert format")
 	}
-	if !strings.Contains(err.Error(), "convert format must be one of: json, jsonl, csv") {
+	if !strings.Contains(err.Error(), "convert format") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

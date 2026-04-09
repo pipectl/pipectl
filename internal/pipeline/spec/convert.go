@@ -24,13 +24,17 @@ func (s *ConvertStep) UnmarshalYAML(b []byte) error {
 	if err := yaml.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-
 	*s = ConvertStep(raw)
+	return s.Validate()
+}
 
+func (s *ConvertStep) Validate() error {
 	switch s.Format {
 	case "json", "jsonl", "csv":
 		return nil
+	case "":
+		return fmt.Errorf("convert format is required: must be one of: json, jsonl, csv")
 	default:
-		return fmt.Errorf("convert format must be one of: json, jsonl, csv")
+		return fmt.Errorf("convert format %q is invalid: must be one of: json, jsonl, csv", s.Format)
 	}
 }

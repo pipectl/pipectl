@@ -28,9 +28,11 @@ func (s *AssertStep) UnmarshalYAML(b []byte) error {
 	if err := yaml.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-
 	*s = AssertStep(raw)
+	return s.Validate()
+}
 
+func (s *AssertStep) Validate() error {
 	if s.MinRecords != nil && *s.MinRecords < 0 {
 		return fmt.Errorf("assert min-records must be >= 0")
 	}
