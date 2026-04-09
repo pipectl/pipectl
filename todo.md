@@ -6,7 +6,6 @@ Roughly in priority order.
 
 ### Steps
 
-- `filter` — add multi-condition support (`all` / `any`)
 - `dedupe` — remove duplicate records by key field
 - `cast` — add CSV support
 - `normalize` — validate unknown strategies at parse time instead of silently ignoring them
@@ -30,9 +29,6 @@ Lower priority ideas for after MVP.
 - `normalize` — support pipe-separated strategy chains, eg: `trim|lower|collapse-spaces`
 - `filter` — combined `all`/`any` nesting (see design note below)
 - `filter` — document or add `on-missing` option for records missing the filter field (currently silently excluded, which may surprise users)
-
-### Payload / format
-
 
 ---
 

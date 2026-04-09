@@ -19,11 +19,56 @@ const (
 	OpLessThan    = "less-than"
 )
 
-type Step struct {
+type Rule struct {
 	Field        string
 	Op           string
 	Value        string
 	NumericValue float64
+}
+
+// Condition is either a leaf Rule or an All/Any group (recursive).
+type Condition struct {
+	Rule *Rule
+	All  []*Condition
+	Any  []*Condition
+}
+
+// evaluate reports whether the condition matches the given record.
+// Missing fields on a leaf rule are treated as non-matching.
+func (c *Condition) evaluate(record map[string]interface{}) (bool, error) {
+	if c.Rule != nil {
+		value, exists := record[c.Rule.Field]
+		if !exists {
+			return false, nil
+		}
+		return c.Rule.matches(fmt.Sprintf("%v", value))
+	}
+	if len(c.All) > 0 {
+		for _, sub := range c.All {
+			ok, err := sub.evaluate(record)
+			if err != nil || !ok {
+				return false, err
+			}
+		}
+		return true, nil
+	}
+	if len(c.Any) > 0 {
+		for _, sub := range c.Any {
+			ok, err := sub.evaluate(record)
+			if err != nil {
+				return false, err
+			}
+			if ok {
+				return true, nil
+			}
+		}
+		return false, nil
+	}
+	return false, nil
+}
+
+type Step struct {
+	Condition *Condition
 }
 
 func (s *Step) Name() string {
@@ -56,12 +101,7 @@ func (s *Step) filterJSON(p payload.JSONRecordPayload, logger *engine.Logger) er
 	excluded := 0
 
 	for _, record := range records {
-		value, exists := record[s.Field]
-		if !exists {
-			excluded++
-			continue
-		}
-		matched, err := s.matches(fmt.Sprintf("%v", value))
+		matched, err := s.Condition.evaluate(record)
 		if err != nil {
 			return err
 		}
@@ -73,7 +113,7 @@ func (s *Step) filterJSON(p payload.JSONRecordPayload, logger *engine.Logger) er
 	}
 
 	if excluded > 0 {
-		logger.Debug("  excluded %d records (%s %s %v)", excluded, s.Field, s.Op, s.logValue())
+		logger.Debug("  excluded %d records", excluded)
 	}
 
 	switch p := p.(type) {
@@ -87,25 +127,23 @@ func (s *Step) filterJSON(p payload.JSONRecordPayload, logger *engine.Logger) er
 }
 
 func (s *Step) filterCsv(csvPayload *payload.CSV, logger *engine.Logger) error {
-	headerRow := csvPayload.Rows[0]
-	colIndex := -1
-	for i, header := range headerRow {
-		if s.Field == header {
-			colIndex = i
-			break
-		}
+	if len(csvPayload.Rows) == 0 {
+		return nil
 	}
 
+	headerRow := csvPayload.Rows[0]
 	var filteredRows [][]string
 	filteredRows = append(filteredRows, headerRow)
 	excluded := 0
 
 	for _, row := range csvPayload.Rows[1:] {
-		if colIndex == -1 {
-			excluded++
-			continue
+		record := make(map[string]interface{}, len(headerRow))
+		for i, header := range headerRow {
+			if i < len(row) {
+				record[header] = row[i]
+			}
 		}
-		matched, err := s.matches(row[colIndex])
+		matched, err := s.Condition.evaluate(record)
 		if err != nil {
 			return err
 		}
@@ -117,55 +155,46 @@ func (s *Step) filterCsv(csvPayload *payload.CSV, logger *engine.Logger) error {
 	}
 
 	if excluded > 0 {
-		logger.Debug("  excluded %d rows (%s %s %v)", excluded, s.Field, s.Op, s.logValue())
+		logger.Debug("  excluded %d rows", excluded)
 	}
 
 	csvPayload.Rows = filteredRows
 	return nil
 }
 
-func (s *Step) equalValues(fieldValue string) bool {
+func (r *Rule) equalValues(fieldValue string) bool {
 	fField, errField := strconv.ParseFloat(strings.TrimSpace(fieldValue), 64)
-	fThreshold, errThreshold := strconv.ParseFloat(strings.TrimSpace(s.Value), 64)
+	fThreshold, errThreshold := strconv.ParseFloat(strings.TrimSpace(r.Value), 64)
 	if errField == nil && errThreshold == nil {
 		return fField == fThreshold
 	}
-	return fieldValue == s.Value
+	return fieldValue == r.Value
 }
 
-func (s *Step) logValue() interface{} {
-	switch s.Op {
-	case OpGreaterThan, OpLessThan:
-		return s.NumericValue
-	default:
-		return fmt.Sprintf("%q", s.Value)
-	}
-}
-
-func (s *Step) matches(value string) (bool, error) {
-	switch s.Op {
+func (r *Rule) matches(value string) (bool, error) {
+	switch r.Op {
 	case OpEquals:
-		return s.equalValues(value), nil
+		return r.equalValues(value), nil
 	case OpNotEquals:
-		return !s.equalValues(value), nil
+		return !r.equalValues(value), nil
 	case OpContains:
-		return strings.Contains(value, s.Value), nil
+		return strings.Contains(value, r.Value), nil
 	case OpStartsWith:
-		return strings.HasPrefix(value, s.Value), nil
+		return strings.HasPrefix(value, r.Value), nil
 	case OpEndsWith:
-		return strings.HasSuffix(value, s.Value), nil
+		return strings.HasSuffix(value, r.Value), nil
 	case OpGreaterThan:
 		f, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
 		if err != nil {
-			return false, fmt.Errorf("filter: field %q value %q is not a number", s.Field, value)
+			return false, fmt.Errorf("filter: field %q value %q is not a number", r.Field, value)
 		}
-		return f > s.NumericValue, nil
+		return f > r.NumericValue, nil
 	case OpLessThan:
 		f, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
 		if err != nil {
-			return false, fmt.Errorf("filter: field %q value %q is not a number", s.Field, value)
+			return false, fmt.Errorf("filter: field %q value %q is not a number", r.Field, value)
 		}
-		return f < s.NumericValue, nil
+		return f < r.NumericValue, nil
 	default:
 		return false, nil
 	}

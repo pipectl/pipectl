@@ -645,6 +645,149 @@ func TestStepWrapperUnmarshalFilterStepValidation(t *testing.T) {
 	}
 }
 
+func TestStepWrapperUnmarshalFilterStepAllAny(t *testing.T) {
+	t.Run("all: parses conditions", func(t *testing.T) {
+		raw := `filter:
+  all:
+    - field: status
+      equals: active
+    - field: age
+      greater-than: "18"
+`
+		var step StepWrapper
+		if err := yaml.Unmarshal([]byte(raw), &step); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		filterStep, ok := step.Step.(*FilterStep)
+		if !ok {
+			t.Fatalf("expected *FilterStep, got %T", step.Step)
+		}
+		if len(filterStep.All) != 2 {
+			t.Fatalf("expected 2 all conditions, got %d", len(filterStep.All))
+		}
+		if filterStep.All[0].Field != "status" || filterStep.All[0].Equals != "active" {
+			t.Fatalf("unexpected first condition: %+v", filterStep.All[0])
+		}
+	})
+
+	t.Run("any: parses conditions", func(t *testing.T) {
+		raw := `filter:
+  any:
+    - field: country
+      equals: AU
+    - field: country
+      equals: NZ
+`
+		var step StepWrapper
+		if err := yaml.Unmarshal([]byte(raw), &step); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		filterStep, ok := step.Step.(*FilterStep)
+		if !ok {
+			t.Fatalf("expected *FilterStep, got %T", step.Step)
+		}
+		if len(filterStep.Any) != 2 {
+			t.Fatalf("expected 2 any conditions, got %d", len(filterStep.Any))
+		}
+	})
+
+	t.Run("nested: all containing any", func(t *testing.T) {
+		raw := `filter:
+  all:
+    - field: age
+      greater-than: "18"
+    - any:
+        - field: country
+          equals: AU
+        - field: country
+          equals: NZ
+`
+		var step StepWrapper
+		if err := yaml.Unmarshal([]byte(raw), &step); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		filterStep, ok := step.Step.(*FilterStep)
+		if !ok {
+			t.Fatalf("expected *FilterStep, got %T", step.Step)
+		}
+		if len(filterStep.All) != 2 {
+			t.Fatalf("expected 2 all conditions, got %d", len(filterStep.All))
+		}
+		if len(filterStep.All[1].Any) != 2 {
+			t.Fatalf("expected 2 nested any conditions, got %d", len(filterStep.All[1].Any))
+		}
+	})
+}
+
+func TestStepWrapperUnmarshalFilterStepAllAnyErrors(t *testing.T) {
+	tests := []struct {
+		name    string
+		raw     string
+		message string
+	}{
+		{
+			name: "all and field mixed",
+			raw: `filter:
+  field: status
+  all:
+    - field: status
+      equals: active
+`,
+			message: "filter cannot mix group",
+		},
+		{
+			name: "all and any both set",
+			raw: `filter:
+  all:
+    - field: status
+      equals: active
+  any:
+    - field: country
+      equals: AU
+`,
+			message: "filter cannot specify both all and any",
+		},
+		{
+			name: "leaf missing field inside all",
+			raw: `filter:
+  all:
+    - equals: active
+`,
+			message: "filter field is required",
+		},
+		{
+			name: "leaf missing operator inside all",
+			raw: `filter:
+  all:
+    - field: status
+`,
+			message: "filter requires exactly one operator",
+		},
+		{
+			name: "greater-than non-numeric inside group",
+			raw: `filter:
+  all:
+    - field: age
+      greater-than: abc
+`,
+			message: "filter greater-than must be a number",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			err := yaml.Unmarshal([]byte(tt.raw), &step)
+			if err == nil {
+				t.Fatal("expected unmarshal error")
+			}
+			if !strings.Contains(err.Error(), tt.message) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
 func TestStepWrapperUnmarshalValidateJSONStep(t *testing.T) {
 	raw := []byte(`validate-json:
   schema: ./schema.json

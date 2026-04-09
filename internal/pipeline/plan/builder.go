@@ -88,32 +88,24 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 			Fields: s.Fields,
 		}, nil
 	case *spec.FilterStep:
-		var op, value string
-		var numericValue float64
-		switch {
-		case s.Equals != "":
-			op, value = filter.OpEquals, s.Equals
-		case s.NotEquals != "":
-			op, value = filter.OpNotEquals, s.NotEquals
-		case s.Contains != "":
-			op, value = filter.OpContains, s.Contains
-		case s.StartsWith != "":
-			op, value = filter.OpStartsWith, s.StartsWith
-		case s.EndsWith != "":
-			op, value = filter.OpEndsWith, s.EndsWith
-		case s.GreaterThan != "":
-			op = filter.OpGreaterThan
-			numericValue, _ = strconv.ParseFloat(s.GreaterThan, 64) // already validated as a number in spec
-		case s.LessThan != "":
-			op = filter.OpLessThan
-			numericValue, _ = strconv.ParseFloat(s.LessThan, 64) // already validated as a number in spec
+		var condition *filter.Condition
+		if len(s.All) > 0 {
+			subs, err := buildFilterConditions(s.All)
+			if err != nil {
+				return nil, err
+			}
+			condition = &filter.Condition{All: subs}
+		} else if len(s.Any) > 0 {
+			subs, err := buildFilterConditions(s.Any)
+			if err != nil {
+				return nil, err
+			}
+			condition = &filter.Condition{Any: subs}
+		} else {
+			rule := buildFilterRule(s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.GreaterThan, s.LessThan)
+			condition = &filter.Condition{Rule: rule}
 		}
-		return &filter.Step{
-			Field:        s.Field,
-			Op:           op,
-			Value:        value,
-			NumericValue: numericValue,
-		}, nil
+		return &filter.Step{Condition: condition}, nil
 	case *spec.LogStep:
 		recordCount := true
 		if s.Count != nil {
@@ -155,4 +147,58 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 	default:
 		return nil, fmt.Errorf("invalid step type %T", step)
 	}
+}
+
+func buildFilterConditions(conditions []spec.FilterCondition) ([]*filter.Condition, error) {
+	result := make([]*filter.Condition, 0, len(conditions))
+	for _, c := range conditions {
+		built, err := buildFilterCondition(c)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, built)
+	}
+	return result, nil
+}
+
+func buildFilterCondition(c spec.FilterCondition) (*filter.Condition, error) {
+	if len(c.All) > 0 {
+		subs, err := buildFilterConditions(c.All)
+		if err != nil {
+			return nil, err
+		}
+		return &filter.Condition{All: subs}, nil
+	}
+	if len(c.Any) > 0 {
+		subs, err := buildFilterConditions(c.Any)
+		if err != nil {
+			return nil, err
+		}
+		return &filter.Condition{Any: subs}, nil
+	}
+	rule := buildFilterRule(c.Field, c.Equals, c.NotEquals, c.Contains, c.StartsWith, c.EndsWith, c.GreaterThan, c.LessThan)
+	return &filter.Condition{Rule: rule}, nil
+}
+
+func buildFilterRule(field, equals, notEquals, contains, startsWith, endsWith, greaterThan, lessThan string) *filter.Rule {
+	rule := &filter.Rule{Field: field}
+	switch {
+	case equals != "":
+		rule.Op, rule.Value = filter.OpEquals, equals
+	case notEquals != "":
+		rule.Op, rule.Value = filter.OpNotEquals, notEquals
+	case contains != "":
+		rule.Op, rule.Value = filter.OpContains, contains
+	case startsWith != "":
+		rule.Op, rule.Value = filter.OpStartsWith, startsWith
+	case endsWith != "":
+		rule.Op, rule.Value = filter.OpEndsWith, endsWith
+	case greaterThan != "":
+		rule.Op = filter.OpGreaterThan
+		rule.NumericValue, _ = strconv.ParseFloat(greaterThan, 64) // already validated as a number in spec
+	case lessThan != "":
+		rule.Op = filter.OpLessThan
+		rule.NumericValue, _ = strconv.ParseFloat(lessThan, 64) // already validated as a number in spec
+	}
+	return rule
 }

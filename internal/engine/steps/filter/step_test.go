@@ -33,10 +33,25 @@ func TestSupports(t *testing.T) {
 	}
 }
 
+// ruleStep builds a Step with a single leaf Condition.
+func ruleStep(field, op, value string) *Step {
+	var numericValue float64
+	if op == OpGreaterThan || op == OpLessThan {
+		numericValue, _ = strconv.ParseFloat(value, 64)
+	}
+	return &Step{Condition: &Condition{Rule: &Rule{
+		Field:        field,
+		Op:           op,
+		Value:        value,
+		NumericValue: numericValue,
+	}}}
+}
+
 func TestExecuteFiltersCSVRows(t *testing.T) {
 	tests := []struct {
 		name     string
 		op       string
+		field    string
 		value    string
 		rows     [][]string
 		expected [][]string
@@ -44,6 +59,7 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 		{
 			name:  "equals",
 			op:    OpEquals,
+			field: "status",
 			value: "active",
 			rows: [][]string{
 				{"id", "status"},
@@ -60,6 +76,7 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 		{
 			name:  "not-equals",
 			op:    OpNotEquals,
+			field: "status",
 			value: "inactive",
 			rows: [][]string{
 				{"id", "status"},
@@ -76,6 +93,7 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 		{
 			name:  "contains",
 			op:    OpContains,
+			field: "email",
 			value: "example",
 			rows: [][]string{
 				{"id", "email"},
@@ -92,6 +110,7 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 		{
 			name:  "starts-with",
 			op:    OpStartsWith,
+			field: "email",
 			value: "alice",
 			rows: [][]string{
 				{"id", "email"},
@@ -106,6 +125,7 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 		{
 			name:  "ends-with",
 			op:    OpEndsWith,
+			field: "email",
 			value: ".org",
 			rows: [][]string{
 				{"id", "email"},
@@ -120,6 +140,7 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 		{
 			name:  "greater-than",
 			op:    OpGreaterThan,
+			field: "age",
 			value: "30",
 			rows: [][]string{
 				{"id", "age"},
@@ -135,6 +156,7 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 		{
 			name:  "less-than",
 			op:    OpLessThan,
+			field: "age",
 			value: "30",
 			rows: [][]string{
 				{"id", "age"},
@@ -151,18 +173,7 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var numericValue float64
-			if tt.op == OpGreaterThan || tt.op == OpLessThan {
-				numericValue, _ = strconv.ParseFloat(tt.value, 64)
-			}
-			step := &Step{Field: "status", Op: tt.op, Value: tt.value, NumericValue: numericValue}
-			switch tt.op {
-			case OpContains, OpStartsWith, OpEndsWith:
-				step.Field = "email"
-			case OpGreaterThan, OpLessThan:
-				step.Field = "age"
-			}
-
+			step := ruleStep(tt.field, tt.op, tt.value)
 			ctx := &engine.ExecutionContext{Payload: &payload.CSV{Rows: tt.rows}}
 
 			if err := step.Execute(ctx); err != nil {
@@ -338,11 +349,7 @@ func TestExecuteFiltersJSONRecords(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var numericValue float64
-			if tt.op == OpGreaterThan || tt.op == OpLessThan {
-				numericValue, _ = strconv.ParseFloat(tt.value, 64)
-			}
-			step := &Step{Field: tt.field, Op: tt.op, Value: tt.value, NumericValue: numericValue}
+			step := ruleStep(tt.field, tt.op, tt.value)
 
 			jsonPayload := &payload.JSON{
 				Shape: payload.JSONArrayShape,
@@ -371,7 +378,7 @@ func TestExecuteFiltersJSONRecords(t *testing.T) {
 }
 
 func TestExecuteReturnsErrorForNonNumericFieldWithGreaterThan(t *testing.T) {
-	step := &Step{Field: "status", Op: OpGreaterThan, NumericValue: 10}
+	step := &Step{Condition: &Condition{Rule: &Rule{Field: "status", Op: OpGreaterThan, NumericValue: 10}}}
 
 	ctx := &engine.ExecutionContext{Payload: &payload.JSON{
 		Shape: payload.JSONArrayShape,
@@ -390,11 +397,7 @@ func TestExecuteReturnsErrorForNonNumericFieldWithGreaterThan(t *testing.T) {
 }
 
 func TestExecuteFiltersJSONLRecords(t *testing.T) {
-	step := &Step{
-		Field: "status",
-		Op:    OpEquals,
-		Value: "active",
-	}
+	step := ruleStep("status", OpEquals, "active")
 
 	jsonlPayload := &payload.JSONL{
 		Items: []map[string]interface{}{
@@ -420,5 +423,185 @@ func TestExecuteFiltersJSONLRecords(t *testing.T) {
 
 	if !reflect.DeepEqual(out.Items, expected) {
 		t.Fatalf("unexpected items:\nexpected: %#v\ngot: %#v", expected, out.Items)
+	}
+}
+
+func TestExecuteAllConditions(t *testing.T) {
+	tests := []struct {
+		name     string
+		step     *Step
+		items    []map[string]interface{}
+		expected []map[string]interface{}
+	}{
+		{
+			name: "all: both conditions match",
+			step: &Step{Condition: &Condition{All: []*Condition{
+				{Rule: &Rule{Field: "status", Op: OpEquals, Value: "active"}},
+				{Rule: &Rule{Field: "country", Op: OpEquals, Value: "AU"}},
+			}}},
+			items: []map[string]interface{}{
+				{"id": "1", "status": "active", "country": "AU"},
+				{"id": "2", "status": "active", "country": "NZ"},
+				{"id": "3", "status": "inactive", "country": "AU"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "1", "status": "active", "country": "AU"},
+			},
+		},
+		{
+			name: "all: first condition fails excludes record",
+			step: &Step{Condition: &Condition{All: []*Condition{
+				{Rule: &Rule{Field: "status", Op: OpEquals, Value: "active"}},
+				{Rule: &Rule{Field: "age", Op: OpGreaterThan, NumericValue: 18}},
+			}}},
+			items: []map[string]interface{}{
+				{"id": "1", "status": "inactive", "age": float64(25)},
+			},
+			expected: []map[string]interface{}{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := &engine.ExecutionContext{Payload: &payload.JSON{
+				Shape: payload.JSONArrayShape,
+				Items: tt.items,
+			}}
+
+			if err := tt.step.Execute(ctx); err != nil {
+				t.Fatalf("execute returned error: %v", err)
+			}
+
+			out := ctx.Payload.(*payload.JSON)
+			if len(out.Items) == 0 && len(tt.expected) == 0 {
+				return
+			}
+			if !reflect.DeepEqual(out.Items, tt.expected) {
+				t.Fatalf("unexpected items:\nexpected: %#v\ngot: %#v", tt.expected, out.Items)
+			}
+		})
+	}
+}
+
+func TestExecuteAnyConditions(t *testing.T) {
+	tests := []struct {
+		name     string
+		step     *Step
+		items    []map[string]interface{}
+		expected []map[string]interface{}
+	}{
+		{
+			name: "any: first condition matches",
+			step: &Step{Condition: &Condition{Any: []*Condition{
+				{Rule: &Rule{Field: "country", Op: OpEquals, Value: "AU"}},
+				{Rule: &Rule{Field: "country", Op: OpEquals, Value: "NZ"}},
+			}}},
+			items: []map[string]interface{}{
+				{"id": "1", "country": "AU"},
+				{"id": "2", "country": "NZ"},
+				{"id": "3", "country": "US"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "1", "country": "AU"},
+				{"id": "2", "country": "NZ"},
+			},
+		},
+		{
+			name: "any: none match excludes record",
+			step: &Step{Condition: &Condition{Any: []*Condition{
+				{Rule: &Rule{Field: "country", Op: OpEquals, Value: "AU"}},
+				{Rule: &Rule{Field: "country", Op: OpEquals, Value: "NZ"}},
+			}}},
+			items: []map[string]interface{}{
+				{"id": "1", "country": "US"},
+			},
+			expected: []map[string]interface{}{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := &engine.ExecutionContext{Payload: &payload.JSON{
+				Shape: payload.JSONArrayShape,
+				Items: tt.items,
+			}}
+
+			if err := tt.step.Execute(ctx); err != nil {
+				t.Fatalf("execute returned error: %v", err)
+			}
+
+			out := ctx.Payload.(*payload.JSON)
+			if len(out.Items) == 0 && len(tt.expected) == 0 {
+				return
+			}
+			if !reflect.DeepEqual(out.Items, tt.expected) {
+				t.Fatalf("unexpected items:\nexpected: %#v\ngot: %#v", tt.expected, out.Items)
+			}
+		})
+	}
+}
+
+func TestExecuteNestedConditions(t *testing.T) {
+	// all: age > 18, any: country AU or NZ
+	step := &Step{Condition: &Condition{All: []*Condition{
+		{Rule: &Rule{Field: "age", Op: OpGreaterThan, NumericValue: 18}},
+		{Any: []*Condition{
+			{Rule: &Rule{Field: "country", Op: OpEquals, Value: "AU"}},
+			{Rule: &Rule{Field: "country", Op: OpEquals, Value: "NZ"}},
+		}},
+	}}}
+
+	items := []map[string]interface{}{
+		{"id": "1", "age": float64(25), "country": "AU"}, // pass: age > 18, country AU
+		{"id": "2", "age": float64(25), "country": "US"}, // fail: country not AU or NZ
+		{"id": "3", "age": float64(16), "country": "NZ"}, // fail: age not > 18
+		{"id": "4", "age": float64(30), "country": "NZ"}, // pass: age > 18, country NZ
+	}
+
+	ctx := &engine.ExecutionContext{Payload: &payload.JSON{
+		Shape: payload.JSONArrayShape,
+		Items: items,
+	}}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out := ctx.Payload.(*payload.JSON)
+	expected := []map[string]interface{}{
+		{"id": "1", "age": float64(25), "country": "AU"},
+		{"id": "4", "age": float64(30), "country": "NZ"},
+	}
+	if !reflect.DeepEqual(out.Items, expected) {
+		t.Fatalf("unexpected items:\nexpected: %#v\ngot: %#v", expected, out.Items)
+	}
+}
+
+func TestExecuteAllConditionsCSV(t *testing.T) {
+	step := &Step{Condition: &Condition{All: []*Condition{
+		{Rule: &Rule{Field: "status", Op: OpEquals, Value: "active"}},
+		{Rule: &Rule{Field: "country", Op: OpEquals, Value: "AU"}},
+	}}}
+
+	rows := [][]string{
+		{"id", "status", "country"},
+		{"1", "active", "AU"},
+		{"2", "active", "NZ"},
+		{"3", "inactive", "AU"},
+	}
+
+	ctx := &engine.ExecutionContext{Payload: &payload.CSV{Rows: rows}}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out := ctx.Payload.(*payload.CSV)
+	expected := [][]string{
+		{"id", "status", "country"},
+		{"1", "active", "AU"},
+	}
+	if !reflect.DeepEqual(out.Rows, expected) {
+		t.Fatalf("unexpected rows:\nexpected: %#v\ngot: %#v", expected, out.Rows)
 	}
 }

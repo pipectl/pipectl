@@ -414,13 +414,15 @@ Notes:
 
 ### `filter`
 
-Keeps only records where one field matches a condition.
+Keeps only records that match a condition. Supports a single field rule, or multi-condition groups using `all` (AND) or `any` (OR) with full recursive nesting.
 
 Supported payloads:
 
 - `csv`
 - `json`
 - `jsonl`
+
+#### Single condition
 
 Options:
 
@@ -434,8 +436,6 @@ Options:
 - `less-than`: keep records where the field value is numerically less than the specified number.
 
 Exactly one operator must be specified.
-
-Examples:
 
 ```yaml
 - filter:
@@ -479,8 +479,52 @@ Examples:
     less-than: 100
 ```
 
+#### Multi-condition: `all` (AND)
+
+Use `all` to keep only records that match every listed condition. Each entry in `all` is a full condition — either a leaf rule or a nested `all`/`any` group.
+
+```yaml
+- filter:
+    all:
+      - field: status
+        equals: active
+      - field: age
+        greater-than: 18
+```
+
+#### Multi-condition: `any` (OR)
+
+Use `any` to keep records that match at least one listed condition.
+
+```yaml
+- filter:
+    any:
+      - field: country
+        equals: AU
+      - field: country
+        equals: NZ
+```
+
+#### Nested groups
+
+`all` and `any` can be nested arbitrarily deep.
+
+```yaml
+- filter:
+    all:
+      - field: age
+        greater-than: 18
+      - any:
+          - field: country
+            equals: AU
+          - field: country
+            equals: NZ
+```
+
 Notes:
 
+- `all` and `any` cannot be combined at the same level.
+- Group and flat rule fields (`field`, `equals`, etc.) cannot be mixed on the same step.
 - For JSON and JSONL, non-string field values are coerced to strings before comparison.
 - Records missing the specified field are always excluded.
 - `greater-than` and `less-than` require the field value to be parseable as a number; records where the value is not numeric will cause the step to fail.

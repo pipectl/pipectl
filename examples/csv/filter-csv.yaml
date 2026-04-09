@@ -24,11 +24,14 @@ steps:
       count: false
 
   - filter:
-      field: first_name
-      starts-with: "C"
+      all:
+        - field: first_name
+          starts-with: "C"
+        - field: gender
+          equals: "male"
 
   - log:
-      message: "After filter by first_name starts with C"
+      message: "After filter by first_name starts with C and gender equals male"
       count: false
 
   - filter:
