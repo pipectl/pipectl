@@ -42,7 +42,7 @@ func (w *StepWrapper) UnmarshalYAML(node ast.Node) error {
 		}
 
 		step := factory()
-		if err := yaml.Unmarshal(value, step); err != nil {
+		if err := yaml.UnmarshalWithOptions(value, step, yaml.DisallowUnknownField()); err != nil {
 			return wrapWithLine(node, err)
 		}
 		if err := step.Validate(); err != nil {
