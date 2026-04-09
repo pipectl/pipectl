@@ -97,7 +97,10 @@ func (s *FilterStep) UnmarshalYAML(b []byte) error {
 		return err
 	}
 	*s = FilterStep(raw)
+	return s.Validate()
+}
 
+func (s *FilterStep) Validate() error {
 	hasGroup := len(s.All) > 0 || len(s.Any) > 0
 	hasFlat := s.Field != "" || s.Equals != "" || s.NotEquals != "" || s.Contains != "" ||
 		s.StartsWith != "" || s.EndsWith != "" || s.GreaterThan != "" || s.LessThan != ""

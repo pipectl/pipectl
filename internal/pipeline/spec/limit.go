@@ -24,12 +24,13 @@ func (s *LimitStep) UnmarshalYAML(b []byte) error {
 	if err := yaml.Unmarshal(b, &raw); err != nil {
 		return err
 	}
-
 	*s = LimitStep(raw)
+	return s.Validate()
+}
 
+func (s *LimitStep) Validate() error {
 	if s.Count < 1 {
 		return fmt.Errorf("limit count must be at least 1")
 	}
-
 	return nil
 }

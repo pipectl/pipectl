@@ -3,6 +3,7 @@ package spec
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -77,6 +78,28 @@ steps: []
 	}
 	if p.Input.Delimiter != "|" {
 		t.Fatalf("unexpected delimiter: got %q want %q", p.Input.Delimiter, "|")
+	}
+}
+
+func TestLoadIncludesLineNumberInStepError(t *testing.T) {
+	content := `id: test
+input:
+  format: json
+output:
+  format: json
+steps:
+  - filter:
+`
+	path := writeTempPipeline(t, content)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "line 7") {
+		t.Fatalf("expected line number in error, got: %v", err)
+	}
+	if !strings.Contains(err.Error(), "filter field is required") {
+		t.Fatalf("expected validation message in error, got: %v", err)
 	}
 }
 

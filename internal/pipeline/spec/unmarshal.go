@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/goccy/go-yaml"
+	"github.com/goccy/go-yaml/ast"
 )
 
 var stepRegistry = map[string]func() Step{
@@ -24,9 +25,9 @@ var stepRegistry = map[string]func() Step{
 	"sort":           func() Step { return &SortStep{} },
 }
 
-func (w *StepWrapper) UnmarshalYAML(b []byte) error {
+func (w *StepWrapper) UnmarshalYAML(node ast.Node) error {
 	var raw map[string]yaml.RawMessage
-	if err := yaml.Unmarshal(b, &raw); err != nil {
+	if err := yaml.NodeToValue(node, &raw); err != nil {
 		return err
 	}
 
@@ -42,11 +43,24 @@ func (w *StepWrapper) UnmarshalYAML(b []byte) error {
 
 		step := factory()
 		if err := yaml.Unmarshal(value, step); err != nil {
-			return err
+			return wrapWithLine(node, err)
+		}
+		if v, ok := step.(Validator); ok {
+			if err := v.Validate(); err != nil {
+				return wrapWithLine(node, err)
+			}
 		}
 
 		w.Step = step
 	}
 
 	return nil
+}
+
+func wrapWithLine(node ast.Node, err error) error {
+	tk := node.GetToken()
+	if tk != nil && tk.Position != nil {
+		return fmt.Errorf("line %d: %w", tk.Position.Line, err)
+	}
+	return err
 }

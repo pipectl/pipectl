@@ -362,6 +362,19 @@ func TestStepWrapperUnmarshalLimitStep(t *testing.T) {
 	}
 }
 
+func TestStepWrapperUnmarshalLimitStepRejectsEmpty(t *testing.T) {
+	raw := []byte("limit:\n")
+
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for empty limit step")
+	}
+	if !strings.Contains(err.Error(), "limit count must be at least 1") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestStepWrapperUnmarshalLimitStepRejectsZero(t *testing.T) {
 	raw := []byte(`limit:
   count: 0
@@ -590,6 +603,11 @@ func TestStepWrapperUnmarshalFilterStepValidation(t *testing.T) {
 		raw     string
 		message string
 	}{
+		{
+			name:    "empty step",
+			raw:     "filter:\n",
+			message: "filter field is required",
+		},
 		{
 			name: "missing field",
 			raw: `filter:
