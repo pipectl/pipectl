@@ -1,0 +1,5 @@
+[
+  {"first_name": "john", "last_name": "smith", "email": "JOHN@EXAMPLE.COM", "plan": "starter"},
+  {"first_name": "MARY", "last_name": "JONES", "email": "MARY@EXAMPLE.COM", "plan": "pro"},
+  {"first_name": "Bill", "last_name": "Johnson", "email": "BILL@EXAMPLE.COM", "plan": "enterprise"}
+]

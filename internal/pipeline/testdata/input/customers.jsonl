@@ -1,0 +1,5 @@
+{"id":1,"name":"Alice Chen","email":"alice@example.com","plan":"starter","age":28,"country":"AU","score":72.5}
+{"id":2,"name":"Bob Smith","email":"bob@example.com","plan":"pro","age":35,"country":"US","score":85.0}
+{"id":3,"name":"Carol Davis","email":"carol@example.com","plan":"enterprise","age":42,"country":"AU","score":91.3}
+{"id":4,"name":"Dave Wilson","email":"dave@example.com","plan":"starter","age":19,"country":"NZ","score":65.8}
+{"id":5,"name":"Eve Martinez","email":"eve@example.com","plan":"pro","age":31,"country":"AU","score":88.7}

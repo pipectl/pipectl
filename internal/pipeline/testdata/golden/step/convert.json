@@ -1,0 +1,22 @@
+[
+  {
+    "archived": "no",
+    "clearance": "yes",
+    "id": "1",
+    "in_stock": "true",
+    "listed_date": "2024-01-15",
+    "name": "Laptop",
+    "price": "999.99",
+    "quantity": "50"
+  },
+  {
+    "archived": "yes",
+    "clearance": "no",
+    "id": "2",
+    "in_stock": "false",
+    "listed_date": "2024-03-20",
+    "name": "Mouse",
+    "price": "29.99",
+    "quantity": "0"
+  }
+]

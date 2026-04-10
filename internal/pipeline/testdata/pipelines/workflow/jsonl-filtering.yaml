@@ -1,0 +1,34 @@
+id: jsonl-filtering
+
+input:
+  format: jsonl
+
+steps:
+  # Validate all records conform to the customer schema
+  - validate-json:
+      schema: testdata/schema/customer-schema.json
+  - assert:
+      records-equal: 5
+
+  # Keep only AU customers: Alice, Carol, Eve
+  - filter:
+      field: country
+      equals: AU
+  - assert:
+      records-equal: 3
+
+  # Keep only high-scoring customers: Carol(91.3), Eve(88.7)
+  - filter:
+      field: score
+      greater-than: "80"
+  - assert:
+      records-equal: 2
+
+  # Take only the top result
+  - limit:
+      count: 1
+  - assert:
+      records-equal: 1
+
+output:
+  format: json

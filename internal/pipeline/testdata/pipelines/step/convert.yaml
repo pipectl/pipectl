@@ -1,0 +1,26 @@
+id: convert
+
+input:
+  format: json
+
+steps:
+  - assert:
+      records-equal: 2
+
+  - convert:
+      format: jsonl
+  - assert:
+      records-equal: 2
+
+  - convert:
+      format: csv
+  - assert:
+      records-equal: 2
+
+  - convert:
+      format: json
+  - assert:
+      records-equal: 2
+
+output:
+  format: json

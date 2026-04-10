@@ -1,0 +1,41 @@
+id: filter-conditions
+
+input:
+  format: jsonl
+
+steps:
+  # all (AND): female AND age > 20 → 3 remain (Alice, Carol, Grace)
+  - filter:
+      all:
+        - field: gender
+          equals: "F"
+        - field: age
+          greater-than: "20"
+  - assert:
+      records-equal: 3
+
+  # any (OR): age < 30 OR department = HR → 2 remain (Alice, Grace)
+  - filter:
+      any:
+        - field: age
+          less-than: "30"
+        - field: department
+          equals: "HR"
+  - assert:
+      records-equal: 2
+
+  # nested: age < 50 AND (name starts-with A OR starts-with G) → 1 remain (Alice)
+  - filter:
+      all:
+        - field: age
+          less-than: "50"
+        - any:
+            - field: name
+              starts-with: "A"
+            - field: name
+              starts-with: "G"
+  - assert:
+      records-equal: 1
+
+output:
+  format: json

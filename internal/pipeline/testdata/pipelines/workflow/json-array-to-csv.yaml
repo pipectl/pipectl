@@ -1,0 +1,27 @@
+id: json-array-to-csv
+
+input:
+  format: json
+
+steps:
+  - assert:
+      records-equal: 3
+
+  # Normalize inconsistent casing
+  - normalize:
+      fields:
+        first_name: capitalize
+        last_name: capitalize
+        email: lower
+
+  - assert:
+      records-equal: 3
+
+  # Rename to camelCase for CSV output
+  - rename:
+      fields:
+        first_name: firstName
+        last_name: lastName
+
+output:
+  format: csv

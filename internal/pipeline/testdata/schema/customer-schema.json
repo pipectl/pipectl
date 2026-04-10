@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["id", "name", "email", "plan", "age", "country", "score"],
+  "properties": {
+    "id": { "type": "integer" },
+    "name": { "type": "string", "minLength": 1 },
+    "email": { "type": "string" },
+    "plan": { "type": "string" },
+    "age": { "type": "integer" },
+    "country": { "type": "string" },
+    "score": { "type": "number" }
+  }
+}

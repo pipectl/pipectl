@@ -1,0 +1,25 @@
+id: normalize
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      records-equal: 8
+
+  # Tests all 7 normalize strategies
+  - normalize:
+      fields:
+        email: lower          # ALICE@EXAMPLE.COM → alice@example.com
+        country: upper        # au → AU
+        raw_name: trim        # "  alice smith  " → "alice smith"
+        notes: collapse-spaces # "loves  coding  a  lot" → "loves coding a lot"
+        title: capitalize     # "senior engineer" → "Senior engineer"
+        left_pad: trim-left   # "  hello" → "hello"
+        right_pad: trim-right  # "world  " → "world"
+
+  - assert:
+      records-equal: 8
+
+output:
+  format: jsonl

@@ -1,0 +1,14 @@
+id: validate-json
+
+input:
+  format: jsonl
+
+steps:
+  - validate-json:
+      schema: testdata/schema/person-schema.json
+
+  - assert:
+      records-equal: 8
+
+output:
+  format: jsonl

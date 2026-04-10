@@ -1,0 +1,17 @@
+id: limit
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      records-equal: 8
+
+  - limit:
+      count: 3
+
+  - assert:
+      records-equal: 3
+
+output:
+  format: jsonl

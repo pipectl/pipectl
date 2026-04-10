@@ -1,0 +1,11 @@
+id: failing-assert
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      records-equal: 999
+
+output:
+  format: jsonl

@@ -1,0 +1,22 @@
+id: default
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      records-equal: 8
+
+  # Sets status="employed" for records without a status field.
+  # Alice already has status="active" and Grace has status="hr-director" — both preserved.
+  # The remaining 6 records receive the default.
+  - default:
+      fields:
+        status: employed
+
+  - assert:
+      records-equal: 8
+      field-exists: status
+
+output:
+  format: jsonl

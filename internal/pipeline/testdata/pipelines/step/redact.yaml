@@ -1,0 +1,27 @@
+id: redact
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      records-equal: 8
+
+  # mask strategy: replaces value with asterisks of same length
+  - redact:
+      fields: [credit_card]
+      strategy: mask
+  - assert:
+      records-equal: 8
+      field-exists: credit_card
+
+  # sha256 strategy: replaces value with its hex digest
+  - redact:
+      fields: [ssn]
+      strategy: sha256
+  - assert:
+      records-equal: 8
+      field-exists: ssn
+
+output:
+  format: jsonl

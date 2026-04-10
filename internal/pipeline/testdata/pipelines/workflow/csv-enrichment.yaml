@@ -1,0 +1,46 @@
+id: csv-enrichment
+
+input:
+  format: csv
+
+steps:
+  - assert:
+      records-equal: 5
+
+  # Fill in missing country with AU
+  - default:
+      fields:
+        country: AU
+
+  # Normalize names to proper case, email to lowercase, country to uppercase
+  - normalize:
+      fields:
+        first_name: capitalize
+        last_name: capitalize
+        email: lower
+        country: upper
+
+  # Keep only Australian customers (bill/nz is excluded)
+  - filter:
+      field: country
+      equals: AU
+  - assert:
+      records-equal: 4
+
+  # Mask payment details before output
+  - redact:
+      fields: [credit_card]
+      strategy: mask
+
+  # Drop internal fields
+  - select:
+      fields: [first_name, last_name, email, plan]
+
+  # Rename to camelCase for downstream consumers
+  - rename:
+      fields:
+        first_name: firstName
+        last_name: lastName
+
+output:
+  format: jsonl

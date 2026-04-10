@@ -1,0 +1,22 @@
+id: log
+
+input:
+  format: jsonl
+
+steps:
+  - log:
+      message: "Starting pipeline"
+
+  - log:
+      message: "Record count"
+      count: true
+
+  - log:
+      message: "Sample records"
+      sample: 3
+
+  - assert:
+      records-equal: 8
+
+output:
+  format: jsonl

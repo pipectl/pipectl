@@ -1,0 +1,25 @@
+id: sort
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      records-equal: 8
+
+  # Sort ascending by age: Hank(14), Bob(17), Eve(19), Alice(25), Frank(28), Carol(32), Dave(45), Grace(52)
+  - sort:
+      field: age
+      direction: asc
+  - assert:
+      records-equal: 8
+
+  # Sort descending by score: Grace(94.2), Carol(91.0), Eve(88.9), Alice(87.5), Frank(76.4), Bob(72.3), Hank(61.0), Dave(55.8)
+  - sort:
+      field: score
+      direction: desc
+  - assert:
+      records-equal: 8
+
+output:
+  format: jsonl

@@ -1,0 +1,57 @@
+id: filter-operators
+
+input:
+  format: jsonl
+
+steps:
+  # greater-than: removes Bob(17), Eve(19), Hank(14) → 5 remain
+  - filter:
+      field: age
+      greater-than: "20"
+  - assert:
+      records-equal: 5
+
+  # less-than: removes Grace(52) → 4 remain
+  - filter:
+      field: age
+      less-than: "50"
+  - assert:
+      records-equal: 4
+
+  # contains: keeps Engineering + Marketing (both contain "ing") → 3 remain
+  - filter:
+      field: department
+      contains: "ing"
+  - assert:
+      records-equal: 3
+
+  # equals: keeps female records → 2 remain (Alice, Carol)
+  - filter:
+      field: gender
+      equals: "F"
+  - assert:
+      records-equal: 2
+
+  # not-equals: removes Carol → 1 remain (Alice)
+  - filter:
+      field: name
+      not-equals: "Carol Williams"
+  - assert:
+      records-equal: 1
+
+  # starts-with: Alice Smith starts with "Alice" → 1 remain
+  - filter:
+      field: name
+      starts-with: "Alice"
+  - assert:
+      records-equal: 1
+
+  # ends-with: Alice Smith ends with "Smith" → 1 remain
+  - filter:
+      field: name
+      ends-with: "Smith"
+  - assert:
+      records-equal: 1
+
+output:
+  format: json

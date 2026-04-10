@@ -1,0 +1,18 @@
+id: select
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      records-equal: 8
+
+  - select:
+      fields: [id, name, age, department]
+
+  - assert:
+      records-equal: 8
+      field-exists: name
+
+output:
+  format: jsonl

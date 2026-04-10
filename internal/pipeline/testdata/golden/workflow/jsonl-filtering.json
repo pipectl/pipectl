@@ -1,0 +1,11 @@
+[
+  {
+    "age": 42,
+    "country": "AU",
+    "email": "carol@example.com",
+    "id": 3,
+    "name": "Carol Davis",
+    "plan": "enterprise",
+    "score": 91.3
+  }
+]

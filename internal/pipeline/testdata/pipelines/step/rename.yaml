@@ -1,0 +1,21 @@
+id: rename
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      records-equal: 8
+      field-exists: name
+
+  - rename:
+      fields:
+        name: full_name
+        department: team
+
+  - assert:
+      records-equal: 8
+      field-exists: full_name
+
+output:
+  format: jsonl
