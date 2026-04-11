@@ -52,8 +52,18 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 func (s *Step) redactCsv(csvPayload *payload.CSV) error {
 	headerRow := csvPayload.Rows[0]
 	toRedact := make([]bool, len(headerRow))
+	matched := make(map[string]bool)
 	for i, header := range headerRow {
-		toRedact[i] = slices.Contains(s.Fields, header)
+		if slices.Contains(s.Fields, header) {
+			toRedact[i] = true
+			matched[header] = true
+		}
+	}
+
+	for _, field := range s.Fields {
+		if !matched[field] {
+			return fmt.Errorf("redact: field %q not found in CSV headers", field)
+		}
 	}
 
 	for _, row := range csvPayload.Rows[1:] {
@@ -75,12 +85,13 @@ func (s *Step) redactJson(jsonPayload payload.JSONRecordPayload) error {
 			continue
 		}
 
-		for k, v := range record {
-			if slices.Contains(s.Fields, k) {
-				switch value := v.(type) {
-				case string:
-					record[k] = s.redactSingleValue(value)
-				}
+		for _, field := range s.Fields {
+			v, exists := record[field]
+			if !exists {
+				return fmt.Errorf("redact: field %q not found in record", field)
+			}
+			if value, ok := v.(string); ok {
+				record[field] = s.redactSingleValue(value)
 			}
 		}
 	}

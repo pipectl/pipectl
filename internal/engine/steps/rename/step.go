@@ -49,12 +49,16 @@ func (s *Step) renameJSON(jsonPayload payload.JSONRecordPayload) error {
 		}
 
 		for from, to := range s.Fields {
-			value, ok := record[from]
-			if !ok {
-				continue
+			if _, exists := record[from]; !exists {
+				return fmt.Errorf("rename: field %q not found in record", from)
 			}
+			if _, exists := record[to]; exists {
+				return fmt.Errorf("rename: target field %q already exists in record", to)
+			}
+		}
 
-			record[to] = value
+		for from, to := range s.Fields {
+			record[to] = record[from]
 			delete(record, from)
 		}
 	}
@@ -68,10 +72,22 @@ func (s *Step) renameCSV(csvPayload *payload.CSV) error {
 	}
 
 	headerRow := csvPayload.Rows[0]
-	for i, header := range headerRow {
-		if to, ok := s.Fields[header]; ok {
-			headerRow[i] = to
+	headerIndex := make(map[string]int, len(headerRow))
+	for i, h := range headerRow {
+		headerIndex[h] = i
+	}
+
+	for from, to := range s.Fields {
+		if _, exists := headerIndex[from]; !exists {
+			return fmt.Errorf("rename: field %q not found in CSV headers", from)
 		}
+		if _, exists := headerIndex[to]; exists {
+			return fmt.Errorf("rename: target field %q already exists in CSV headers", to)
+		}
+	}
+
+	for from, to := range s.Fields {
+		headerRow[headerIndex[from]] = to
 	}
 
 	return nil

@@ -2,6 +2,7 @@ package redact
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/shanebell/pipectl/internal/engine"
@@ -128,6 +129,54 @@ func TestExecuteRedactsJSONLFields(t *testing.T) {
 	out := ctx.Payload.(*payload.JSONL)
 	if out.Items[0]["email"] != "*****************" {
 		t.Fatalf("unexpected redacted JSONL data: %#v", out.Items[0])
+	}
+}
+
+func TestExecuteErrorsOnMissingJSONField(t *testing.T) {
+	step := &Step{
+		Strategy: "mask",
+		Fields:   []string{"email", "missing"},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSON{
+			Items: []map[string]interface{}{
+				{"email": "alice@example.com"},
+			},
+			Shape: payload.JSONObjectShape,
+		},
+	}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected error for missing field, got nil")
+	}
+	if !strings.Contains(err.Error(), "not found in record") {
+		t.Fatalf("unexpected error message: %v", err)
+	}
+}
+
+func TestExecuteErrorsOnMissingCSVField(t *testing.T) {
+	step := &Step{
+		Strategy: "mask",
+		Fields:   []string{"email", "missing"},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.CSV{
+			Rows: [][]string{
+				{"id", "email"},
+				{"1", "alice@example.com"},
+			},
+		},
+	}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected error for missing CSV field, got nil")
+	}
+	if !strings.Contains(err.Error(), "not found in CSV headers") {
+		t.Fatalf("unexpected error message: %v", err)
 	}
 }
 

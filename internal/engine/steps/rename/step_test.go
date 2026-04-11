@@ -2,6 +2,7 @@ package rename
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/shanebell/pipectl/internal/engine"
@@ -92,6 +93,108 @@ func TestExecuteRenamesJSONLFields(t *testing.T) {
 	out := ctx.Payload.(*payload.JSONL)
 	if out.Items[0]["first_name"] != "Alice" {
 		t.Fatalf("unexpected renamed JSONL data: %#v", out.Items[0])
+	}
+}
+
+func TestExecuteErrorsOnJSONFieldCollision(t *testing.T) {
+	step := &Step{
+		Fields: map[string]string{
+			"name": "full_name",
+		},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSON{
+			Items: []map[string]interface{}{
+				{"name": "Alice", "full_name": "Alice Smith"},
+			},
+			Shape: payload.JSONObjectShape,
+		},
+	}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected error for target field collision, got nil")
+	}
+	if !strings.Contains(err.Error(), "already exists in record") {
+		t.Fatalf("unexpected error message: %v", err)
+	}
+}
+
+func TestExecuteErrorsOnCSVFieldCollision(t *testing.T) {
+	step := &Step{
+		Fields: map[string]string{
+			"name": "full_name",
+		},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.CSV{
+			Rows: [][]string{
+				{"name", "full_name"},
+				{"Alice", "Alice Smith"},
+			},
+		},
+	}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected error for target field collision, got nil")
+	}
+	if !strings.Contains(err.Error(), "already exists in CSV headers") {
+		t.Fatalf("unexpected error message: %v", err)
+	}
+}
+
+func TestExecuteErrorsOnMissingJSONField(t *testing.T) {
+	step := &Step{
+		Fields: map[string]string{
+			"firstName": "first_name",
+			"missing":   "renamed",
+		},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSON{
+			Items: []map[string]interface{}{
+				{"firstName": "Alice"},
+			},
+			Shape: payload.JSONObjectShape,
+		},
+	}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected error for missing field, got nil")
+	}
+	if !strings.Contains(err.Error(), "not found in record") {
+		t.Fatalf("unexpected error message: %v", err)
+	}
+}
+
+func TestExecuteErrorsOnMissingCSVField(t *testing.T) {
+	step := &Step{
+		Fields: map[string]string{
+			"firstName": "first_name",
+			"missing":   "renamed",
+		},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.CSV{
+			Rows: [][]string{
+				{"firstName", "email"},
+				{"Alice", "alice@example.com"},
+			},
+		},
+	}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected error for missing CSV field, got nil")
+	}
+	if !strings.Contains(err.Error(), "not found in CSV headers") {
+		t.Fatalf("unexpected error message: %v", err)
 	}
 }
 
