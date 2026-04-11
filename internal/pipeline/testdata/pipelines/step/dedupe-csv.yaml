@@ -1,0 +1,14 @@
+id: dedupe-csv
+
+input:
+  format: csv
+
+steps:
+  - assert:
+      records-equal: 5
+
+  - dedupe:
+      fields: [plan]
+
+output:
+  format: csv

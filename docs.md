@@ -125,6 +125,7 @@ Supported step types:
 - `filter`
 - `sort`
 - `limit`
+- `dedupe`
 - `log`
 - `count`
 - `http-transform`
@@ -591,6 +592,42 @@ Notes:
 - If the payload already has fewer records than `count`, it passes through unchanged.
 - For CSV, the header row is always preserved.
 - Useful for sampling large inputs, capping output size before an `http-transform`, or testing a pipeline end-to-end with real data.
+
+### `dedupe`
+
+Removes duplicate records, keeping the first occurrence of each unique key.
+
+Supported payloads:
+
+- `json` (arrays only)
+- `jsonl`
+- `csv`
+
+Options:
+
+- `fields`: required. A list of one or more field names that together define the uniqueness key.
+- `case-sensitive`: optional boolean. When `false`, field values are compared case-insensitively. Defaults to `true`.
+
+Example:
+
+```yaml
+- dedupe:
+    fields: [email]
+```
+
+```yaml
+- dedupe:
+    fields: [first_name, last_name]
+    case-sensitive: false
+```
+
+Notes:
+
+- Records are compared by the values of all listed fields. If every listed field matches a previously-seen record, the record is dropped.
+- Field order in `fields` does not affect which records are considered duplicates — only the combination of values matters.
+- If a field is missing from a record, its value is treated as an empty string for comparison purposes.
+- For CSV, the header row is always preserved.
+- JSON object payloads (single record) are not supported — only JSON arrays.
 
 ### `log`
 

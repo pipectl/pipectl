@@ -1,0 +1,14 @@
+id: dedupe
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      records-equal: 8
+
+  - dedupe:
+      fields: [department]
+
+output:
+  format: jsonl

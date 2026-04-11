@@ -32,6 +32,8 @@ func TestStepPipelines(t *testing.T) {
 		{name: "convert", pipeline: "step/convert.yaml", input: "products.json", golden: "step/convert.json"},
 		{name: "validate-json", pipeline: "step/validate-json.yaml", input: "people.jsonl", golden: "step/validate-json.jsonl"},
 		{name: "log", pipeline: "step/log.yaml", input: "people.jsonl", golden: "step/log.jsonl"},
+		{name: "dedupe", pipeline: "step/dedupe.yaml", input: "people.jsonl", golden: "step/dedupe.jsonl"},
+		{name: "dedupe/csv", pipeline: "step/dedupe-csv.yaml", input: "customers.csv", golden: "step/dedupe-csv.csv"},
 	})
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/shanebell/pipectl/internal/engine/steps/cast"
 	"github.com/shanebell/pipectl/internal/engine/steps/convert"
 	"github.com/shanebell/pipectl/internal/engine/steps/count"
+	"github.com/shanebell/pipectl/internal/engine/steps/dedupe"
 	"github.com/shanebell/pipectl/internal/engine/steps/default"
 	"github.com/shanebell/pipectl/internal/engine/steps/filter"
 	"github.com/shanebell/pipectl/internal/engine/steps/httptransform"
@@ -134,6 +135,11 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 		return &_sort.Step{
 			Field:     s.Field,
 			Direction: s.Direction,
+		}, nil
+	case *spec.DedupeStep:
+		return &dedupe.Step{
+			Fields:        s.Fields,
+			CaseSensitive: s.CaseSensitive,
 		}, nil
 	case *spec.HTTPTransformStep:
 		return &httptransform.Step{

@@ -4,10 +4,6 @@
 
 Roughly in priority order.
 
-### Steps
-
-- `dedupe` — remove duplicate records by key field
-
 ---
 
 ## Backlog
@@ -25,40 +21,4 @@ Lower priority ideas for after MVP.
 ### Step enhancements
 
 - `normalize` — support pipe-separated strategy chains, eg: `trim|lower|collapse-spaces`
-- `filter` — combined `all`/`any` nesting (see design note below)
 - `filter` — document or add `on-missing` option for records missing the filter field (currently silently excluded, which may surprise users)
-
----
-
-## Notes
-
-### Filter multi-condition design
-
-For combined `all`/`any` nesting, model the step representation like this:
-
-```go
-type ConditionGroup struct {
-    All  []ConditionGroup
-    Any  []ConditionGroup
-    Rule *Rule
-}
-
-type Rule struct {
-    Field string
-    Value interface{}
-}
-```
-
-Example YAML:
-
-```yaml
-- filter:
-    all:
-      - field: age
-        greater_than: 18
-      - any:
-          - field: country
-            equals: AU
-          - field: country
-            equals: NZ
-```

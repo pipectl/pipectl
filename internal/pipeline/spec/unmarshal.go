@@ -25,6 +25,7 @@ var stepRegistry = map[string]func() Step{
 	"count":          func() Step { return &CountStep{} },
 	"http-transform": func() Step { return &HTTPTransformStep{} },
 	"sort":           func() Step { return &SortStep{} },
+	"dedupe":         func() Step { return &DedupeStep{} },
 }
 
 func (w *StepWrapper) UnmarshalYAML(node ast.Node) error {

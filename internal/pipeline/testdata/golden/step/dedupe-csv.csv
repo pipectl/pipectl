@@ -1,0 +1,5 @@
+first_name,last_name,email,country,credit_card,plan
+john,SMITH,JOHN@EXAMPLE.COM,,4111-1111-1111-1111,starter
+Mary,jones,MARY@EXAMPLE.COM,AU,4222-2222-2222-2222,pro
+bill,johnson,BILL@EXAMPLE.COM,nz,4333-3333-3333-3333,enterprise
+

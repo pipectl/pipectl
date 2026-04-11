@@ -13,6 +13,13 @@ steps:
       fields:
         country: AU
 
+  - dedupe:
+      fields: [last_name]
+      case-sensitive: false
+
+  - log:
+      message: After dedupe
+
   - normalize:
       fields:
         country: upper
@@ -45,7 +52,7 @@ steps:
       message: "Final record count"
 
   - assert:
-      records-equal: 20
+      records-equal: 19
       field-exists: firstName
 
   - limit:

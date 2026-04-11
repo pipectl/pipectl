@@ -1015,6 +1015,69 @@ func TestStepWrapperUnmarshalRenameStepRejectsEmptyFields(t *testing.T) {
 	}
 }
 
+func TestStepWrapperUnmarshalDedupeStep(t *testing.T) {
+	raw := []byte(`dedupe:
+  fields: [email, name]
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	dedupeStep, ok := step.Step.(*DedupeStep)
+	if !ok {
+		t.Fatalf("expected *DedupeStep, got %T", step.Step)
+	}
+
+	if len(dedupeStep.Fields) != 2 || dedupeStep.Fields[0] != "email" || dedupeStep.Fields[1] != "name" {
+		t.Fatalf("unexpected fields: got %v want [email name]", dedupeStep.Fields)
+	}
+}
+
+func TestStepWrapperUnmarshalDedupeStepCaseSensitivity(t *testing.T) {
+	t.Run("defaults to case-sensitive", func(t *testing.T) {
+		raw := []byte(`dedupe:
+  fields: [email]
+`)
+		var step StepWrapper
+		if err := yaml.Unmarshal(raw, &step); err != nil {
+			t.Fatalf("unmarshal returned error: %v", err)
+		}
+		dedupeStep := step.Step.(*DedupeStep)
+		if !dedupeStep.CaseSensitive {
+			t.Fatal("expected CaseSensitive to default to true")
+		}
+	})
+
+	t.Run("explicit case-sensitive: false", func(t *testing.T) {
+		raw := []byte(`dedupe:
+  fields: [email]
+  case-sensitive: false
+`)
+		var step StepWrapper
+		if err := yaml.Unmarshal(raw, &step); err != nil {
+			t.Fatalf("unmarshal returned error: %v", err)
+		}
+		dedupeStep := step.Step.(*DedupeStep)
+		if dedupeStep.CaseSensitive {
+			t.Fatal("expected CaseSensitive to be false")
+		}
+	})
+}
+
+func TestStepWrapperUnmarshalDedupeStepRejectsEmptyFields(t *testing.T) {
+	raw := []byte(`dedupe: {}`)
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for empty fields")
+	}
+	if !strings.Contains(err.Error(), "dedupe fields is required") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestStepWrapperUnmarshalHTTPTransformStep(t *testing.T) {
 	raw := []byte(`http-transform:
   url: https://example.com/transform
