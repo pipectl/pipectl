@@ -27,11 +27,11 @@ func (e *Engine) Run(ctx *ExecutionContext) error {
 		ctx.Logger.Log("\n%d. [%s]", i+1, step.Name())
 
 		if !step.Supports(ctx.Payload) {
-			return fmt.Errorf("step [%s] does not support payload type [%s]", step.Name(), ctx.Payload.Type())
+			return fmt.Errorf("step %d [%s] does not support payload type [%s]", i+1, step.Name(), ctx.Payload.Type())
 		}
 
 		if err := step.Execute(ctx); err != nil {
-			return fmt.Errorf("step [%s] failed: %w", step.Name(), err)
+			return fmt.Errorf("step %d [%s] failed: %w", i+1, step.Name(), err)
 		}
 	}
 

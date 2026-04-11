@@ -15,6 +15,9 @@ steps:
         country: AU
         currency: AUD
 
+  - log:
+      message: "After default"
+
   - normalize:
       fields:
         email: lower

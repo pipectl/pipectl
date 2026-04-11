@@ -189,8 +189,8 @@ Example:
 
 Notes:
 
-- Only string values are changed.
-- Unknown strategies are effectively ignored at runtime.
+- Fields must exist in the payload; an error is returned if a configured field is not found.
+- Only string values are changed; non-string fields that exist are left as-is.
 
 ### `default`
 

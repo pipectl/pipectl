@@ -79,11 +79,13 @@ func (s *Step) normalizeJSON(jsonPayload payload.JSONRecordPayload) error {
 			continue
 		}
 
-		for key := range record {
-			if strategy, needsNormalizing := s.Fields[key]; needsNormalizing {
-				if currentValue, ok := record[key].(string); ok {
-					record[key] = s.normalizeValue(currentValue, strategy)
-				}
+		for field, strategy := range s.Fields {
+			val, exists := record[field]
+			if !exists {
+				return fmt.Errorf("normalize: field %q not found in record", field)
+			}
+			if currentValue, ok := val.(string); ok {
+				record[field] = s.normalizeValue(currentValue, strategy)
 			}
 		}
 	}
@@ -93,13 +95,20 @@ func (s *Step) normalizeJSON(jsonPayload payload.JSONRecordPayload) error {
 
 func (s *Step) normalizeCsv(csvPayload *payload.CSV) error {
 	headerRow := csvPayload.Rows[0]
+	matched := make(map[string]bool)
 	normalizeFunctions := map[int]func(string) string{}
 	strategyIndex := map[int]string{}
 	for i, header := range headerRow {
-		strategy, ok := s.Fields[header]
-		if ok {
+		if strategy, ok := s.Fields[header]; ok {
 			normalizeFunctions[i] = strategies[strategy]
 			strategyIndex[i] = strategy
+			matched[header] = true
+		}
+	}
+
+	for field := range s.Fields {
+		if !matched[field] {
+			return fmt.Errorf("normalize: field %q not found in CSV headers", field)
 		}
 	}
 

@@ -2,7 +2,7 @@
   <configuration default="false" name="Customer signup JSON" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="pipectl" />
     <working_directory value="$PROJECT_DIR$" />
-    <parameters value="run ./examples/json/customer-signup-json.yaml" />
+    <parameters value="run --verbose ./examples/json/customer-signup-json.yaml" />
     <kind value="PACKAGE" />
     <package value="github.com/shanebell/pipectl/cmd/pipectl" />
     <directory value="$PROJECT_DIR$" />
