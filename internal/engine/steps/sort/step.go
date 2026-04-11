@@ -79,24 +79,17 @@ func (s *Step) sortCSV(p *payload.CSV, logger *engine.Logger) error {
 		}
 	}
 
+	if colIndex == -1 {
+		return fmt.Errorf("sort: field %q not found in CSV headers", s.Field)
+	}
+
 	rows := make([][]string, len(p.Rows)-1)
 	copy(rows, p.Rows[1:])
 
 	sort.SliceStable(rows, func(i, j int) bool {
-		var a, b string
-		aMissing := colIndex == -1
-		bMissing := colIndex == -1
-
-		if !aMissing {
-			a = rows[i][colIndex]
-			aMissing = a == ""
-		}
-		if !bMissing {
-			b = rows[j][colIndex]
-			bMissing = b == ""
-		}
-
-		return s.less(a, b, aMissing, bMissing)
+		a := rows[i][colIndex]
+		b := rows[j][colIndex]
+		return s.less(a, b, a == "", b == "")
 	})
 
 	p.Rows = append([][]string{header}, rows...)

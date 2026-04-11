@@ -2,6 +2,7 @@ package sort
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/shanebell/pipectl/internal/engine"
@@ -226,6 +227,24 @@ func TestExecuteSortsCSVNullsLast(t *testing.T) {
 	}
 	if out.Rows[3][1] != "" {
 		t.Fatalf("expected empty value last: got %q", out.Rows[3][1])
+	}
+}
+
+func TestExecuteErrorsOnMissingCSVField(t *testing.T) {
+	step := &Step{Field: "missing", Direction: DirectionAsc}
+	ctx := &engine.ExecutionContext{Payload: &payload.CSV{
+		Rows: [][]string{
+			{"id", "name"},
+			{"1", "Alice"},
+		},
+	}}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected error for missing CSV field, got nil")
+	}
+	if !strings.Contains(err.Error(), "not found in CSV headers") {
+		t.Fatalf("unexpected error message: %v", err)
 	}
 }
 
