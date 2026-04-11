@@ -26,8 +26,8 @@ func TestSupports(t *testing.T) {
 	if !step.Supports(&payload.JSONL{}) {
 		t.Fatal("expected step to support JSONL payload")
 	}
-	if step.Supports(&payload.CSV{}) {
-		t.Fatal("expected step not to support CSV payload")
+	if !step.Supports(&payload.CSV{}) {
+		t.Fatal("expected step to support CSV payload")
 	}
 }
 
@@ -484,19 +484,87 @@ func TestExecuteFailsWhenCastIsInvalid(t *testing.T) {
 	}
 }
 
-func TestExecuteFailsForUnsupportedPayload(t *testing.T) {
-	step := &Step{}
+func TestExecuteCastsCSVFields(t *testing.T) {
+	step := &Step{
+		Fields: map[string]Field{
+			"age":    {Type: "int"},
+			"score":  {Type: "float"},
+			"active": {Type: "bool"},
+			"name":   {Type: "string"},
+		},
+	}
+
 	ctx := &engine.ExecutionContext{
 		Payload: &payload.CSV{
-			Rows: [][]string{{"age"}, {"42"}},
+			Rows: [][]string{
+				{"name", "age", "score", "active"},
+				{"Alice", "42", "98.5", "yes"},
+				{"Bob", "27", "71.0", "no"},
+			},
+		},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out := ctx.Payload.(*payload.CSV)
+	expected := [][]string{
+		{"name", "age", "score", "active"},
+		{"Alice", "42", "98.5", "true"},
+		{"Bob", "27", "71", "false"},
+	}
+	if !reflect.DeepEqual(out.Rows, expected) {
+		t.Fatalf("unexpected CSV rows:\nexpected: %#v\ngot: %#v", expected, out.Rows)
+	}
+}
+
+func TestExecuteFailsWhenCSVFieldMissing(t *testing.T) {
+	step := &Step{
+		Fields: map[string]Field{
+			"missing": {Type: "int"},
+		},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.CSV{
+			Rows: [][]string{
+				{"name", "age"},
+				{"Alice", "42"},
+			},
 		},
 	}
 
 	err := step.Execute(ctx)
 	if err == nil {
-		t.Fatal("expected error for unsupported payload")
+		t.Fatal("expected error for missing CSV field")
 	}
-	if !strings.Contains(err.Error(), "unsupported payload type") {
+	if !strings.Contains(err.Error(), `cast: field "missing" not found in CSV headers`) {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestExecuteFailsWhenCSVCastIsInvalid(t *testing.T) {
+	step := &Step{
+		Fields: map[string]Field{
+			"age": {Type: "int"},
+		},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.CSV{
+			Rows: [][]string{
+				{"age"},
+				{"not-a-number"},
+			},
+		},
+	}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected error for invalid CSV cast")
+	}
+	if !strings.Contains(err.Error(), `cast field "age" in record 1`) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

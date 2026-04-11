@@ -94,7 +94,7 @@ Before considering work done:
 1. Architecture boundaries are preserved.
 2. New config surfaces are validated close to parse time.
 3. Tests are added/updated and pass locally.
-4. Testdata pipelines and golden files are added or updated to reflect step changes.
+4. Testdata pipelines and golden files are added or updated to reflect step changes. Each payload format the step supports should have its own pipeline test case (e.g. a JSON and a CSV variant). Generate golden files with `go test -run <TestName> -update` from the repo root, then wire the case into `TestStepPipelines` in `internal/pipeline/integration_test.go`.
 5. Public behavior is reflected in examples or docs when relevant.
 
 ## Non-Goals

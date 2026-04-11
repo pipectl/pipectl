@@ -7,8 +7,6 @@ Roughly in priority order.
 ### Steps
 
 - `dedupe` — remove duplicate records by key field
-- `cast` — add CSV support
-- `normalize` — validate unknown strategies at parse time instead of silently ignoring them
 
 ---
 

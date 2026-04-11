@@ -14,7 +14,8 @@ func TestRunCommandWritesPipelineOutputToFile(t *testing.T) {
 	pipelineYAML := `id: test-pipeline
 input:
   format: json
-steps: []
+steps:
+  - log: {}
 output:
   format: json
 `

@@ -1,0 +1,36 @@
+id: cast-csv
+
+input:
+  format: csv
+
+steps:
+  - assert:
+      records-equal: 2
+
+  - cast:
+      fields:
+        id:
+          type: int
+        price:
+          type: float
+        in_stock:
+          type: bool
+        quantity:
+          type: int
+        listed_date:
+          type: time
+          format: "2006-01-02"
+        clearance:
+          type: bool
+          true_values: ["yes"]
+          false_values: ["no"]
+        archived:
+          type: bool
+          true_values: ["yes"]
+          false_values: ["no"]
+
+  - assert:
+      records-equal: 2
+
+output:
+  format: csv

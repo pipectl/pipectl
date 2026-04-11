@@ -1,0 +1,3 @@
+id,name,price,in_stock,quantity,listed_date,clearance,archived
+1,Laptop,999.99,true,50,2024-01-15,yes,no
+2,Mouse,29.99,false,0,2024-03-20,no,yes

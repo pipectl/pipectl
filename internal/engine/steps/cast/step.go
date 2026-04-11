@@ -38,7 +38,7 @@ func (s *Step) Name() string {
 
 func (s *Step) Supports(p payload.Payload) bool {
 	switch p.(type) {
-	case payload.JSONRecordPayload:
+	case payload.JSONRecordPayload, *payload.CSV:
 		return true
 	default:
 		return false
@@ -46,15 +46,22 @@ func (s *Step) Supports(p payload.Payload) bool {
 }
 
 func (s *Step) Execute(ctx *engine.ExecutionContext) error {
-	jsonPayload, ok := ctx.Payload.(payload.JSONRecordPayload)
-	if !ok {
-		return fmt.Errorf("unsupported payload type %T", ctx.Payload)
-	}
-
 	for fieldPath, config := range s.Fields {
 		ctx.Logger.Debug("  %s → %s", fieldPath, config.Type)
 	}
 
+	if jsonPayload, ok := ctx.Payload.(payload.JSONRecordPayload); ok {
+		return s.executeJSON(jsonPayload)
+	}
+
+	if csvPayload, ok := ctx.Payload.(*payload.CSV); ok {
+		return s.executeCSV(csvPayload)
+	}
+
+	return fmt.Errorf("unsupported payload type %T", ctx.Payload)
+}
+
+func (s *Step) executeJSON(jsonPayload payload.JSONRecordPayload) error {
 	for recordIndex, record := range jsonPayload.Records() {
 		if record == nil {
 			continue
@@ -74,6 +81,41 @@ func (s *Step) Execute(ctx *engine.ExecutionContext) error {
 			if err := assign(casted); err != nil {
 				return fmt.Errorf("cast field %q in record %d: %w", fieldPath, recordIndex+1, err)
 			}
+		}
+	}
+
+	return nil
+}
+
+func (s *Step) executeCSV(csvPayload *payload.CSV) error {
+	if len(csvPayload.Rows) == 0 {
+		return nil
+	}
+
+	headerRow := csvPayload.Rows[0]
+	colIndex := make(map[string]int, len(headerRow))
+	for i, h := range headerRow {
+		colIndex[h] = i
+	}
+
+	for field := range s.Fields {
+		if _, ok := colIndex[field]; !ok {
+			return fmt.Errorf("cast: field %q not found in CSV headers", field)
+		}
+	}
+
+	for rowIndex, row := range csvPayload.Rows[1:] {
+		for field, config := range s.Fields {
+			i := colIndex[field]
+			casted, err := castScalarValue(row[i], config)
+			if err != nil {
+				return fmt.Errorf("cast field %q in record %d: %w", field, rowIndex+1, err)
+			}
+			str, err := castToString(casted)
+			if err != nil {
+				return fmt.Errorf("cast field %q in record %d: %w", field, rowIndex+1, err)
+			}
+			row[i] = str
 		}
 	}
 
@@ -223,6 +265,8 @@ func castToString(value interface{}) (string, error) {
 		return strconv.Itoa(typed), nil
 	case float64:
 		return strconv.FormatFloat(typed, 'f', -1, 64), nil
+	case time.Time:
+		return typed.UTC().Format(time.RFC3339), nil
 	default:
 		return "", fmt.Errorf("cannot cast %T to string", value)
 	}
