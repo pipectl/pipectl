@@ -361,7 +361,7 @@ func getSegmentValue(current interface{}, segment pathSegment, path string) (int
 
 		value, exists := object[segment.key]
 		if !exists {
-			return nil, fmt.Errorf("path %q missing key %q", path, segment.key)
+			return nil, fmt.Errorf("field %q not found in record", path)
 		}
 
 		return value, nil

@@ -361,7 +361,7 @@ func TestExecuteFailsWhenFieldMissing(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for missing field")
 	}
-	if !strings.Contains(err.Error(), `cast field "age" in record 1: path "age" missing key "age"`) {
+	if !strings.Contains(err.Error(), `cast field "age" in record 1: field "age" not found in record`) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
@@ -390,7 +390,7 @@ func TestExecuteFailsWhenNestedPathMissing(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for missing nested path")
 	}
-	if !strings.Contains(err.Error(), `cast field "headers.Content-Length" in record 1: path "headers.Content-Length" missing key "Content-Length"`) {
+	if !strings.Contains(err.Error(), `cast field "headers.Content-Length" in record 1: field "headers.Content-Length" not found in record`) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
