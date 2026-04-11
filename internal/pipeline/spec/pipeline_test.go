@@ -7,6 +7,62 @@ import (
 	"testing"
 )
 
+func TestLoadRejectsUnknownTopLevelField(t *testing.T) {
+	content := `id: test
+input:
+  format: json
+output:
+  format: json
+steps:
+  - log: {}
+bogus: true
+`
+	path := writeTempPipeline(t, content)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected error for unknown top-level field")
+	}
+	if !strings.Contains(err.Error(), "bogus") {
+		t.Fatalf("expected field name in error, got: %v", err)
+	}
+}
+
+func TestLoadRejectsMissingID(t *testing.T) {
+	content := `input:
+  format: json
+output:
+  format: json
+steps:
+  - log: {}
+`
+	path := writeTempPipeline(t, content)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected error for missing id")
+	}
+	if err.Error() != "pipeline id must be specified" {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestLoadRejectsEmptySteps(t *testing.T) {
+	content := `id: test
+input:
+  format: json
+output:
+  format: json
+steps: []
+`
+	path := writeTempPipeline(t, content)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected error for empty steps")
+	}
+	if err.Error() != "pipeline must have at least one step" {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestLoadRejectsMultiCharDelimiter(t *testing.T) {
 	content := `id: test
 input:
@@ -69,7 +125,8 @@ input:
   delimiter: "|"
 output:
   format: json
-steps: []
+steps:
+  - log: {}
 `
 	path := writeTempPipeline(t, content)
 	p, err := Load(path)

@@ -1,6 +1,7 @@
 package spec
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 
@@ -32,8 +33,12 @@ func Load(path string) (Pipeline, error) {
 	}
 
 	var p Pipeline
-	if err := yaml.Unmarshal(data, &p); err != nil {
+	if err := yaml.NewDecoder(bytes.NewReader(data), yaml.DisallowUnknownField()).Decode(&p); err != nil {
 		return Pipeline{}, fmt.Errorf("decode pipeline: %w", err)
+	}
+
+	if p.ID == "" {
+		return Pipeline{}, fmt.Errorf("pipeline id must be specified")
 	}
 
 	if !isValidFormat(p.Input.Format) {
@@ -46,6 +51,10 @@ func Load(path string) (Pipeline, error) {
 
 	if !isValidFormat(p.Output.Format) {
 		return Pipeline{}, fmt.Errorf("output format must be one of: json, jsonl, csv")
+	}
+
+	if len(p.Steps) == 0 {
+		return Pipeline{}, fmt.Errorf("pipeline must have at least one step")
 	}
 
 	return p, nil
