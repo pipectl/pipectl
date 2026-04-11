@@ -17,7 +17,7 @@ func Run(path string, input []byte, output io.Writer, verbose bool, dryRun bool)
 
 	logger := engine.NewLogger(verbose)
 
-	logger.Log("pipeline: %s [%s → %s, %d steps]", p.ID, p.Input.Format, p.Output.Format, len(p.Steps))
+	logger.Debug("pipeline: %s [%s → %s, %d steps]", p.ID, p.Input.Format, p.Output.Format, len(p.Steps))
 	for i, step := range p.Steps {
 		logger.Debug("  %d. %s", i+1, step.Step.StepType())
 	}

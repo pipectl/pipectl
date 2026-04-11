@@ -24,7 +24,7 @@ func New(steps []ExecutableStep) *Engine {
 
 func (e *Engine) Run(ctx *ExecutionContext) error {
 	for i, step := range e.steps {
-		ctx.Logger.Log("\n%d. [%s]", i+1, step.Name())
+		ctx.Logger.Debug("\n%d. [%s]", i+1, step.Name())
 
 		if !step.Supports(ctx.Payload) {
 			return fmt.Errorf("step %d [%s] does not support payload type [%s]", i+1, step.Name(), ctx.Payload.Type())
