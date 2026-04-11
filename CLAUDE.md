@@ -94,7 +94,8 @@ Before considering work done:
 1. Architecture boundaries are preserved.
 2. New config surfaces are validated close to parse time.
 3. Tests are added/updated and pass locally.
-4. Public behavior is reflected in examples or docs when relevant.
+4. Testdata pipelines and golden files are added or updated to reflect step changes.
+5. Public behavior is reflected in examples or docs when relevant.
 
 ## Non-Goals
 
