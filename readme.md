@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="website/public/logo-light.svg" alt="pipectl" height="60" />
+  <img src="website/docs/public/logo-light.svg" alt="pipectl" height="60" />
 </p>
 
 <p align="center">
