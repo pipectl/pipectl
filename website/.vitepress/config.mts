@@ -4,6 +4,7 @@ export default defineConfig({
   title: 'pipectl',
   description: 'Run YAML-defined data pipelines from the command line.',
   base: '/pipectl/',
+  srcDir: './docs',
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
