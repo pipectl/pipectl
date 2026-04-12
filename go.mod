@@ -1,4 +1,4 @@
-module github.com/shanebell/pipectl
+module github.com/pipectl/pipectl
 
 go 1.25.6
 

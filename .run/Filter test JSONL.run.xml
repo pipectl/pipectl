@@ -4,7 +4,7 @@
     <working_directory value="$PROJECT_DIR$" />
     <parameters value="run ./examples/json/filter-test-jsonl.yaml" />
     <kind value="PACKAGE" />
-    <package value="github.com/shanebell/pipectl/cmd/pipectl" />
+    <package value="github.com/pipectl/pipectl/cmd/pipectl" />
     <directory value="$PROJECT_DIR$" />
     <filePath value="$PROJECT_DIR$/cmd/pipectl/main.go" />
     <redirect_input value="true" />

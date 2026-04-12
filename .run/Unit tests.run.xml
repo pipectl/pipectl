@@ -3,7 +3,7 @@
     <module name="pipectl" />
     <working_directory value="$PROJECT_DIR$" />
     <kind value="DIRECTORY" />
-    <package value="github.com/shanebell/pipectl" />
+    <package value="github.com/pipectl/pipectl" />
     <directory value="$PROJECT_DIR$" />
     <filePath value="$PROJECT_DIR$" />
     <framework value="gotest" />

@@ -3,8 +3,8 @@ package assert
 import (
 	"fmt"
 
-	"github.com/shanebell/pipectl/internal/engine"
-	"github.com/shanebell/pipectl/internal/engine/payload"
+	"github.com/pipectl/pipectl/internal/engine"
+	"github.com/pipectl/pipectl/internal/engine/payload"
 )
 
 type Step struct {

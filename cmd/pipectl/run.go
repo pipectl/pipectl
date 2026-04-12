@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/shanebell/pipectl/internal/pipeline"
+	"github.com/pipectl/pipectl/internal/pipeline"
 )
 
 var outputPath string

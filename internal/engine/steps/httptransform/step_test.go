@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shanebell/pipectl/internal/engine"
-	"github.com/shanebell/pipectl/internal/engine/payload"
+	"github.com/pipectl/pipectl/internal/engine"
+	"github.com/pipectl/pipectl/internal/engine/payload"
 )
 
 func TestExecuteWithBodyMethods(t *testing.T) {

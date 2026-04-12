@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/shanebell/pipectl/internal/pipeline"
+	"github.com/pipectl/pipectl/internal/pipeline"
 )
 
 var update = flag.Bool("update", false, "update golden files")

@@ -3,7 +3,7 @@ package engine
 import (
 	"fmt"
 
-	"github.com/shanebell/pipectl/internal/engine/payload"
+	"github.com/pipectl/pipectl/internal/engine/payload"
 )
 
 type ExecutableStep interface {

@@ -3,10 +3,10 @@ package pipeline
 import (
 	"io"
 
-	"github.com/shanebell/pipectl/internal/engine"
-	"github.com/shanebell/pipectl/internal/engine/payload"
-	"github.com/shanebell/pipectl/internal/pipeline/plan"
-	"github.com/shanebell/pipectl/internal/pipeline/spec"
+	"github.com/pipectl/pipectl/internal/engine"
+	"github.com/pipectl/pipectl/internal/engine/payload"
+	"github.com/pipectl/pipectl/internal/pipeline/plan"
+	"github.com/pipectl/pipectl/internal/pipeline/spec"
 )
 
 func Run(path string, input []byte, output io.Writer, verbose bool, dryRun bool) error {

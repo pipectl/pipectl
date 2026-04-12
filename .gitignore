@@ -1,3 +1,6 @@
 .idea
 /.gocache/
 /pipectl
+website/node_modules
+website/.vitepress/dist
+website/.vitepress/cache

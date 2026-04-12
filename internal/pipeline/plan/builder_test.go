@@ -3,15 +3,15 @@ package plan
 import (
 	"testing"
 
-	"github.com/shanebell/pipectl/internal/engine/steps/assert"
-	"github.com/shanebell/pipectl/internal/engine/steps/cast"
-	"github.com/shanebell/pipectl/internal/engine/steps/convert"
-	"github.com/shanebell/pipectl/internal/engine/steps/count"
-	"github.com/shanebell/pipectl/internal/engine/steps/default"
-	"github.com/shanebell/pipectl/internal/engine/steps/limit"
-	_log "github.com/shanebell/pipectl/internal/engine/steps/log"
-	"github.com/shanebell/pipectl/internal/engine/steps/rename"
-	"github.com/shanebell/pipectl/internal/pipeline/spec"
+	"github.com/pipectl/pipectl/internal/engine/steps/assert"
+	"github.com/pipectl/pipectl/internal/engine/steps/cast"
+	"github.com/pipectl/pipectl/internal/engine/steps/convert"
+	"github.com/pipectl/pipectl/internal/engine/steps/count"
+	"github.com/pipectl/pipectl/internal/engine/steps/default"
+	"github.com/pipectl/pipectl/internal/engine/steps/limit"
+	_log "github.com/pipectl/pipectl/internal/engine/steps/log"
+	"github.com/pipectl/pipectl/internal/engine/steps/rename"
+	"github.com/pipectl/pipectl/internal/pipeline/spec"
 )
 
 func TestBuildRenameStep(t *testing.T) {

@@ -3,8 +3,8 @@ package convert
 import (
 	"testing"
 
-	"github.com/shanebell/pipectl/internal/engine"
-	"github.com/shanebell/pipectl/internal/engine/payload"
+	"github.com/pipectl/pipectl/internal/engine"
+	"github.com/pipectl/pipectl/internal/engine/payload"
 )
 
 func TestName(t *testing.T) {
