@@ -13,6 +13,7 @@ Add new options to an existing step without breaking existing pipelines.
 5. Add tests for backward compatibility and new behavior.
 6. Update the step's pipeline in `internal/pipeline/testdata/pipelines/step/<step>.yaml` to exercise the new option, and update the corresponding golden file in `internal/pipeline/testdata/golden/step/<step>.<ext>`.
 7. Update `docs.md`: add the new option to the step's Options table, update Notes if behavior is non-obvious, and add an example if a new operator or strategy is introduced.
+8. Update `website/docs/steps/<step>.md`: reflect the same changes — options table, notes, and examples.
 
 ## Compatibility Rules
 
@@ -40,3 +41,4 @@ Add new options to an existing step without breaking existing pipelines.
 - `go test ./...` passes
 - testdata pipeline and golden file reflect the new option
 - `docs.md` reflects the new option, its accepted values, default, and any edge-case behavior
+- `website/docs/steps/<step>.md` reflects the same changes
