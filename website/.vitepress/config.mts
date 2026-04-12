@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'pipectl',
   description: 'Run YAML-defined data pipelines from the command line.',
-  base: '/',
+  base: '/pipectl/',
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
