@@ -30,7 +30,10 @@ jobs:
           cache-dependency-path: website/package-lock.json
       - run: npm ci
       - run: npm run docs:build
-      - run: ls -la .vitepress/dist
+      - name: Find dist
+        run: |
+          echo "cwd: $(pwd)"
+          find . -type d -name "dist"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ github.workspace }}/website/.vitepress/dist
