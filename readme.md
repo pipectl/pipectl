@@ -58,8 +58,8 @@ pipectl run customer-intake.yaml < customers.csv
 
 ## Features
 
-- **16 built-in steps** — filter, normalize, redact, cast, sort, dedupe, validate, convert, and more
-- **Three payload formats** — JSON, JSONL, and CSV with automatic conversion between them
+- **Built-in steps** — filter, normalize, redact, cast, sort, dedupe, validate, convert, and more
+- **Multiple payload formats** — JSON, JSONL, and CSV with automatic conversion between them
 - **Composable pipelines** — chain any number of steps; output of one feeds the next
 - **JSON Schema validation** — validate records against a schema at any point in the pipeline
 - **HTTP transforms** — POST/PUT your payload to an HTTP endpoint and continue with the response
