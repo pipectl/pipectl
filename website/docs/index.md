@@ -40,7 +40,7 @@ features:
 
 ## Quick example
 
-```yaml
+```yaml [pipeline]
 # customer-intake.yaml
 id: customer-intake
 input:
@@ -58,16 +58,16 @@ steps:
       fields: [credit_card]
       strategy: mask
   - select:
-      fields: [first_name, last_name, email, plan]
+      fields: [first_name, last_name, email, plan, credit_card]
 output:
   format: jsonl
 ```
 
-```bash
+```bash [command]
 pipectl run customer-intake.yaml < customers.csv
 ```
 
-```jsonl
-{"first_name":"Alice","last_name":"Smith","email":"alice@example.com","plan":"pro"}
-{"first_name":"Bob","last_name":"Jones","email":"bob@example.com","plan":"free"}
+```jsonl [output]
+{"first_name":"Alice","last_name":"Smith","email":"alice@example.com","plan":"pro","credit_card":"****************"}
+{"first_name":"Bob","last_name":"Jones","email":"bob@example.com","plan":"free","credit_card":"****************"}
 ```
