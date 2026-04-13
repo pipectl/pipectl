@@ -23,6 +23,7 @@ var runCommand = &cobra.Command{
 		path := args[0]
 
 		var input []byte
+		var outputFile *os.File
 		output := io.Writer(os.Stdout)
 
 		stat, err := os.Stdin.Stat()
@@ -48,16 +49,21 @@ var runCommand = &cobra.Command{
 		}
 
 		if outputPath != "" {
-			file, err := os.Create(outputPath)
+			outputFile, err = os.Create(outputPath)
 			if err != nil {
 				return fmt.Errorf("open output file: %w", err)
 			}
-			defer file.Close()
-			output = file
+			output = outputFile
 		}
 
 		if err := pipeline.Run(path, input, output, verbose, dryRun); err != nil {
 			return fmt.Errorf("pipeline failed: %w", err)
+		}
+
+		if outputFile != nil {
+			if err := outputFile.Close(); err != nil {
+				return fmt.Errorf("close output file: %w", err)
+			}
 		}
 
 		return nil
