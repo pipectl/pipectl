@@ -10,6 +10,7 @@ import (
 	"github.com/pipectl/pipectl/internal/pipeline"
 )
 
+var inputPath string
 var outputPath string
 var verbose bool
 var dryRun bool
@@ -28,9 +29,17 @@ var runCommand = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		stdinPiped := (stat.Mode() & os.ModeCharDevice) == 0
 
-		// If stdin is NOT a terminal, read from it
-		if (stat.Mode() & os.ModeCharDevice) == 0 {
+		if inputPath != "" {
+			if stdinPiped {
+				return fmt.Errorf("cannot use --input flag and piped stdin together")
+			}
+			input, err = os.ReadFile(inputPath)
+			if err != nil {
+				return fmt.Errorf("open input file: %w", err)
+			}
+		} else if stdinPiped {
 			// TODO implement some kind of limit on data size
 			input, err = io.ReadAll(os.Stdin)
 			if err != nil {
@@ -56,6 +65,7 @@ var runCommand = &cobra.Command{
 }
 
 func init() {
+	runCommand.Flags().StringVarP(&inputPath, "input", "i", "", "Read pipeline input from file")
 	runCommand.Flags().StringVarP(&outputPath, "output", "o", "", "Write pipeline output to file")
 	runCommand.Flags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
 	runCommand.Flags().BoolVar(&dryRun, "dry-run", false, "Validate and print the pipeline plan without executing")

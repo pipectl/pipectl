@@ -83,9 +83,10 @@ go build ./cmd/pipectl
 ## Usage
 
 ```bash
-pipectl run <pipeline.yaml> [flags] < input
+pipectl run <pipeline.yaml> [flags]
 
 Flags:
+  -i, --input <path>    Read pipeline input from file (alternative to stdin)
   -o, --output <path>   Write output to file instead of stdout
   -v, --verbose         Enable verbose logging
       --dry-run         Validate pipeline and print plan without executing

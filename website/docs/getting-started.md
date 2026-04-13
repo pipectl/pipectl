@@ -53,6 +53,12 @@ Run it:
 pipectl run greet.yaml < people.json
 ```
 
+Or use `--input` instead of stdin redirection:
+
+```bash
+pipectl run greet.yaml --input people.json
+```
+
 Output:
 
 ```json

@@ -2,7 +2,7 @@
 
 ## `pipectl run`
 
-Run a pipeline against data from `stdin`.
+Run a pipeline against input data.
 
 ```bash
 pipectl run <pipeline.yaml> [flags]
@@ -18,9 +18,10 @@ pipectl run <pipeline.yaml> [flags]
 
 | Flag | Short | Description |
 |------|-------|-------------|
+| `--input <path>` | `-i` | Read pipeline input from a file. Alternative to piping via stdin. Cannot be combined with piped stdin. |
 | `--output <path>` | `-o` | Write pipeline output to a file instead of stdout. Step logs are always written to stdout regardless of this flag. |
 | `--verbose` | `-v` | Enable verbose logging. Prints per-step debug output — record counts, field operations, sort results — to stdout. |
-| `--dry-run` | | Validate the pipeline config and print the ordered step list without executing any steps or reading stdin. |
+| `--dry-run` | | Validate the pipeline config and print the ordered step list without executing any steps or reading input. |
 
 ### Examples
 
@@ -28,6 +29,12 @@ Run a pipeline with stdin:
 
 ```bash
 pipectl run pipeline.yaml < input.json
+```
+
+Run a pipeline with an input file:
+
+```bash
+pipectl run pipeline.yaml --input input.json
 ```
 
 Write output to a file:
@@ -51,5 +58,6 @@ pipectl run pipeline.yaml --dry-run
 ### Notes
 
 - `run` requires exactly one argument: the pipeline file path.
-- Input is always read from `stdin`. If nothing is piped in, the runtime executes but most pipelines will fail when the input format is parsed.
+- Input can be provided via `--input <file>` or piped through stdin. If neither is provided, the runtime executes but most pipelines will fail when the input format is parsed.
+- `--input` and piped stdin cannot be used together.
 - Step logs (`log`, `count`) are written to `stdout`. Only the final payload output is affected by `-o`.
