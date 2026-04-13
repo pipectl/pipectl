@@ -128,7 +128,7 @@ The `examples/` directory contains ready-to-run pipelines with sample data.
 
 ## Contributing
 
-Contributions are welcome. See [CONTRIBUTING.md](website/docs/contributing.md) or the [contributing guide](https://pipectl.github.io/pipectl/contributing) for architecture details and a step-by-step guide to adding new steps.
+The project is still establishing its foundation and is not actively seeking contributions at this stage. Once things stabilise, contributions will be welcome — check back then or watch the repo for updates.
 
 ## License
 

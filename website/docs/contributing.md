@@ -1,6 +1,6 @@
 # Contributing
 
-Contributions are welcome — bug reports, new steps, documentation improvements, or fixes.
+> **Note:** The project is still establishing its foundation and is not actively seeking contributions at this stage. Once things stabilise, contributions will be welcome. This guide is kept here for reference in the meantime.
 
 ## Project layout
 
