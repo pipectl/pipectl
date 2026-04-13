@@ -1,0 +1,7 @@
+:root {
+  --vp-nav-logo-height: 36px;
+}
+
+.VPNavBarTitle .logo {
+  height: var(--vp-nav-logo-height);
+}
