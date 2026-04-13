@@ -4,7 +4,7 @@ layout: home
 hero:
   name: pipectl
   text: YAML-defined data pipelines
-  tagline: Read from stdin. Transform through ordered steps. Write to stdout.
+  tagline: Read from files or stdin. Transform through ordered steps. Write to files or stdout.
   image:
     light: /logo-light.svg
     dark: /logo-dark.svg
