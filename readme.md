@@ -122,13 +122,13 @@ Flags:
 
 ## Documentation
 
-Full documentation, step reference, and example pipelines are at **[pipectl.github.io](https://pipectl.github.io)**.
+Full documentation, step reference, and example pipelines are at **[pipectl.github.io/pipectl](https://pipectl.github.io/pipectl/)**.
 
 The `examples/` directory contains ready-to-run pipelines with sample data.
 
 ## Contributing
 
-Contributions are welcome. See [CONTRIBUTING.md](website/docs/contributing.md) or the [contributing guide](https://pipectl.github.io/contributing) for architecture details and a step-by-step guide to adding new steps.
+Contributions are welcome. See [CONTRIBUTING.md](website/docs/contributing.md) or the [contributing guide](https://pipectl.github.io/pipectl/contributing) for architecture details and a step-by-step guide to adding new steps.
 
 ## License
 
