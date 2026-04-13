@@ -82,7 +82,7 @@ export default defineConfig({
 
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © pipectl contributors',
+      copyright: 'Copyright © Shane Bell',
     },
 
     search: {
