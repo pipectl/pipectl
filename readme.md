@@ -4,7 +4,9 @@
 
 <p align="center">
   Run YAML-defined data pipelines from the command line.<br/>
-  Read from <code>stdin</code>, transform through ordered steps, write to <code>stdout</code>.
+  Read from files or <code>stdin</code>.<br/>
+  Transform through ordered steps.<br/>
+  Write to files or <code>stdout</code>.
 </p>
 
 <p align="center">
