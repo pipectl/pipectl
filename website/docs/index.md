@@ -22,10 +22,10 @@ features:
     title: Composable
     details: Chain any number of steps in any order. The output of each step is the input to the next.
   - icon: 📄
-    title: Three payload formats
+    title: Multiple payload formats
     details: JSON, JSONL, and CSV — with automatic conversion between them at any point in the pipeline.
   - icon: ⚡
-    title: 16 built-in steps
+    title: Built-in steps
     details: Filter, normalize, redact, cast, sort, dedupe, validate, convert, make HTTP calls, and more.
   - icon: 🔒
     title: Built-in redaction
