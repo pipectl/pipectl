@@ -1,0 +1,83 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: pipectl
+    main: ./cmd/pipectl
+    binary: pipectl
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+
+archives:
+  - id: pipectl
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - README.md
+      - LICENSE
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - Merge pull request
+      - Merge branch
+
+nfpms:
+  - id: pipectl-linux-packages
+    package_name: pipectl
+    vendor: pipectl
+    homepage: https://github.com/pipectl/pipectl
+    maintainer: Shane Bell
+    description: Run YAML-defined data pipelines from the command line.
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+    file_name_template: "{{ .PackageName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+brews:
+  - repository:
+      owner: pipectl
+      name: homebrew-pipectl
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Formula
+    homepage: https://github.com/pipectl/pipectl
+    description: Run YAML-defined data pipelines from the command line.
+    license: MIT
+    test: |
+      system "#{bin}/pipectl", "--help"
+    install: |
+      bin.install "pipectl"
+
+scoops:
+  - repository:
+      owner: pipectl
+      name: scoop-pipectl
+      token: "{{ .Env.SCOOP_BUCKET_TOKEN }}"
+    homepage: https://github.com/pipectl/pipectl
+    description: Run YAML-defined data pipelines from the command line.
+    license: MIT

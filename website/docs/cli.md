@@ -1,5 +1,18 @@
 # CLI Reference
 
+## Global flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--version` | | Print the version and exit. |
+
+```bash
+pipectl --version
+# pipectl version v1.2.0
+```
+
+---
+
 ## `pipectl run`
 
 Run a pipeline against input data.

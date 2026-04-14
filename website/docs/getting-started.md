@@ -2,18 +2,41 @@
 
 ## Installation
 
-Install the latest release with `go install`:
+### macOS (Homebrew)
+
+```bash
+brew install pipectl/pipectl/pipectl
+```
+
+### Windows
+
+**Direct download:** grab `pipectl_<version>_windows_amd64.zip` from the [Releases page](https://github.com/pipectl/pipectl/releases/latest), extract, and add the folder to your `PATH`.
+
+**Scoop** (if you have Scoop installed):
+
+```powershell
+scoop bucket add pipectl https://github.com/pipectl/scoop-pipectl
+scoop install pipectl
+```
+
+### Linux
+
+Download a `.deb` or `.rpm` from the [Releases page](https://github.com/pipectl/pipectl/releases/latest), or use the `.tar.gz` archive on any distribution.
+
+**Debian/Ubuntu:**
+```bash
+sudo dpkg -i pipectl_<version>_linux_amd64.deb
+```
+
+**Fedora/RHEL:**
+```bash
+sudo rpm -i pipectl_<version>_linux_amd64.rpm
+```
+
+### Go install (from source)
 
 ```bash
 go install github.com/pipectl/pipectl/cmd/pipectl@latest
-```
-
-Or build from source:
-
-```bash
-git clone https://github.com/pipectl/pipectl.git
-cd pipectl
-go build ./cmd/pipectl
 ```
 
 Verify the installation:

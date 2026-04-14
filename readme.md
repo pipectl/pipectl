@@ -70,16 +70,48 @@ pipectl run customer-intake.yaml < customers.csv
 
 ## Install
 
+### macOS (Homebrew)
+
 ```bash
-go install github.com/pipectl/pipectl/cmd/pipectl@latest
+brew install pipectl/pipectl/pipectl
 ```
 
-Or build from source:
+### Windows
+
+**Direct download** (no package manager required): download `pipectl_<version>_windows_amd64.zip` from the [Releases page](https://github.com/pipectl/pipectl/releases/latest), extract, and add the folder to your `PATH`.
+
+**Scoop** (for developers who have Scoop installed):
+
+```powershell
+scoop bucket add pipectl https://github.com/pipectl/scoop-pipectl
+scoop install pipectl
+```
+
+### Linux
+
+Download a `.deb` or `.rpm` from the [Releases page](https://github.com/pipectl/pipectl/releases/latest), or use the `.tar.gz` archive on any Linux distribution.
+
+**Debian/Ubuntu:**
+```bash
+sudo dpkg -i pipectl_<version>_linux_amd64.deb
+```
+
+**Fedora/RHEL:**
+```bash
+sudo rpm -i pipectl_<version>_linux_amd64.rpm
+```
+
+### Direct download
+
+Pre-built binaries for all platforms are on the [Releases page](https://github.com/pipectl/pipectl/releases/latest). Verify with the included `checksums.txt`:
+```bash
+sha256sum --check checksums.txt
+```
+
+### Go install (from source)
 
 ```bash
-git clone https://github.com/pipectl/pipectl.git
-cd pipectl
-go build ./cmd/pipectl
+go install github.com/pipectl/pipectl/cmd/pipectl@latest
 ```
 
 ## Usage
