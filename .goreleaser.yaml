@@ -68,7 +68,7 @@ homebrew_casks:
       - pipectl
     hooks:
       post:
-        install: "system_command '/usr/bin/xattr', args: ['-dr', 'com.apple.quarantine', '#{staged_path}/pipectl']"
+        install: 'system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/pipectl"]'
 
 scoops:
   - repository:
