@@ -73,7 +73,7 @@ pipectl run customer-intake.yaml < customers.csv
 ### macOS (Homebrew)
 
 ```bash
-brew install pipectl/pipectl/pipectl
+brew install --cask pipectl/pipectl/pipectl
 ```
 
 ### Windows
