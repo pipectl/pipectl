@@ -11,20 +11,12 @@ import (
 )
 
 type Step struct {
+	payload.JSONRecordSupport
 	Schema string
 }
 
 func (s *Step) Name() string {
 	return "validate-json"
-}
-
-func (s *Step) Supports(p payload.Payload) bool {
-	switch p.(type) {
-	case payload.JSONRecordPayload:
-		return true
-	default:
-		return false
-	}
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {

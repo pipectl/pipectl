@@ -68,20 +68,12 @@ func (c *Condition) evaluate(record map[string]interface{}) (bool, error) {
 }
 
 type Step struct {
+	payload.JSONCSVSupport
 	Condition *Condition
 }
 
 func (s *Step) Name() string {
 	return "filter"
-}
-
-func (s *Step) Supports(p payload.Payload) bool {
-	switch p.(type) {
-	case *payload.CSV, payload.JSONRecordPayload:
-		return true
-	default:
-		return false
-	}
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {

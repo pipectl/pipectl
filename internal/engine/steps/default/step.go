@@ -8,20 +8,12 @@ import (
 )
 
 type Step struct {
+	payload.JSONCSVSupport
 	Fields map[string]interface{}
 }
 
 func (s *Step) Name() string {
 	return "default"
-}
-
-func (s *Step) Supports(p payload.Payload) bool {
-	switch p.(type) {
-	case payload.JSONRecordPayload, *payload.CSV:
-		return true
-	default:
-		return false
-	}
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {

@@ -17,6 +17,42 @@ type Payload interface {
 	RecordCount() int
 }
 
+// JSONCSVSupport can be embedded in steps that operate on JSON and CSV payloads.
+type JSONCSVSupport struct{}
+
+func (JSONCSVSupport) Supports(p Payload) bool {
+	switch p.(type) {
+	case JSONRecordPayload, *CSV:
+		return true
+	default:
+		return false
+	}
+}
+
+// AllFormatsSupport can be embedded in steps that operate on all payload formats.
+type AllFormatsSupport struct{}
+
+func (AllFormatsSupport) Supports(p Payload) bool {
+	switch p.(type) {
+	case *JSON, *JSONL, *CSV:
+		return true
+	default:
+		return false
+	}
+}
+
+// JSONRecordSupport can be embedded in steps that operate on JSON record payloads only.
+type JSONRecordSupport struct{}
+
+func (JSONRecordSupport) Supports(p Payload) bool {
+	switch p.(type) {
+	case JSONRecordPayload:
+		return true
+	default:
+		return false
+	}
+}
+
 func Read(input []byte, format string) (Payload, error) {
 	switch format {
 

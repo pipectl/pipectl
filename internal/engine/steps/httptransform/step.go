@@ -18,6 +18,7 @@ import (
 )
 
 type Step struct {
+	payload.JSONRecordSupport
 	URL          string
 	Method       string
 	Proxy        string
@@ -33,15 +34,6 @@ const (
 
 func (s *Step) Name() string {
 	return "http-transform"
-}
-
-func (s *Step) Supports(p payload.Payload) bool {
-	switch p.(type) {
-	case payload.JSONRecordPayload:
-		return true
-	default:
-		return false
-	}
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {

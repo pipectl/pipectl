@@ -6,20 +6,12 @@ import (
 )
 
 type Step struct {
+	payload.JSONCSVSupport
 	Message string
 }
 
 func (s *Step) Name() string {
 	return "count"
-}
-
-func (s *Step) Supports(p payload.Payload) bool {
-	switch p.(type) {
-	case payload.JSONRecordPayload, *payload.CSV:
-		return true
-	default:
-		return false
-	}
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {

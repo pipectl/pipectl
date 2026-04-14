@@ -24,6 +24,7 @@ type Field struct {
 }
 
 type Step struct {
+	payload.JSONCSVSupport
 	Fields map[string]Field
 }
 
@@ -34,15 +35,6 @@ type pathSegment struct {
 
 func (s *Step) Name() string {
 	return "cast"
-}
-
-func (s *Step) Supports(p payload.Payload) bool {
-	switch p.(type) {
-	case payload.JSONRecordPayload, *payload.CSV:
-		return true
-	default:
-		return false
-	}
 }
 
 func (s *Step) Execute(ctx *engine.ExecutionContext) error {

@@ -9,21 +9,13 @@ import (
 )
 
 type Step struct {
+	payload.JSONCSVSupport
 	Fields        []string
 	CaseSensitive bool
 }
 
 func (s *Step) Name() string {
 	return "dedupe"
-}
-
-func (s *Step) Supports(p payload.Payload) bool {
-	switch p.(type) {
-	case *payload.CSV, payload.JSONRecordPayload:
-		return true
-	default:
-		return false
-	}
 }
 
 func (s *Step) Execute(ctx *engine.ExecutionContext) error {

@@ -6,20 +6,12 @@ import (
 )
 
 type Step struct {
+	payload.AllFormatsSupport
 	Format string
 }
 
 func (s *Step) Name() string {
 	return "convert"
-}
-
-func (s *Step) Supports(p payload.Payload) bool {
-	switch p.(type) {
-	case *payload.JSON, *payload.JSONL, *payload.CSV:
-		return true
-	default:
-		return false
-	}
 }
 
 func (s *Step) Execute(ctx *engine.ExecutionContext) error {

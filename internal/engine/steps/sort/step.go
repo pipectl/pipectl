@@ -16,21 +16,13 @@ const (
 )
 
 type Step struct {
+	payload.AllFormatsSupport
 	Field     string
 	Direction string
 }
 
 func (s *Step) Name() string {
 	return "sort"
-}
-
-func (s *Step) Supports(p payload.Payload) bool {
-	switch p.(type) {
-	case *payload.JSON, *payload.JSONL, *payload.CSV:
-		return true
-	default:
-		return false
-	}
 }
 
 func (s *Step) Execute(ctx *engine.ExecutionContext) error {

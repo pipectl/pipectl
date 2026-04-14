@@ -10,20 +10,12 @@ import (
 )
 
 type Step struct {
+	payload.JSONCSVSupport
 	Fields []string
 }
 
 func (s *Step) Name() string {
 	return "select"
-}
-
-func (s *Step) Supports(p payload.Payload) bool {
-	switch p.(type) {
-	case *payload.CSV, payload.JSONRecordPayload:
-		return true
-	default:
-		return false
-	}
 }
 
 func (s *Step) Execute(context *engine.ExecutionContext) error {
