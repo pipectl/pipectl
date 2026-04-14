@@ -40,8 +40,14 @@ features:
 
 ## Quick example
 
-```yaml [pipeline]
-# customer-intake.yaml
+```csv [Input: customers.csv]
+first_name,last_name,email,country,plan,credit_card
+alice,smith,Alice@Example.com,AU,pro,4111111111111111
+BOB,JONES,BOB@EXAMPLE.COM,AU,free,5500005555555559
+carol,white,carol@example.com,US,pro,3714496353984312
+```
+
+```yaml [Pipeline YAML: customer-intake.yaml]
 id: customer-intake
 input:
   format: csv
@@ -63,11 +69,11 @@ output:
   format: jsonl
 ```
 
-```bash [command]
+```bash [Command]
 pipectl run customer-intake.yaml < customers.csv
 ```
 
-```jsonl [output]
+```jsonl [Output]
 {"first_name":"Alice","last_name":"Smith","email":"alice@example.com","plan":"pro","credit_card":"****************"}
 {"first_name":"Bob","last_name":"Jones","email":"bob@example.com","plan":"free","credit_card":"****************"}
 ```
