@@ -40,14 +40,18 @@ features:
 
 ## Quick example
 
-```csv [Input: customers.csv]
+**Input: `customers.csv`**
+
+```csv
 first_name,last_name,email,country,plan,credit_card
 alice,smith,Alice@Example.com,AU,pro,4111111111111111
 BOB,JONES,BOB@EXAMPLE.COM,AU,free,5500005555555559
 carol,white,carol@example.com,US,pro,3714496353984312
 ```
 
-```yaml [Pipeline YAML: customer-intake.yaml]
+**Pipeline YAML: `customer-intake.yaml`**
+
+```yaml
 id: customer-intake
 input:
   format: csv
@@ -64,16 +68,20 @@ steps:
       fields: [credit_card]
       strategy: mask
   - select:
-      fields: [first_name, last_name, email, plan, credit_card]
+      fields: [first_name, last_name, email, credit_card]
 output:
   format: jsonl
 ```
 
-```bash [Command]
+**Command**
+
+```bash
 pipectl run customer-intake.yaml < customers.csv
 ```
 
-```jsonl [Output]
-{"first_name":"Alice","last_name":"Smith","email":"alice@example.com","plan":"pro","credit_card":"****************"}
-{"first_name":"Bob","last_name":"Jones","email":"bob@example.com","plan":"free","credit_card":"****************"}
+**Output**
+
+```jsonl
+{"first_name":"Alice","last_name":"Smith","email":"alice@example.com","credit_card":"****************"}
+{"first_name":"Bob","last_name":"Jones","email":"bob@example.com","credit_card":"****************"}
 ```
