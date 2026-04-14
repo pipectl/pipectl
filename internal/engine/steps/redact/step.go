@@ -36,17 +36,14 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 	}
 	context.Logger.Debug("  fields: [%s] (%s)", strings.Join(s.Fields, ", "), strategy)
 
-	jsonPayload, jsonOk := context.Payload.(payload.JSONRecordPayload)
-	if jsonOk {
-		return s.redactJson(jsonPayload)
+	switch p := context.Payload.(type) {
+	case payload.JSONRecordPayload:
+		return s.redactJson(p)
+	case *payload.CSV:
+		return s.redactCsv(p)
+	default:
+		return fmt.Errorf("unsupported payload type %T", context.Payload)
 	}
-
-	csvPayload, csvOk := context.Payload.(*payload.CSV)
-	if csvOk {
-		return s.redactCsv(csvPayload)
-	}
-
-	return fmt.Errorf("unsupported payload type %T", context.Payload)
 }
 
 func (s *Step) redactCsv(csvPayload *payload.CSV) error {

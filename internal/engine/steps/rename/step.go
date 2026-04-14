@@ -29,17 +29,14 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 		context.Logger.Debug("  %s → %s", from, to)
 	}
 
-	jsonPayload, jsonOk := context.Payload.(payload.JSONRecordPayload)
-	if jsonOk {
-		return s.renameJSON(jsonPayload)
+	switch p := context.Payload.(type) {
+	case payload.JSONRecordPayload:
+		return s.renameJSON(p)
+	case *payload.CSV:
+		return s.renameCSV(p)
+	default:
+		return fmt.Errorf("unsupported payload type %T", context.Payload)
 	}
-
-	csvPayload, csvOk := context.Payload.(*payload.CSV)
-	if csvOk {
-		return s.renameCSV(csvPayload)
-	}
-
-	return fmt.Errorf("unsupported payload type %T", context.Payload)
 }
 
 func (s *Step) renameJSON(jsonPayload payload.JSONRecordPayload) error {
@@ -72,10 +69,7 @@ func (s *Step) renameCSV(csvPayload *payload.CSV) error {
 	}
 
 	headerRow := csvPayload.Rows[0]
-	headerIndex := make(map[string]int, len(headerRow))
-	for i, h := range headerRow {
-		headerIndex[h] = i
-	}
+	headerIndex := payload.HeaderIndex(headerRow)
 
 	for from, to := range s.Fields {
 		if _, exists := headerIndex[from]; !exists {

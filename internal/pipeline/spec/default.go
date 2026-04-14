@@ -1,10 +1,6 @@
 package spec
 
-import (
-	"fmt"
-
-	"github.com/goccy/go-yaml"
-)
+import "fmt"
 
 type DefaultStep struct {
 	Fields map[string]interface{} `yaml:"fields"`
@@ -16,16 +12,6 @@ func (s *DefaultStep) StepType() string {
 
 func (s *DefaultStep) String() string {
 	return fmt.Sprintf("[%s] fields: %v", s.StepType(), s.Fields)
-}
-
-func (s *DefaultStep) UnmarshalYAML(b []byte) error {
-	type rawDefaultStep DefaultStep
-	var raw rawDefaultStep
-	if err := yaml.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	*s = DefaultStep(raw)
-	return s.Validate()
 }
 
 func (s *DefaultStep) Validate() error {

@@ -1,10 +1,6 @@
 package spec
 
-import (
-	"fmt"
-
-	"github.com/goccy/go-yaml"
-)
+import "fmt"
 
 type RenameStep struct {
 	Fields map[string]string `yaml:"fields"`
@@ -16,16 +12,6 @@ func (s *RenameStep) StepType() string {
 
 func (s *RenameStep) String() string {
 	return fmt.Sprintf("[%s] fields: %v", s.StepType(), s.Fields)
-}
-
-func (s *RenameStep) UnmarshalYAML(b []byte) error {
-	type rawRenameStep RenameStep
-	var raw rawRenameStep
-	if err := yaml.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	*s = RenameStep(raw)
-	return s.Validate()
 }
 
 func (s *RenameStep) Validate() error {

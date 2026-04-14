@@ -137,12 +137,7 @@ func (s *Step) filterCsv(csvPayload *payload.CSV, logger *engine.Logger) error {
 	excluded := 0
 
 	for _, row := range csvPayload.Rows[1:] {
-		record := make(map[string]interface{}, len(headerRow))
-		for i, header := range headerRow {
-			if i < len(row) {
-				record[header] = row[i]
-			}
-		}
+		record := payload.CSVRowToRecord(headerRow, row)
 		matched, err := s.Condition.evaluate(record)
 		if err != nil {
 			return err

@@ -3,8 +3,6 @@ package spec
 import (
 	"fmt"
 	"strings"
-
-	"github.com/goccy/go-yaml"
 )
 
 var validNormalizeStrategies = []string{"lower", "upper", "trim", "trim-left", "trim-right", "collapse-spaces", "capitalize"}
@@ -19,16 +17,6 @@ func (s *NormalizeStep) StepType() string {
 
 func (s *NormalizeStep) String() string {
 	return fmt.Sprintf("[%s] fields: %v", s.StepType(), s.Fields)
-}
-
-func (s *NormalizeStep) UnmarshalYAML(b []byte) error {
-	type rawNormalizeStep NormalizeStep
-	var raw rawNormalizeStep
-	if err := yaml.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	*s = NormalizeStep(raw)
-	return s.Validate()
 }
 
 func (s *NormalizeStep) Validate() error {

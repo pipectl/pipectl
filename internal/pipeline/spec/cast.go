@@ -3,8 +3,6 @@ package spec
 import (
 	"fmt"
 	"strings"
-
-	"github.com/goccy/go-yaml"
 )
 
 type CastField struct {
@@ -24,16 +22,6 @@ func (s *CastStep) StepType() string {
 
 func (s *CastStep) String() string {
 	return fmt.Sprintf("[%s] fields: %v", s.StepType(), s.Fields)
-}
-
-func (s *CastStep) UnmarshalYAML(b []byte) error {
-	type rawCastStep CastStep
-	var raw rawCastStep
-	if err := yaml.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	*s = CastStep(raw)
-	return s.Validate()
 }
 
 func (s *CastStep) Validate() error {

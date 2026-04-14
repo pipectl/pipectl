@@ -50,15 +50,14 @@ func (s *Step) Execute(ctx *engine.ExecutionContext) error {
 		ctx.Logger.Debug("  %s → %s", fieldPath, config.Type)
 	}
 
-	if jsonPayload, ok := ctx.Payload.(payload.JSONRecordPayload); ok {
-		return s.executeJSON(jsonPayload)
+	switch p := ctx.Payload.(type) {
+	case payload.JSONRecordPayload:
+		return s.executeJSON(p)
+	case *payload.CSV:
+		return s.executeCSV(p)
+	default:
+		return fmt.Errorf("unsupported payload type %T", ctx.Payload)
 	}
-
-	if csvPayload, ok := ctx.Payload.(*payload.CSV); ok {
-		return s.executeCSV(csvPayload)
-	}
-
-	return fmt.Errorf("unsupported payload type %T", ctx.Payload)
 }
 
 func (s *Step) executeJSON(jsonPayload payload.JSONRecordPayload) error {
@@ -93,10 +92,7 @@ func (s *Step) executeCSV(csvPayload *payload.CSV) error {
 	}
 
 	headerRow := csvPayload.Rows[0]
-	colIndex := make(map[string]int, len(headerRow))
-	for i, h := range headerRow {
-		colIndex[h] = i
-	}
+	colIndex := payload.HeaderIndex(headerRow)
 
 	for field := range s.Fields {
 		if _, ok := colIndex[field]; !ok {

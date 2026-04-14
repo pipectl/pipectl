@@ -3,8 +3,6 @@ package spec
 import (
 	"fmt"
 	"strings"
-
-	"github.com/goccy/go-yaml"
 )
 
 type ValidateJSONStep struct {
@@ -17,16 +15,6 @@ func (s *ValidateJSONStep) StepType() string {
 
 func (s *ValidateJSONStep) String() string {
 	return fmt.Sprintf("[%s] schema: %v", s.StepType(), s.Schema)
-}
-
-func (s *ValidateJSONStep) UnmarshalYAML(b []byte) error {
-	type rawValidateJSONStep ValidateJSONStep
-	var raw rawValidateJSONStep
-	if err := yaml.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	*s = ValidateJSONStep(raw)
-	return s.Validate()
 }
 
 func (s *ValidateJSONStep) Validate() error {

@@ -1175,3 +1175,49 @@ func TestStepWrapperUnmarshalHTTPTransformStepValidation(t *testing.T) {
 		})
 	}
 }
+
+func TestStepWrapperRejectsUnknownFields(t *testing.T) {
+	tests := []struct {
+		name string
+		raw  string
+	}{
+		{
+			name: "rename with unknown field",
+			raw:  "rename:\n  fields: {a: b}\n  unknown_key: x\n",
+		},
+		{
+			name: "select with unknown field",
+			raw:  "select:\n  fields: [a]\n  unknown_key: x\n",
+		},
+		{
+			name: "limit with unknown field",
+			raw:  "limit:\n  count: 10\n  unknown_key: x\n",
+		},
+		{
+			name: "sort with unknown field",
+			raw:  "sort:\n  field: name\n  unknown_key: x\n",
+		},
+		{
+			name: "convert with unknown field",
+			raw:  "convert:\n  format: json\n  unknown_key: x\n",
+		},
+		{
+			name: "redact with unknown field",
+			raw:  "redact:\n  fields: [password]\n  unknown_key: x\n",
+		},
+		{
+			name: "normalize with unknown field",
+			raw:  "normalize:\n  fields:\n    email: lower\n  unknown_key: x\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			err := yaml.Unmarshal([]byte(tt.raw), &step)
+			if err == nil {
+				t.Fatalf("expected unmarshal error for unknown field in %s", tt.name)
+			}
+		})
+	}
+}

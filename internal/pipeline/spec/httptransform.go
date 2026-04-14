@@ -3,8 +3,6 @@ package spec
 import (
 	"fmt"
 	"strings"
-
-	"github.com/goccy/go-yaml"
 )
 
 var validHTTPMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
@@ -26,18 +24,9 @@ func (s *HTTPTransformStep) String() string {
 	return fmt.Sprintf("[%s]: %v %v proxy=%v headers=%v timeout=%v expect-format=%v", s.StepType(), s.URL, s.Method, s.Proxy, s.Headers, s.Timeout, s.ExpectFormat)
 }
 
-func (s *HTTPTransformStep) UnmarshalYAML(b []byte) error {
-	type rawHTTPTransformStep HTTPTransformStep
-	var raw rawHTTPTransformStep
-	if err := yaml.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	*s = HTTPTransformStep(raw)
-	s.Method = strings.ToUpper(strings.TrimSpace(s.Method))
-	return s.Validate()
-}
-
 func (s *HTTPTransformStep) Validate() error {
+	s.Method = strings.ToUpper(strings.TrimSpace(s.Method))
+
 	if strings.TrimSpace(s.URL) == "" {
 		return fmt.Errorf("http-transform url is required")
 	}

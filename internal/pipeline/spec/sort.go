@@ -1,10 +1,6 @@
 package spec
 
-import (
-	"fmt"
-
-	"github.com/goccy/go-yaml"
-)
+import "fmt"
 
 type SortStep struct {
 	Field     string `yaml:"field"`
@@ -19,22 +15,13 @@ func (s *SortStep) String() string {
 	return fmt.Sprintf("[%s] field: %v direction: %v", s.StepType(), s.Field, s.Direction)
 }
 
-func (s *SortStep) UnmarshalYAML(b []byte) error {
-	type rawSortStep SortStep
-	var raw rawSortStep
-	if err := yaml.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	*s = SortStep(raw)
-	if s.Direction == "" {
-		s.Direction = "asc"
-	}
-	return s.Validate()
-}
-
 func (s *SortStep) Validate() error {
 	if s.Field == "" {
 		return fmt.Errorf("sort field is required")
+	}
+
+	if s.Direction == "" {
+		s.Direction = "asc"
 	}
 
 	if s.Direction != "asc" && s.Direction != "desc" {

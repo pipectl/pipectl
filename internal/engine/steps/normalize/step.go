@@ -30,17 +30,14 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 		context.Logger.Debug("  %s: %s", field, strategy)
 	}
 
-	jsonPayload, jsonOk := context.Payload.(payload.JSONRecordPayload)
-	if jsonOk {
-		return s.normalizeJSON(jsonPayload)
+	switch p := context.Payload.(type) {
+	case payload.JSONRecordPayload:
+		return s.normalizeJSON(p)
+	case *payload.CSV:
+		return s.normalizeCsv(p)
+	default:
+		return fmt.Errorf("unsupported payload type %T", context.Payload)
 	}
-
-	csvPayload, csvOk := context.Payload.(*payload.CSV)
-	if csvOk {
-		return s.normalizeCsv(csvPayload)
-	}
-
-	return fmt.Errorf("unsupported payload type %T", context.Payload)
 }
 
 var strategies = map[string]func(string) string{

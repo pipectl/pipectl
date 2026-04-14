@@ -90,16 +90,6 @@ func (s *FilterStep) String() string {
 	}
 }
 
-func (s *FilterStep) UnmarshalYAML(b []byte) error {
-	type rawFilterStep FilterStep
-	var raw rawFilterStep
-	if err := yaml.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	*s = FilterStep(raw)
-	return s.Validate()
-}
-
 func (s *FilterStep) Validate() error {
 	hasGroup := len(s.All) > 0 || len(s.Any) > 0
 	hasFlat := s.Field != "" || s.Equals != "" || s.NotEquals != "" || s.Contains != "" ||

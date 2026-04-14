@@ -29,17 +29,14 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 		context.Logger.Debug("  %s: %v", key, value)
 	}
 
-	jsonPayload, jsonOk := context.Payload.(payload.JSONRecordPayload)
-	if jsonOk {
-		return s.defaultJSON(jsonPayload)
+	switch p := context.Payload.(type) {
+	case payload.JSONRecordPayload:
+		return s.defaultJSON(p)
+	case *payload.CSV:
+		return s.defaultCSV(p)
+	default:
+		return fmt.Errorf("unsupported payload type %T", context.Payload)
 	}
-
-	csvPayload, csvOk := context.Payload.(*payload.CSV)
-	if csvOk {
-		return s.defaultCSV(csvPayload)
-	}
-
-	return fmt.Errorf("unsupported payload type %T", context.Payload)
 }
 
 func (s *Step) defaultJSON(jsonPayload payload.JSONRecordPayload) error {
@@ -70,10 +67,7 @@ func (s *Step) defaultCSV(csvPayload *payload.CSV) error {
 	}
 
 	headerRow := csvPayload.Rows[0]
-	headerIndex := make(map[string]int, len(headerRow))
-	for i, header := range headerRow {
-		headerIndex[header] = i
-	}
+	headerIndex := payload.HeaderIndex(headerRow)
 
 	for key, value := range s.Fields {
 		defaultValue := stringify(value)

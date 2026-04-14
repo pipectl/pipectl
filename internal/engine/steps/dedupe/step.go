@@ -44,7 +44,7 @@ func (s *Step) recordKey(record map[string]interface{}) string {
 		if !s.CaseSensitive {
 			v = strings.ToLower(v)
 		}
-		fmt.Fprintf(&b, "%s=%s\n", f, v)
+		b.WriteString(f + "=" + v + "\n")
 	}
 	return b.String()
 }
@@ -90,12 +90,7 @@ func (s *Step) dedupeCsv(csvPayload *payload.CSV, logger *engine.Logger) error {
 	removed := 0
 
 	for _, row := range csvPayload.Rows[1:] {
-		record := make(map[string]interface{}, len(headerRow))
-		for i, header := range headerRow {
-			if i < len(row) {
-				record[header] = row[i]
-			}
-		}
+		record := payload.CSVRowToRecord(headerRow, row)
 		key := s.recordKey(record)
 		if _, exists := seen[key]; exists {
 			removed++
