@@ -102,6 +102,26 @@ sudo dpkg -i pipectl_<version>_linux_amd64.deb
 sudo rpm -i pipectl_<version>_linux_amd64.rpm
 ```
 
+### Docker
+
+```bash
+docker pull ghcr.io/pipectl/pipectl:latest
+```
+
+Run a pipeline with stdin:
+
+```bash
+echo '[...]' | docker run --rm -i ghcr.io/pipectl/pipectl:latest run pipeline.yaml
+```
+
+Run with local files mounted:
+
+```bash
+docker run --rm -i \
+  -v $(pwd):/data \
+  ghcr.io/pipectl/pipectl:latest run /data/pipeline.yaml --input /data/input.json
+```
+
 ### Direct download
 
 Pre-built binaries for all platforms are on the [Releases page](https://github.com/pipectl/pipectl/releases/latest). Verify with the included `checksums.txt`:
