@@ -74,3 +74,38 @@ pipectl run pipeline.yaml --dry-run
 - Input can be provided via `--input <file>` or piped through stdin. If neither is provided, the runtime executes but most pipelines will fail when the input format is parsed.
 - `--input` and piped stdin cannot be used together.
 - Step logs (`log`, `count`) are written to `stdout`. Only the final payload output is affected by `-o`.
+
+---
+
+## `pipectl validate`
+
+Validate a pipeline file without executing it or reading any input data.
+
+```bash
+pipectl validate <pipeline.yaml>
+```
+
+Checks that the pipeline YAML is well-formed, all step configs are valid, and the pipeline can be compiled. Exits `0` silently on success. Exits non-zero and prints an error on failure.
+
+### Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `pipeline.yaml` | Required. Path to the pipeline YAML file. |
+
+### Examples
+
+```bash
+pipectl validate pipeline.yaml
+```
+
+```bash
+pipectl validate bad-pipeline.yaml
+# [line 4] input format must be one of: json, jsonl, csv
+# exit status 1
+```
+
+### Notes
+
+- No input data is required — useful for CI pre-flight checks.
+- Validates both the pipeline spec (YAML structure, step configs) and the execution plan (step compilation).

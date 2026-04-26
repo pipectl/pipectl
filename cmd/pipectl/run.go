@@ -16,9 +16,10 @@ var verbose bool
 var dryRun bool
 
 var runCommand = &cobra.Command{
-	Use:   "run pipeline.yaml",
-	Short: "Run a pipeline",
-	Args:  cobra.ExactArgs(1),
+	Use:          "run pipeline.yaml",
+	Short:        "Run a pipeline",
+	Args:         cobra.ExactArgs(1),
+	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path := args[0]
 

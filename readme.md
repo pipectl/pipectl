@@ -145,6 +145,8 @@ Flags:
   -o, --output <path>   Write output to file instead of stdout
   -v, --verbose         Enable verbose logging
       --dry-run         Validate pipeline and print plan without executing
+
+pipectl validate <pipeline.yaml>
 ```
 
 ## Core concepts
