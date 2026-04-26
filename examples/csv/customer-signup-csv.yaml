@@ -36,8 +36,12 @@ steps:
       sample: 0
 
   - redact:
-      fields: [credit_card, password]
+      fields: [password]
       strategy: mask
+
+  - redact:
+      fields: [credit_card]
+      strategy: partial-last
 
   - select:
       fields: [first_name, credit_card, dob]

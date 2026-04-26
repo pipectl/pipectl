@@ -941,7 +941,22 @@ func TestStepWrapperUnmarshalRedactStepValidation(t *testing.T) {
 		{
 			name:    "invalid strategy",
 			raw:     "redact:\n  fields: [password]\n  strategy: hash\n",
-			message: "redact strategy must be one of: mask, sha256",
+			message: "redact strategy must be one of: mask, sha256, partial-first[:N], partial-last[:N]",
+		},
+		{
+			name:    "partial-last zero",
+			raw:     "redact:\n  fields: [password]\n  strategy: partial-last:0\n",
+			message: "redact partial strategy requires a positive integer suffix",
+		},
+		{
+			name:    "partial-last non-integer",
+			raw:     "redact:\n  fields: [password]\n  strategy: partial-last:abc\n",
+			message: "redact partial strategy requires a positive integer suffix",
+		},
+		{
+			name:    "partial-last empty suffix",
+			raw:     "redact:\n  fields: [password]\n  strategy: \"partial-last:\"\n",
+			message: "redact partial strategy requires a positive integer suffix",
 		},
 	}
 
@@ -954,6 +969,51 @@ func TestStepWrapperUnmarshalRedactStepValidation(t *testing.T) {
 			}
 			if !strings.Contains(err.Error(), tt.message) {
 				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestStepWrapperUnmarshalRedactPartialStrategies(t *testing.T) {
+	tests := []struct {
+		name     string
+		raw      string
+		strategy string
+	}{
+		{
+			name:     "partial-last bare",
+			raw:      "redact:\n  fields: [credit_card]\n  strategy: partial-last\n",
+			strategy: "partial-last",
+		},
+		{
+			name:     "partial-last with N",
+			raw:      "redact:\n  fields: [credit_card]\n  strategy: partial-last:4\n",
+			strategy: "partial-last:4",
+		},
+		{
+			name:     "partial-first bare",
+			raw:      "redact:\n  fields: [credit_card]\n  strategy: partial-first\n",
+			strategy: "partial-first",
+		},
+		{
+			name:     "partial-first with N",
+			raw:      "redact:\n  fields: [credit_card]\n  strategy: partial-first:6\n",
+			strategy: "partial-first:6",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			if err := yaml.Unmarshal([]byte(tt.raw), &step); err != nil {
+				t.Fatalf("unexpected unmarshal error: %v", err)
+			}
+			redactStep, ok := step.Step.(*RedactStep)
+			if !ok {
+				t.Fatalf("expected *RedactStep, got %T", step.Step)
+			}
+			if redactStep.Strategy != tt.strategy {
+				t.Fatalf("expected strategy %q, got %q", tt.strategy, redactStep.Strategy)
 			}
 		})
 	}

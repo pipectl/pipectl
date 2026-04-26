@@ -23,5 +23,13 @@ steps:
       records-equal: 8
       field-exists: ssn
 
+  # partial-last:4 strategy: reveals last 4 characters, masks the rest
+  - redact:
+      fields: [email]
+      strategy: partial-last:4
+  - assert:
+      records-equal: 8
+      field-exists: email
+
 output:
   format: jsonl

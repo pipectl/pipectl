@@ -56,6 +56,42 @@ func TestRedactSingleValueStrategies(t *testing.T) {
 			input:    "secret",
 			expected: "REDACTED",
 		},
+		{
+			name:     "partial-last explicit N",
+			strategy: "partial-last:4",
+			input:    "1234-5678-9012-3456",
+			expected: "***************3456",
+		},
+		{
+			name:     "partial-last bare defaults to 4",
+			strategy: "partial-last",
+			input:    "1234-5678-9012-3456",
+			expected: "***************3456",
+		},
+		{
+			name:     "partial-last N >= len returns value unchanged",
+			strategy: "partial-last:4",
+			input:    "abc",
+			expected: "abc",
+		},
+		{
+			name:     "partial-first explicit N",
+			strategy: "partial-first:4",
+			input:    "1234-5678-9012-3456",
+			expected: "1234***************",
+		},
+		{
+			name:     "partial-first bare defaults to 4",
+			strategy: "partial-first",
+			input:    "1234-5678-9012-3456",
+			expected: "1234***************",
+		},
+		{
+			name:     "partial-first N >= len returns value unchanged",
+			strategy: "partial-first:4",
+			input:    "ab",
+			expected: "ab",
+		},
 	}
 
 	for _, tc := range testCases {

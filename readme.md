@@ -161,7 +161,7 @@ Flags:
 |------|-------------|
 | `normalize` | Normalise string fields (lower, upper, trim, capitalize, collapse-spaces) |
 | `filter` | Keep records matching a condition or nested `all`/`any` group |
-| `redact` | Replace field values with `mask`, `sha256`, or `REDACTED` |
+| `redact` | Replace field values with `mask`, `sha256`, `partial-last[:N]`, `partial-first[:N]`, or `REDACTED` |
 | `cast` | Convert field types — int, float, bool, string, time |
 | `default` | Fill missing or empty fields with a default value |
 | `select` | Keep only the specified fields |

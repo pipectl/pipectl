@@ -1,6 +1,10 @@
 package spec
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
 
 type RedactStep struct {
 	Strategy string   `yaml:"strategy"`
@@ -20,10 +24,18 @@ func (s *RedactStep) Validate() error {
 		return fmt.Errorf("redact requires at least one field")
 	}
 
-	switch s.Strategy {
-	case "", "mask", "sha256":
+	switch {
+	case s.Strategy == "", s.Strategy == "mask", s.Strategy == "sha256":
+	case s.Strategy == "partial-first", s.Strategy == "partial-last":
+	case strings.HasPrefix(s.Strategy, "partial-first:"),
+		strings.HasPrefix(s.Strategy, "partial-last:"):
+		suffix := s.Strategy[strings.Index(s.Strategy, ":")+1:]
+		n, err := strconv.Atoi(suffix)
+		if err != nil || n <= 0 {
+			return fmt.Errorf("redact partial strategy requires a positive integer suffix (e.g. partial-last:4)")
+		}
 	default:
-		return fmt.Errorf("redact strategy must be one of: mask, sha256")
+		return fmt.Errorf("redact strategy must be one of: mask, sha256, partial-first[:N], partial-last[:N]")
 	}
 
 	return nil
