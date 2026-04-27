@@ -68,6 +68,50 @@ Verify the installation:
 pipectl --help
 ```
 
+## Upgrading
+
+### macOS (Homebrew)
+
+```bash
+brew upgrade --cask pipectl
+```
+
+### Windows
+
+**Direct download:** download the new `pipectl_<version>_windows_amd64.zip` from the [Releases page](https://github.com/pipectl/pipectl/releases/latest), extract, and replace the existing binary in your `PATH`.
+
+**Scoop:**
+
+```powershell
+scoop update pipectl
+```
+
+### Linux
+
+Download the new `.deb` or `.rpm` from the [Releases page](https://github.com/pipectl/pipectl/releases/latest).
+
+**Debian/Ubuntu:**
+```bash
+sudo dpkg -i pipectl_<version>_linux_amd64.deb
+```
+
+**Fedora/RHEL:**
+```bash
+sudo rpm -U pipectl_<version>_linux_amd64.rpm
+```
+
+### Docker
+
+```bash
+docker pull ghcr.io/pipectl/pipectl:latest
+```
+
+### Go install (from source)
+
+```bash
+go install github.com/pipectl/pipectl/cmd/pipectl@latest
+```
+
 ## Your first pipeline
 
 Create a pipeline file:
