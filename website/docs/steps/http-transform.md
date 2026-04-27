@@ -2,7 +2,7 @@
 
 Sends the current payload to an HTTP endpoint and replaces the payload with the response. Useful for enrichment, external validation, or handing off to another service mid-pipeline.
 
-**Supported formats:** `json` `jsonl`
+**Supported formats:** `json` `jsonl` `csv`
 
 ## Options
 
@@ -34,5 +34,6 @@ Sends the current payload to an HTTP endpoint and replaces the payload with the 
 - The response `Content-Type` must match `expect-format`. Set it explicitly if the endpoint requires it.
 - For `POST`, `PUT`, `PATCH`, and `DELETE`, the current payload is sent as the request body.
 - For JSONL payloads, the step sends `application/x-ndjson` as the `Content-Type` unless you override it in `headers`.
-- For JSON payloads, no `Content-Type` is set automatically — add it in `headers` if required.
+- For CSV payloads, the step sends `text/csv` as the `Content-Type` unless you override it in `headers`.
+- For JSON payloads, the step sends `application/json` as the `Content-Type` unless you override it in `headers`.
 - Environment variables in header values (e.g. `${API_TOKEN}`) are not automatically expanded. Use your shell or a secrets manager to inject values before running the pipeline.

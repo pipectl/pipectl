@@ -430,3 +430,85 @@ func TestExecuteWithInvalidProxyURL(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestExecuteWithJSONPayloadUsesJSONContentType(t *testing.T) {
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("Content-Type"); got != "application/json" {
+			t.Fatalf("expected Content-Type application/json, got %q", got)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer target.Close()
+
+	step := &Step{
+		URL:    target.URL,
+		Method: http.MethodPost,
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSON{
+			Items: []map[string]interface{}{{"a": "b"}},
+			Shape: payload.JSONObjectShape,
+		},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+}
+
+func TestSupportsCSVPayload(t *testing.T) {
+	step := &Step{}
+	if !step.Supports(&payload.CSV{}) {
+		t.Fatal("expected Supports to return true for CSV payload")
+	}
+}
+
+func TestExecuteWithCSVPayloadUsesCSVContentType(t *testing.T) {
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("Content-Type"); got != "text/csv" {
+			t.Fatalf("expected Content-Type text/csv, got %q", got)
+		}
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("failed reading request body: %v", err)
+		}
+		expectedBody := "id,name\n1,Alice\n2,Bob\n"
+		if string(body) != expectedBody {
+			t.Fatalf("unexpected request body: got %q want %q", string(body), expectedBody)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer target.Close()
+
+	step := &Step{
+		URL:    target.URL,
+		Method: http.MethodPost,
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.CSV{
+			Rows: [][]string{
+				{"id", "name"},
+				{"1", "Alice"},
+				{"2", "Bob"},
+			},
+		},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out, ok := ctx.Payload.(*payload.JSON)
+	if !ok {
+		t.Fatalf("expected payload.JSON response, got %T", ctx.Payload)
+	}
+	if got, ok := out.Items[0]["ok"]; !ok || got != true {
+		t.Fatalf("unexpected response payload: %#v", out.Items)
+	}
+}

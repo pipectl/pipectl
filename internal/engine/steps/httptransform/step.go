@@ -18,7 +18,7 @@ import (
 )
 
 type Step struct {
-	payload.JSONRecordSupport
+	payload.AllFormatsSupport
 	URL          string
 	Method       string
 	Proxy        string
@@ -67,6 +67,12 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, 
 				return nil, fmt.Errorf("http-transform could not encode JSONL payload: %w", err)
 			}
 			bodyReader = bytes.NewBuffer(body)
+		case *payload.CSV:
+			body, err := marshalCSV(v)
+			if err != nil {
+				return nil, fmt.Errorf("http-transform could not encode CSV payload: %w", err)
+			}
+			bodyReader = bytes.NewBuffer(body)
 		default:
 			return nil, fmt.Errorf("http-transform received invalid payload type %v", inputPayload.Type())
 		}
@@ -88,8 +94,15 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, 
 	for key, value := range s.Headers {
 		req.Header.Set(key, value)
 	}
-	if bodyReader != nil && req.Header.Get("Content-Type") == "" && inputPayload.Type() == payload.JSONLType {
-		req.Header.Set("Content-Type", "application/x-ndjson")
+	if bodyReader != nil && req.Header.Get("Content-Type") == "" {
+		switch inputPayload.Type() {
+		case payload.JSONType:
+			req.Header.Set("Content-Type", "application/json")
+		case payload.JSONLType:
+			req.Header.Set("Content-Type", "application/x-ndjson")
+		case payload.CSVType:
+			req.Header.Set("Content-Type", "text/csv")
+		}
 	}
 
 	client := &http.Client{}
@@ -182,6 +195,15 @@ func contentTypeMatchesFormat(mediaType string, expectedFormat string) bool {
 	default:
 		return false
 	}
+}
+
+func marshalCSV(input *payload.CSV) ([]byte, error) {
+	var buf bytes.Buffer
+	w := csv.NewWriter(&buf)
+	if err := w.WriteAll(input.Rows); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func marshalJSONL(input *payload.JSONL) ([]byte, error) {
