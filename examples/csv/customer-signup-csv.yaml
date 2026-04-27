@@ -5,9 +5,9 @@ input:
 
 steps:
   - log:
-      message: "Initial payload"
+      message: ${LOG_MESSAGE}
       count: true
-      sample: 5
+      sample: ${LOG_SAMPLE}
 
   - default:
       fields:

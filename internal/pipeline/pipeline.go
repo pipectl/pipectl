@@ -9,8 +9,8 @@ import (
 	"github.com/pipectl/pipectl/internal/pipeline/spec"
 )
 
-func Run(path string, input []byte, output io.Writer, verbose bool, dryRun bool) error {
-	p, err := spec.Load(path)
+func Run(path string, input []byte, output io.Writer, verbose bool, dryRun bool, vars map[string]string) error {
+	p, err := spec.Load(path, vars)
 	if err != nil {
 		return err
 	}

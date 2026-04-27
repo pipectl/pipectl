@@ -142,6 +142,28 @@ Use `--verbose` to see per-step detail — record counts, field operations, sort
 pipectl run greet.yaml --verbose < people.json
 ```
 
+## Substitute variables
+
+Use `--var KEY=VALUE` to substitute `${VAR}` tokens in pipeline YAML before it is parsed. This lets you write reusable pipelines and supply environment-specific values at runtime:
+
+```yaml
+# pipeline.yaml
+id: example
+input:
+  format: ${INPUT_FORMAT}
+steps:
+  - limit:
+      count: ${LIMIT}
+output:
+  format: json
+```
+
+```bash
+pipectl run pipeline.yaml --var INPUT_FORMAT=jsonl --var LIMIT=50 < data.jsonl
+```
+
+`--var` can be repeated as many times as needed. Any `${VAR}` token left unresolved after all substitutions are applied causes an error at startup.
+
 ## Next steps
 
 - Read [Core Concepts](./concepts) to understand how pipelines, steps, and payloads fit together

@@ -1,0 +1,11 @@
+id: vars-basic
+
+input:
+  format: jsonl
+
+steps:
+  - limit:
+      count: ${LIMIT}
+
+output:
+  format: jsonl

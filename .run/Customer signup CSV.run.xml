@@ -2,7 +2,7 @@
   <configuration default="false" name="Customer signup CSV" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="pipectl" />
     <working_directory value="$PROJECT_DIR$" />
-    <parameters value="run --verbose ./examples/csv/customer-signup-csv.yaml" />
+    <parameters value="run --verbose ./examples/csv/customer-signup-csv.yaml --var LOG_MESSAGE=&quot;Initial log message&quot; --var LOG_SAMPLE=5" />
     <kind value="PACKAGE" />
     <package value="github.com/pipectl/pipectl/cmd/pipectl" />
     <directory value="$PROJECT_DIR$" />

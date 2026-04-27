@@ -14,6 +14,7 @@ var update = flag.Bool("update", false, "update golden files")
 
 type testCase struct {
 	name, pipeline, input, golden string
+	vars                          map[string]string
 }
 
 func TestStepPipelines(t *testing.T) {
@@ -25,6 +26,7 @@ func TestStepPipelines(t *testing.T) {
 		{name: "normalize", pipeline: "step/normalize.yaml", input: "people.jsonl", golden: "step/normalize.jsonl"},
 		{name: "sort", pipeline: "step/sort.yaml", input: "people.jsonl", golden: "step/sort.jsonl"},
 		{name: "redact", pipeline: "step/redact.yaml", input: "people.jsonl", golden: "step/redact.jsonl"},
+		{name: "redact/partial", pipeline: "step/redact-partial.yaml", input: "people.jsonl", golden: "step/redact-partial.jsonl"},
 		{name: "select", pipeline: "step/select.yaml", input: "people.jsonl", golden: "step/select.jsonl"},
 		{name: "rename", pipeline: "step/rename.yaml", input: "people.jsonl", golden: "step/rename.jsonl"},
 		{name: "default", pipeline: "step/default.yaml", input: "people.jsonl", golden: "step/default.jsonl"},
@@ -34,6 +36,12 @@ func TestStepPipelines(t *testing.T) {
 		{name: "log", pipeline: "step/log.yaml", input: "people.jsonl", golden: "step/log.jsonl"},
 		{name: "dedupe", pipeline: "step/dedupe.yaml", input: "people.jsonl", golden: "step/dedupe.jsonl"},
 		{name: "dedupe/csv", pipeline: "step/dedupe-csv.yaml", input: "customers.csv", golden: "step/dedupe-csv.csv"},
+	})
+}
+
+func TestVarPipelines(t *testing.T) {
+	run(t, []testCase{
+		{name: "vars/basic", pipeline: "vars/basic.yaml", input: "people.jsonl", golden: "vars/basic.jsonl", vars: map[string]string{"LIMIT": "3"}},
 	})
 }
 
@@ -53,7 +61,7 @@ func TestAssertFailureReturnsError(t *testing.T) {
 		t.Fatalf("read input: %v", err)
 	}
 	var buf bytes.Buffer
-	err = pipeline.Run("testdata/pipelines/step/failing-assert.yaml", input, &buf, false, false)
+	err = pipeline.Run("testdata/pipelines/step/failing-assert.yaml", input, &buf, false, false, nil)
 	if err == nil {
 		t.Fatal("expected pipeline with failing assert to return an error, got nil")
 	}
@@ -69,7 +77,7 @@ func run(t *testing.T, cases []testCase) {
 			}
 
 			var buf bytes.Buffer
-			if err := pipeline.Run(filepath.Join("testdata", "pipelines", tc.pipeline), input, &buf, false, false); err != nil {
+			if err := pipeline.Run(filepath.Join("testdata", "pipelines", tc.pipeline), input, &buf, false, false, tc.vars); err != nil {
 				t.Fatalf("pipeline failed: %v", err)
 			}
 

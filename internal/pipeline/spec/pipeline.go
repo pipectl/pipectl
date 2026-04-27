@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"regexp"
+	"sort"
+	"strings"
 
 	"github.com/goccy/go-yaml"
 )
@@ -26,8 +29,41 @@ type Output struct {
 	Format string `yaml:"format"`
 }
 
-func Load(path string) (Pipeline, error) {
+var varToken = regexp.MustCompile(`\$\{([^}]+)\}`)
+
+func substituteVars(data []byte, vars map[string]string) ([]byte, error) {
+	if len(vars) > 0 {
+		args := make([]string, 0, len(vars)*2)
+		for k, v := range vars {
+			args = append(args, "${"+k+"}", v)
+		}
+		data = []byte(strings.NewReplacer(args...).Replace(string(data)))
+	}
+
+	matches := varToken.FindAllStringSubmatch(string(data), -1)
+	if len(matches) > 0 {
+		seen := map[string]bool{}
+		var names []string
+		for _, m := range matches {
+			if !seen[m[1]] {
+				seen[m[1]] = true
+				names = append(names, m[1])
+			}
+		}
+		sort.Strings(names)
+		return nil, fmt.Errorf("unresolved variables: %s", strings.Join(names, ", "))
+	}
+
+	return data, nil
+}
+
+func Load(path string, vars map[string]string) (Pipeline, error) {
 	data, err := os.ReadFile(path)
+	if err != nil {
+		return Pipeline{}, err
+	}
+
+	data, err = substituteVars(data, vars)
 	if err != nil {
 		return Pipeline{}, err
 	}

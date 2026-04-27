@@ -94,7 +94,7 @@ Before considering work done:
 1. Architecture boundaries are preserved.
 2. New config surfaces are validated close to parse time.
 3. Tests are added/updated and pass locally.
-4. Testdata pipelines and golden files are added or updated to reflect step changes. Each payload format the step supports should have its own pipeline test case (e.g. a JSON and a CSV variant). Generate golden files with `go test -run <TestName> -update` from the repo root, then wire the case into `TestStepPipelines` in `internal/pipeline/integration_test.go`.
+4. Testdata pipelines and golden files are added or updated to reflect any feature that affects pipeline execution — not just step changes. Each payload format the step supports should have its own pipeline test case (e.g. a JSON and a CSV variant). CLI-level features (e.g. `--var`) also require a testdata pipeline and golden file wired into the appropriate `Test*Pipelines` function in `internal/pipeline/integration_test.go`; extend the `testCase` struct if the harness needs new fields (e.g. `vars`). Generate golden files with `go test -run <TestName> -update` from the repo root.
 5. Documentation is updated to match any user-visible changes:
    - **CLI flags** (`cmd/pipectl/run.go`): update `README.md`, `website/docs/cli.md`, and `website/docs/getting-started.md`.
    - **Step implementation** (`internal/engine/steps/*/step.go`): update `README.md` (step table), `docs.md`, and `website/docs/steps/<stepname>.md`.

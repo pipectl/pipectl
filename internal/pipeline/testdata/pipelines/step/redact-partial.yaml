@@ -1,0 +1,21 @@
+id: redact-partial
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      records-equal: 8
+
+  # partial-first:6 strategy: reveals first 6 characters, masks the rest
+  - redact:
+      fields: [name]
+      strategy: partial-first:6
+
+  # partial-last:6 strategy: reveals last 6 characters, masks the rest
+  - redact:
+      fields: [credit_card]
+      strategy: partial-last:6
+
+output:
+  format: jsonl

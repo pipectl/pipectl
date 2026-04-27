@@ -145,6 +145,7 @@ Flags:
   -o, --output <path>   Write output to file instead of stdout
   -v, --verbose         Enable verbose logging
       --dry-run         Validate pipeline and print plan without executing
+      --var KEY=VALUE   Substitute ${VAR} tokens in pipeline YAML (repeatable)
 
 pipectl validate <pipeline.yaml>
 ```

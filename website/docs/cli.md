@@ -35,6 +35,7 @@ pipectl run <pipeline.yaml> [flags]
 | `--output <path>` | `-o` | Write pipeline output to a file instead of stdout. Step logs are always written to stdout regardless of this flag. |
 | `--verbose` | `-v` | Enable verbose logging. Prints per-step debug output — record counts, field operations, sort results — to stdout. |
 | `--dry-run` | | Validate the pipeline config and print the ordered step list without executing any steps or reading input. |
+| `--var KEY=VALUE` | | Substitute `${VAR}` tokens in pipeline YAML before parsing. Repeatable. |
 
 ### Examples
 
@@ -68,12 +69,19 @@ Validate a pipeline without running it:
 pipectl run pipeline.yaml --dry-run
 ```
 
+Substitute variables in a pipeline:
+
+```bash
+pipectl run pipeline.yaml --var ENV=prod --var LIMIT=100 < input.json
+```
+
 ### Notes
 
 - `run` requires exactly one argument: the pipeline file path.
 - Input can be provided via `--input <file>` or piped through stdin. If neither is provided, the runtime executes but most pipelines will fail when the input format is parsed.
 - `--input` and piped stdin cannot be used together.
 - Step logs (`log`, `count`) are written to `stdout`. Only the final payload output is affected by `-o`.
+- `--var` substitutes `${KEY}` tokens in the pipeline YAML before parsing. Tokens left unresolved after all substitutions are applied cause an error at startup.
 
 ---
 

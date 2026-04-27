@@ -13,7 +13,7 @@ var validateCommand = &cobra.Command{
 	Args:         cobra.ExactArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		p, err := spec.Load(args[0])
+		p, err := spec.Load(args[0], nil)
 		if err != nil {
 			return err
 		}

@@ -63,6 +63,12 @@ func TestRedactSingleValueStrategies(t *testing.T) {
 			expected: "***************3456",
 		},
 		{
+			name:     "partial-last non-default N",
+			strategy: "partial-last:6",
+			input:    "1234-5678-9012-3456",
+			expected: "*************2-3456",
+		},
+		{
 			name:     "partial-last bare defaults to 4",
 			strategy: "partial-last",
 			input:    "1234-5678-9012-3456",
@@ -79,6 +85,12 @@ func TestRedactSingleValueStrategies(t *testing.T) {
 			strategy: "partial-first:4",
 			input:    "1234-5678-9012-3456",
 			expected: "1234***************",
+		},
+		{
+			name:     "partial-first non-default N",
+			strategy: "partial-first:6",
+			input:    "1234-5678-9012-3456",
+			expected: "1234-5*************",
 		},
 		{
 			name:     "partial-first bare defaults to 4",

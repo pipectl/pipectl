@@ -18,7 +18,7 @@ steps:
 bogus: true
 `
 	path := writeTempPipeline(t, content)
-	_, err := Load(path)
+	_, err := Load(path, nil)
 	if err == nil {
 		t.Fatal("expected error for unknown top-level field")
 	}
@@ -36,7 +36,7 @@ steps:
   - log: {}
 `
 	path := writeTempPipeline(t, content)
-	_, err := Load(path)
+	_, err := Load(path, nil)
 	if err == nil {
 		t.Fatal("expected error for missing id")
 	}
@@ -54,7 +54,7 @@ output:
 steps: []
 `
 	path := writeTempPipeline(t, content)
-	_, err := Load(path)
+	_, err := Load(path, nil)
 	if err == nil {
 		t.Fatal("expected error for empty steps")
 	}
@@ -73,7 +73,7 @@ output:
 steps: []
 `
 	path := writeTempPipeline(t, content)
-	_, err := Load(path)
+	_, err := Load(path, nil)
 	if err == nil {
 		t.Fatal("expected error for multi-char delimiter")
 	}
@@ -91,7 +91,7 @@ output:
 steps: []
 `
 	path := writeTempPipeline(t, content)
-	_, err := Load(path)
+	_, err := Load(path, nil)
 	if err == nil {
 		t.Fatal("expected error for invalid input format")
 	}
@@ -109,7 +109,7 @@ output:
 steps: []
 `
 	path := writeTempPipeline(t, content)
-	_, err := Load(path)
+	_, err := Load(path, nil)
 	if err == nil {
 		t.Fatal("expected error for invalid output format")
 	}
@@ -129,7 +129,7 @@ steps:
   - log: {}
 `
 	path := writeTempPipeline(t, content)
-	p, err := Load(path)
+	p, err := Load(path, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -148,7 +148,7 @@ steps:
   - filter:
 `
 	path := writeTempPipeline(t, content)
-	_, err := Load(path)
+	_, err := Load(path, nil)
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -157,6 +157,63 @@ steps:
 	}
 	if !strings.Contains(err.Error(), "filter requires a condition") {
 		t.Fatalf("expected validation message in error, got: %v", err)
+	}
+}
+
+func TestLoadSubstitutesVars(t *testing.T) {
+	content := `id: test
+input:
+  format: ${INPUT_FORMAT}
+output:
+  format: json
+steps:
+  - log: {}
+`
+	path := writeTempPipeline(t, content)
+	p, err := Load(path, map[string]string{"INPUT_FORMAT": "json"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if p.Input.Format != "json" {
+		t.Fatalf("expected input format json, got %q", p.Input.Format)
+	}
+}
+
+func TestLoadErrorsOnUnresolvedVar(t *testing.T) {
+	content := `id: test
+input:
+  format: ${INPUT_FORMAT}
+output:
+  format: json
+steps:
+  - log: {}
+`
+	path := writeTempPipeline(t, content)
+	_, err := Load(path, nil)
+	if err == nil {
+		t.Fatal("expected error for unresolved variable")
+	}
+	if !strings.Contains(err.Error(), "INPUT_FORMAT") {
+		t.Fatalf("expected variable name in error, got: %v", err)
+	}
+}
+
+func TestLoadErrorsOnPartiallyUnresolvedVars(t *testing.T) {
+	content := `id: test
+input:
+  format: ${INPUT_FORMAT}
+output:
+  format: ${OUTPUT_FORMAT}
+steps:
+  - log: {}
+`
+	path := writeTempPipeline(t, content)
+	_, err := Load(path, map[string]string{"INPUT_FORMAT": "json"})
+	if err == nil {
+		t.Fatal("expected error for unresolved variable")
+	}
+	if !strings.Contains(err.Error(), "OUTPUT_FORMAT") {
+		t.Fatalf("expected unresolved variable name in error, got: %v", err)
 	}
 }
 
