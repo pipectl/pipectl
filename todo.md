@@ -5,7 +5,6 @@
 - `enrich` — add derived/computed fields using templates, eg: `"{{first_name}} {{last_name}}"`
 - `map` — field-level numeric and string transforms (multiply, divide, add, subtract, round, to_lower, etc.)
 - `http-request` — send payload to HTTP endpoint without replacing it (fire-and-forget style)
-- `http-transform` — add CSV payload support
 
 ## Step enhancements
 
