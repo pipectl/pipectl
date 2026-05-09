@@ -194,6 +194,19 @@ Use `--quiet` (or `-q`) to suppress all diagnostic output. Only the final payloa
 pipectl run pipeline.yaml --quiet < input.json | jq .
 ```
 
+## Profile step timing
+
+Use `--timing` to print a per-step summary table to stderr after execution. The table shows each step's name, duration, and record counts (in/out) — useful for spotting slow steps and verifying that filter or limit steps are behaving as expected:
+
+```bash
+pipectl run pipeline.yaml --timing < input.json
+# STEP                          DURATION        IN      OUT
+# 1. filter                         2ms       1000      847
+# 2. sort                           5ms        847      847
+```
+
+`--timing` output is suppressed by `--quiet`.
+
 ## Substitute variables
 
 Use `--var KEY=VALUE` to substitute `${VAR}` tokens in pipeline YAML before it is parsed. This lets you write reusable pipelines and supply environment-specific values at runtime:

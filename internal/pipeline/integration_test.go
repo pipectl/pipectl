@@ -61,7 +61,7 @@ func TestAssertFailureReturnsError(t *testing.T) {
 		t.Fatalf("read input: %v", err)
 	}
 	var buf bytes.Buffer
-	err = pipeline.Run("testdata/pipelines/step/failing-assert.yaml", input, &buf, false, false, false, nil)
+	err = pipeline.Run("testdata/pipelines/step/failing-assert.yaml", input, &buf, false, false, false, false, nil)
 	if err == nil {
 		t.Fatal("expected pipeline with failing assert to return an error, got nil")
 	}
@@ -77,7 +77,7 @@ func run(t *testing.T, cases []testCase) {
 			}
 
 			var buf bytes.Buffer
-			if err := pipeline.Run(filepath.Join("testdata", "pipelines", tc.pipeline), input, &buf, false, false, false, tc.vars); err != nil {
+			if err := pipeline.Run(filepath.Join("testdata", "pipelines", tc.pipeline), input, &buf, false, false, false, false, tc.vars); err != nil {
 				t.Fatalf("pipeline failed: %v", err)
 			}
 

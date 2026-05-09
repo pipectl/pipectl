@@ -146,6 +146,7 @@ Flags:
   -v, --verbose         Enable verbose logging
   -q, --quiet           Suppress all diagnostic output
       --dry-run         Validate pipeline and print plan without executing
+      --timing          Print per-step timing table to stderr after execution
       --var KEY=VALUE   Substitute ${VAR} tokens in pipeline YAML (repeatable)
 
 pipectl validate <pipeline.yaml>
@@ -198,7 +199,7 @@ To publish a new release, create and push a semver tag:
 git tag v1.2.3
 git push origin v1.2.3
 ```
-
+s
 This triggers the [`release.yml`](.github/workflows/release.yml) GitHub Actions workflow, which runs [GoReleaser](https://goreleaser.com/) to build binaries for Linux, macOS, and Windows (amd64 and arm64), publish `.deb`/`.rpm` packages, push Docker images to GHCR, and update the Homebrew tap and Scoop bucket.
 
 ## License

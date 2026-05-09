@@ -16,6 +16,7 @@ var outputPath string
 var verbose bool
 var quiet bool
 var dryRun bool
+var timing bool
 var varFlags []string
 
 var runCommand = &cobra.Command{
@@ -65,7 +66,7 @@ var runCommand = &cobra.Command{
 			output = outputFile
 		}
 
-		if err := pipeline.Run(path, input, output, verbose, dryRun, quiet, vars); err != nil {
+		if err := pipeline.Run(path, input, output, verbose, dryRun, quiet, timing, vars); err != nil {
 			return fmt.Errorf("pipeline failed: %w", err)
 		}
 
@@ -100,6 +101,7 @@ func init() {
 	runCommand.Flags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
 	runCommand.Flags().BoolVarP(&quiet, "quiet", "q", false, "Suppress all diagnostic output")
 	runCommand.Flags().BoolVar(&dryRun, "dry-run", false, "Validate and print the pipeline plan without executing")
+	runCommand.Flags().BoolVar(&timing, "timing", false, "Print per-step timing table to stderr after execution")
 	runCommand.Flags().StringArrayVar(&varFlags, "var", nil, "Substitute ${VAR} tokens in pipeline YAML (repeatable, KEY=VALUE)")
 	rootCommand.AddCommand(runCommand)
 }

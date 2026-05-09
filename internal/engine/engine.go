@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/pipectl/pipectl/internal/engine/payload"
 )
@@ -30,8 +31,22 @@ func (e *Engine) Run(ctx *ExecutionContext) error {
 			return fmt.Errorf("step %d [%s] does not support payload type [%s]", i+1, step.Name(), ctx.Payload.Type())
 		}
 
-		if err := step.Execute(ctx); err != nil {
-			return fmt.Errorf("step %d [%s] failed: %w", i+1, step.Name(), err)
+		if ctx.CollectTiming {
+			in := ctx.Payload.RecordCount()
+			start := time.Now()
+			if err := step.Execute(ctx); err != nil {
+				return fmt.Errorf("step %d [%s] failed: %w", i+1, step.Name(), err)
+			}
+			ctx.TimingResults = append(ctx.TimingResults, StepTiming{
+				Name:       step.Name(),
+				Duration:   time.Since(start),
+				RecordsIn:  in,
+				RecordsOut: ctx.Payload.RecordCount(),
+			})
+		} else {
+			if err := step.Execute(ctx); err != nil {
+				return fmt.Errorf("step %d [%s] failed: %w", i+1, step.Name(), err)
+			}
 		}
 	}
 

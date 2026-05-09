@@ -36,6 +36,7 @@ pipectl run <pipeline.yaml> [flags]
 | `--verbose` | `-v` | Enable verbose logging. Prints per-step debug output — record counts, field operations, sort results — to stdout. |
 | `--quiet` | `-q` | Suppress all diagnostic output. Only the final payload is written. Useful for scripting or when stderr noise is unwanted. |
 | `--dry-run` | | Validate the pipeline config and print the ordered step list without executing any steps or reading input. |
+| `--timing` | | Print a per-step table (duration, records in/out) to stderr after execution. Suppressed by `--quiet`. |
 | `--var KEY=VALUE` | | Substitute `${VAR}` tokens in pipeline YAML before parsing. Repeatable. |
 
 ### Examples

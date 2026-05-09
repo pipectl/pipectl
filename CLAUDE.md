@@ -1,5 +1,9 @@
 # pipectl
 
+## Memory
+
+At the start of each session, read `.claude/memory/MEMORY.md` and the files it references. Write new memories and updates there, not to `~/.claude`.
+
 ## Project Overview
 
 `pipectl` is a Go CLI that runs YAML-defined data pipelines.
