@@ -6,22 +6,22 @@ A step is a single transformation applied to the pipeline payload. Steps run in 
 
 | Step | What it does | JSON | JSONL | CSV |
 |------|-------------|:----:|:-----:|:---:|
-| [`normalize`](./normalize) | Normalise string fields (lower, upper, trim, capitalize…) | ✓ | ✓ | ✓ |
-| [`filter`](./filter) | Keep records matching a condition or nested `all`/`any` group | ✓ | ✓ | ✓ |
-| [`redact`](./redact) | Replace field values with `mask`, `sha256`, or `REDACTED` | ✓ | ✓ | ✓ |
-| [`cast`](./cast) | Convert field types — int, float, bool, string, time | ✓ | ✓ | |
-| [`default`](./default) | Fill missing or empty fields with a default value | ✓ | ✓ | ✓ |
-| [`select`](./select) | Keep only the specified fields | ✓ | ✓ | ✓ |
-| [`rename`](./rename) | Rename fields | ✓ | ✓ | ✓ |
-| [`sort`](./sort) | Sort records by a field, ascending or descending | ✓ | ✓ | ✓ |
-| [`limit`](./limit) | Truncate to N records | ✓ | ✓ | ✓ |
-| [`dedupe`](./dedupe) | Remove duplicate records by key fields | ✓ | ✓ | ✓ |
-| [`convert`](./convert) | Convert payload format — json ↔ jsonl ↔ csv | ✓ | ✓ | ✓ |
-| [`validate-json`](./validate-json) | Validate records against a JSON Schema | ✓ | ✓ | |
 | [`assert`](./assert) | Assert record count or field existence | ✓ | ✓ | ✓ |
-| [`http-transform`](./http-transform) | POST/PUT/PATCH payload to an HTTP endpoint, continue with the response | ✓ | ✓ | |
-| [`log`](./log) | Print record count and samples to stdout | ✓ | ✓ | ✓ |
+| [`cast`](./cast) | Convert field types — int, float, bool, string, time | ✓ | ✓ | |
+| [`convert`](./convert) | Convert payload format — json ↔ jsonl ↔ csv | ✓ | ✓ | ✓ |
 | [`count`](./count) | Print current record count to stdout | ✓ | ✓ | ✓ |
+| [`dedupe`](./dedupe) | Remove duplicate records by key fields | ✓ | ✓ | ✓ |
+| [`default`](./default) | Fill missing or empty fields with a default value | ✓ | ✓ | ✓ |
+| [`filter`](./filter) | Keep records matching a condition or nested `all`/`any` group | ✓ | ✓ | ✓ |
+| [`http-transform`](./http-transform) | POST/PUT/PATCH payload to an HTTP endpoint, continue with the response | ✓ | ✓ | |
+| [`limit`](./limit) | Truncate to N records | ✓ | ✓ | ✓ |
+| [`log`](./log) | Print record count and samples to stdout | ✓ | ✓ | ✓ |
+| [`normalize`](./normalize) | Normalise string fields (lower, upper, trim, capitalize…) | ✓ | ✓ | ✓ |
+| [`redact`](./redact) | Replace field values with `mask`, `sha256`, or `REDACTED` | ✓ | ✓ | ✓ |
+| [`rename`](./rename) | Rename fields | ✓ | ✓ | ✓ |
+| [`select`](./select) | Keep only the specified fields | ✓ | ✓ | ✓ |
+| [`sort`](./sort) | Sort records by a field, ascending or descending | ✓ | ✓ | ✓ |
+| [`validate-json`](./validate-json) | Validate records against a JSON Schema | ✓ | ✓ | |
 
 ## Step syntax
 
