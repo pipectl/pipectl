@@ -49,6 +49,7 @@ export default defineConfig({
           { text: 'dedupe', link: '/steps/dedupe' },
           { text: 'default', link: '/steps/default' },
           { text: 'filter', link: '/steps/filter' },
+          { text: 'http-request', link: '/steps/http-request' },
           { text: 'http-transform', link: '/steps/http-transform' },
           { text: 'limit', link: '/steps/limit' },
           { text: 'log', link: '/steps/log' },
