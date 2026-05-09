@@ -13,7 +13,7 @@ var rootCommand = &cobra.Command{
 	Use:     "pipectl [command]",
 	Short:   "pipectl runs deterministic data pipelines",
 	Version: version,
-	Long: `pipectl executes declarative pipelines defined in YAML or JSON.
+	Long: `pipectl executes declarative pipelines defined in YAML.
 
 Each pipeline runs step-by-step, passing data from one stage to the next.`,
 }
