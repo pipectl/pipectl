@@ -164,22 +164,23 @@ pipectl validate <pipeline.yaml>
 
 | Step | What it does |
 |------|-------------|
-| `normalize` | Normalise string fields (lower, upper, trim, capitalize, collapse-spaces) |
-| `filter` | Keep records matching a condition or nested `all`/`any` group |
-| `redact` | Replace field values with `mask`, `sha256`, `partial-last[:N]`, `partial-first[:N]`, or `REDACTED` |
-| `cast` | Convert field types — int, float, bool, string, time |
-| `default` | Fill missing or empty fields with a default value |
-| `select` | Keep only the specified fields |
-| `rename` | Rename fields |
-| `sort` | Sort records by a field, ascending or descending |
-| `limit` | Truncate to N records |
-| `dedupe` | Remove duplicate records by key fields |
-| `convert` | Convert payload format — json ↔ jsonl ↔ csv |
-| `validate-json` | Validate records against a JSON Schema |
 | `assert` | Assert record count or field existence |
-| `http-transform` | POST/PUT/PATCH payload to an HTTP endpoint, continue with the response |
-| `log` | Print current record count and samples to stderr |
+| `cast` | Convert field types — int, float, bool, string, time |
+| `convert` | Convert payload format — json ↔ jsonl ↔ csv |
 | `count` | Print current record count to stderr |
+| `dedupe` | Remove duplicate records by key fields |
+| `default` | Fill missing or empty fields with a default value |
+| `filter` | Keep records matching a condition or nested `all`/`any` group |
+| `http-request` | Send payload to an HTTP endpoint as a side effect, continue with the same payload |
+| `http-transform` | POST/PUT/PATCH payload to an HTTP endpoint, continue with the response |
+| `limit` | Truncate to N records |
+| `log` | Print current record count and samples to stderr |
+| `normalize` | Normalise string fields (lower, upper, trim, capitalize, collapse-spaces) |
+| `redact` | Replace field values with `mask`, `sha256`, `partial-last[:N]`, `partial-first[:N]`, or `REDACTED` |
+| `rename` | Rename fields |
+| `select` | Keep only the specified fields |
+| `sort` | Sort records by a field, ascending or descending |
+| `validate-json` | Validate records against a JSON Schema |
 
 ## Documentation
 

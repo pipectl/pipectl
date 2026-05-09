@@ -13,6 +13,7 @@ A step is a single transformation applied to the pipeline payload. Steps run in 
 | [`dedupe`](./dedupe) | Remove duplicate records by key fields | ✓ | ✓ | ✓ |
 | [`default`](./default) | Fill missing or empty fields with a default value | ✓ | ✓ | ✓ |
 | [`filter`](./filter) | Keep records matching a condition or nested `all`/`any` group | ✓ | ✓ | ✓ |
+| [`http-request`](./http-request) | Send payload to an HTTP endpoint as a side effect, continue with the same payload | ✓ | ✓ | ✓ |
 | [`http-transform`](./http-transform) | POST/PUT/PATCH payload to an HTTP endpoint, continue with the response | ✓ | ✓ | |
 | [`limit`](./limit) | Truncate to N records | ✓ | ✓ | ✓ |
 | [`log`](./log) | Print record count and samples to stdout | ✓ | ✓ | ✓ |

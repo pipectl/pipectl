@@ -4,16 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"io"
 	"mime"
 	"net/http"
-	"net/url"
 	"strings"
-	"time"
 
 	"github.com/pipectl/pipectl/internal/engine"
+	"github.com/pipectl/pipectl/internal/engine/httputil"
 	"github.com/pipectl/pipectl/internal/engine/payload"
 )
 
@@ -27,62 +25,49 @@ type Step struct {
 	ExpectFormat string
 }
 
-const (
-	defaultTimeoutSeconds = 60
-	maxTimeoutSeconds     = 300
-)
-
 func (s *Step) Name() string {
 	return "http-transform"
 }
 
-func (s *Step) Execute(context *engine.ExecutionContext) error {
-	context.Logger.Debug("  %s %s", strings.ToUpper(s.Method), s.URL)
+func (s *Step) Execute(ctx *engine.ExecutionContext) error {
+	ctx.Logger.Debug("  %s %s", strings.ToUpper(s.Method), s.URL)
 	if s.Proxy != "" {
-		context.Logger.Debug("  proxy: %s", s.Proxy)
+		ctx.Logger.Debug("  proxy: %s", s.Proxy)
 	}
 
-	transformedPayload, err := s.transformPayload(context.Payload)
+	transformedPayload, err := s.transformPayload(ctx.Payload)
 	if err != nil {
 		return err
 	}
 
-	context.Payload = transformedPayload
+	ctx.Payload = transformedPayload
 	return nil
 }
 
 func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, error) {
-	var bodyReader io.Reader
 	method := strings.ToUpper(s.Method)
 
-	// Set the request body from the step payload
+	var bodyBytes []byte
+	var autoContentType string
 	if method == http.MethodPost || method == http.MethodPut || method == http.MethodPatch || method == http.MethodDelete {
-		switch v := inputPayload.(type) {
-		case *payload.JSON:
-			jsonBody, _ := json.Marshal(v.Value())
-			bodyReader = bytes.NewBuffer(jsonBody)
-		case *payload.JSONL:
-			body, err := marshalJSONL(v)
-			if err != nil {
-				return nil, fmt.Errorf("http-transform could not encode JSONL payload: %w", err)
-			}
-			bodyReader = bytes.NewBuffer(body)
-		case *payload.CSV:
-			body, err := marshalCSV(v)
-			if err != nil {
-				return nil, fmt.Errorf("http-transform could not encode CSV payload: %w", err)
-			}
-			bodyReader = bytes.NewBuffer(body)
-		default:
-			return nil, fmt.Errorf("http-transform received invalid payload type %v", inputPayload.Type())
+		var err error
+		bodyBytes, autoContentType, err = httputil.MarshalPayload(inputPayload)
+		if err != nil {
+			return nil, fmt.Errorf("http-transform could not encode payload: %w", err)
 		}
+	}
+
+	var bodyReader io.Reader
+	if bodyBytes != nil {
+		bodyReader = bytes.NewBuffer(bodyBytes)
 	}
 
 	req, err := http.NewRequest(method, s.URL, bodyReader)
 	if err != nil {
 		return nil, err
 	}
-	requestTimeout, err := s.resolveTimeout()
+
+	requestTimeout, err := httputil.ResolveTimeout(s.Timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -90,31 +75,16 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, 
 	defer cancel()
 	req = req.WithContext(timeoutCtx)
 
-	// add headers
 	for key, value := range s.Headers {
 		req.Header.Set(key, value)
 	}
-	if bodyReader != nil && req.Header.Get("Content-Type") == "" {
-		switch inputPayload.Type() {
-		case payload.JSONType:
-			req.Header.Set("Content-Type", "application/json")
-		case payload.JSONLType:
-			req.Header.Set("Content-Type", "application/x-ndjson")
-		case payload.CSVType:
-			req.Header.Set("Content-Type", "text/csv")
-		}
+	if autoContentType != "" && req.Header.Get("Content-Type") == "" {
+		req.Header.Set("Content-Type", autoContentType)
 	}
 
-	client := &http.Client{}
-	if s.Proxy != "" {
-		proxyURL, err := url.Parse(s.Proxy)
-		if err != nil {
-			return nil, fmt.Errorf("invalid proxy URL %q: %w", s.Proxy, err)
-		}
-
-		transport := http.DefaultTransport.(*http.Transport).Clone()
-		transport.Proxy = http.ProxyURL(proxyURL)
-		client.Transport = transport
+	client, err := httputil.BuildClient(s.Proxy)
+	if err != nil {
+		return nil, err
 	}
 
 	resp, err := client.Do(req)
@@ -145,7 +115,6 @@ func (s *Step) transformPayload(inputPayload payload.Payload) (payload.Payload, 
 		return payload.Read(body, payload.JSONType)
 	case payload.JSONLType:
 		return payload.Read(body, payload.JSONLType)
-
 	case payload.CSVType:
 		rows, err := csv.NewReader(bytes.NewReader(body)).ReadAll()
 		if err != nil {
@@ -195,42 +164,4 @@ func contentTypeMatchesFormat(mediaType string, expectedFormat string) bool {
 	default:
 		return false
 	}
-}
-
-func marshalCSV(input *payload.CSV) ([]byte, error) {
-	var buf bytes.Buffer
-	w := csv.NewWriter(&buf)
-	if err := w.WriteAll(input.Rows); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-func marshalJSONL(input *payload.JSONL) ([]byte, error) {
-	var body bytes.Buffer
-	for _, record := range input.Items {
-		raw, err := json.Marshal(record)
-		if err != nil {
-			return nil, err
-		}
-		body.Write(raw)
-		body.WriteByte('\n')
-	}
-	return body.Bytes(), nil
-}
-
-func (s *Step) resolveTimeout() (time.Duration, error) {
-	if s.Timeout == 0 {
-		return defaultTimeoutSeconds * time.Second, nil
-	}
-
-	if s.Timeout < 0 {
-		return 0, fmt.Errorf("invalid timeout %d: must be a positive number of seconds", s.Timeout)
-	}
-
-	if s.Timeout > maxTimeoutSeconds {
-		return 0, fmt.Errorf("invalid timeout %d: maximum is %d seconds", s.Timeout, maxTimeoutSeconds)
-	}
-
-	return time.Duration(s.Timeout) * time.Second, nil
 }

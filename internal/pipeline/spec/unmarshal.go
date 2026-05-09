@@ -23,6 +23,7 @@ var stepRegistry = map[string]func() Step{
 	"limit":          func() Step { return &LimitStep{} },
 	"log":            func() Step { return &LogStep{} },
 	"count":          func() Step { return &CountStep{} },
+	"http-request":   func() Step { return &HTTPRequestStep{} },
 	"http-transform": func() Step { return &HTTPTransformStep{} },
 	"sort":           func() Step { return &SortStep{} },
 	"dedupe":         func() Step { return &DedupeStep{} },

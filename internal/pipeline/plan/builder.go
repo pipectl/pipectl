@@ -12,6 +12,7 @@ import (
 	"github.com/pipectl/pipectl/internal/engine/steps/dedupe"
 	"github.com/pipectl/pipectl/internal/engine/steps/default"
 	"github.com/pipectl/pipectl/internal/engine/steps/filter"
+	"github.com/pipectl/pipectl/internal/engine/steps/httprequest"
 	"github.com/pipectl/pipectl/internal/engine/steps/httptransform"
 	"github.com/pipectl/pipectl/internal/engine/steps/limit"
 	_log "github.com/pipectl/pipectl/internal/engine/steps/log"
@@ -140,6 +141,14 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 		return &dedupe.Step{
 			Fields:        s.Fields,
 			CaseSensitive: s.CaseSensitive,
+		}, nil
+	case *spec.HTTPRequestStep:
+		return &httprequest.Step{
+			URL:     s.URL,
+			Method:  s.Method,
+			Proxy:   s.Proxy,
+			Headers: s.Headers,
+			Timeout: s.Timeout,
 		}, nil
 	case *spec.HTTPTransformStep:
 		return &httptransform.Step{

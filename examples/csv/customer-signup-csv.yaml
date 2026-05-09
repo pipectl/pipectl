@@ -52,6 +52,11 @@ steps:
         credit_card: creditCard
         dob: DOB
 
+  - http-request:
+      url: https://httpbin.org/status/201
+      method: POST
+      timeout: 60
+
   - count:
       message: "Final record count"
 

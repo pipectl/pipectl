@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/pipectl/pipectl/internal/engine"
+	"github.com/pipectl/pipectl/internal/engine/httputil"
 	"github.com/pipectl/pipectl/internal/engine/payload"
 )
 
@@ -61,11 +62,9 @@ func TestExecuteWithBodyMethods(t *testing.T) {
 }
 
 func TestResolveTimeoutDefault(t *testing.T) {
-	step := &Step{}
-
-	got, err := step.resolveTimeout()
+	got, err := httputil.ResolveTimeout(0)
 	if err != nil {
-		t.Fatalf("resolveTimeout returned error: %v", err)
+		t.Fatalf("ResolveTimeout returned error: %v", err)
 	}
 	if got != 60*time.Second {
 		t.Fatalf("expected default timeout 60s, got %v", got)
@@ -73,11 +72,9 @@ func TestResolveTimeoutDefault(t *testing.T) {
 }
 
 func TestResolveTimeoutCustom(t *testing.T) {
-	step := &Step{Timeout: 2}
-
-	got, err := step.resolveTimeout()
+	got, err := httputil.ResolveTimeout(2)
 	if err != nil {
-		t.Fatalf("resolveTimeout returned error: %v", err)
+		t.Fatalf("ResolveTimeout returned error: %v", err)
 	}
 	if got != 2*time.Second {
 		t.Fatalf("expected timeout 2s, got %v", got)
@@ -85,9 +82,7 @@ func TestResolveTimeoutCustom(t *testing.T) {
 }
 
 func TestResolveTimeoutInvalid(t *testing.T) {
-	step := &Step{Timeout: -1}
-
-	_, err := step.resolveTimeout()
+	_, err := httputil.ResolveTimeout(-1)
 	if err == nil {
 		t.Fatal("expected error for invalid timeout")
 	}
@@ -97,9 +92,7 @@ func TestResolveTimeoutInvalid(t *testing.T) {
 }
 
 func TestResolveTimeoutAboveMaximum(t *testing.T) {
-	step := &Step{Timeout: 301}
-
-	_, err := step.resolveTimeout()
+	_, err := httputil.ResolveTimeout(301)
 	if err == nil {
 		t.Fatal("expected error for timeout above maximum")
 	}
