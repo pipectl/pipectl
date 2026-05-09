@@ -186,6 +186,14 @@ Use `--verbose` to see per-step detail — record counts, field operations, sort
 pipectl run greet.yaml --verbose < people.json
 ```
 
+## Suppress output
+
+Use `--quiet` (or `-q`) to suppress all diagnostic output. Only the final payload is written to stdout (or your output file). Useful for scripting or piping output to other tools:
+
+```bash
+pipectl run pipeline.yaml --quiet < input.json | jq .
+```
+
 ## Substitute variables
 
 Use `--var KEY=VALUE` to substitute `${VAR}` tokens in pipeline YAML before it is parsed. This lets you write reusable pipelines and supply environment-specific values at runtime:

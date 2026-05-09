@@ -15,7 +15,6 @@
 
 ### Additional CLI options
 
-- [ ] `-q / --quiet` — suppress all output except final payload; scripting-friendly complement to `--verbose`
 - [ ] `--output-format FORMAT` — override `output.format` from YAML at the CLI without editing the file
 - [ ] `--timing` — print per-step table (duration, records in/out) to stderr after execution
 - [ ] `--from-step N` — skip steps 1–(N-1), start at step N using `--input` as the snapshot; useful for debugging expensive pipelines

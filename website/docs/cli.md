@@ -34,6 +34,7 @@ pipectl run <pipeline.yaml> [flags]
 | `--input <path>` | `-i` | Read pipeline input from a file. Alternative to piping via stdin. Cannot be combined with piped stdin. |
 | `--output <path>` | `-o` | Write pipeline output to a file instead of stdout. Step logs are always written to stdout regardless of this flag. |
 | `--verbose` | `-v` | Enable verbose logging. Prints per-step debug output — record counts, field operations, sort results — to stdout. |
+| `--quiet` | `-q` | Suppress all diagnostic output. Only the final payload is written. Useful for scripting or when stderr noise is unwanted. |
 | `--dry-run` | | Validate the pipeline config and print the ordered step list without executing any steps or reading input. |
 | `--var KEY=VALUE` | | Substitute `${VAR}` tokens in pipeline YAML before parsing. Repeatable. |
 
@@ -61,6 +62,12 @@ Enable verbose logging:
 
 ```bash
 pipectl run pipeline.yaml --verbose < input.json
+```
+
+Suppress diagnostic output:
+
+```bash
+pipectl run pipeline.yaml --quiet < input.json
 ```
 
 Validate a pipeline without running it:

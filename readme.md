@@ -144,6 +144,7 @@ Flags:
   -i, --input <path>    Read pipeline input from file (alternative to stdin)
   -o, --output <path>   Write output to file instead of stdout
   -v, --verbose         Enable verbose logging
+  -q, --quiet           Suppress all diagnostic output
       --dry-run         Validate pipeline and print plan without executing
       --var KEY=VALUE   Substitute ${VAR} tokens in pipeline YAML (repeatable)
 

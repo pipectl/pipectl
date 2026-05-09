@@ -9,13 +9,13 @@ import (
 	"github.com/pipectl/pipectl/internal/pipeline/spec"
 )
 
-func Run(path string, input []byte, output io.Writer, verbose bool, dryRun bool, vars map[string]string) error {
+func Run(path string, input []byte, output io.Writer, verbose bool, dryRun bool, quiet bool, vars map[string]string) error {
 	p, err := spec.Load(path, vars)
 	if err != nil {
 		return err
 	}
 
-	logger := engine.NewLogger(verbose)
+	logger := engine.NewLogger(verbose, quiet)
 
 	logger.Debug("pipeline: %s [%s → %s, %d steps]", p.ID, p.Input.Format, p.Output.Format, len(p.Steps))
 	for i, step := range p.Steps {
