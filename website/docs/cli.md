@@ -125,3 +125,36 @@ pipectl validate bad-pipeline.yaml
 
 - No input data is required — useful for CI pre-flight checks.
 - Validates both the pipeline spec (YAML structure, step configs) and the execution plan (step compilation).
+
+---
+
+## `pipectl docs`
+
+Show built-in documentation for pipeline steps.
+
+```bash
+pipectl docs [step]
+```
+
+With no argument, lists all available steps with a one-line description. With a step name, prints the full documentation for that step.
+
+### Examples
+
+List all steps:
+
+```bash
+pipectl docs
+```
+
+Show documentation for a specific step:
+
+```bash
+pipectl docs filter
+pipectl docs cast
+pipectl docs validate-json
+```
+
+### Notes
+
+- Output is formatted for the terminal when stdout is a TTY. When piped or redirected, plain markdown is written instead.
+- Step names match the keys used in pipeline YAML (e.g. `http-transform`, `validate-json`).

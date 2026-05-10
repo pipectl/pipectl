@@ -55,5 +55,5 @@ Add a new pipeline step end-to-end: YAML parsing, planning, execution, and tests
 - step is wired in spec registry and planner switch.
 - testdata pipeline and golden file exist for the step.
 - `docs.md` has a complete entry: supported payloads, all options with accepted values and defaults, notes for non-obvious behavior, and at least one example.
-- `website/docs/steps/<stepname>.md` exists with supported formats, options table, examples, and notes.
+- `website/docs/steps/<stepname>.md` exists with supported formats, options table, examples, and notes. **Keep this file pure markdown** — no VitePress components or HTML — because the CLI embeds and displays it verbatim via `pipectl docs <step>`.
 - Step is listed in the table in `website/docs/steps/index.md`.

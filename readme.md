@@ -150,6 +150,7 @@ Flags:
       --var KEY=VALUE   Substitute ${VAR} tokens in pipeline YAML (repeatable)
 
 pipectl validate <pipeline.yaml>
+pipectl docs [step]
 ```
 
 ## Core concepts
