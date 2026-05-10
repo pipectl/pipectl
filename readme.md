@@ -22,7 +22,7 @@
 
 pipectl is a CLI for running YAML-defined data pipelines. You define an ordered list of steps in a YAML file, pipe your data in, and get transformed data out.
 
-It supports JSON, JSONL, and CSV payloads — including conversions between them — and ships with 16 built-in steps for filtering, normalising, redacting, casting, sorting, validating, and more.
+It supports JSON, JSONL, and CSV payloads — including conversions between them — and ships with built-in steps for filtering, normalising, redacting, casting, sorting, validating, and more.
 
 ## Quick example
 
