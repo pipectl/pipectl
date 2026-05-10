@@ -4,6 +4,8 @@ A step is a single transformation applied to the pipeline payload. Steps run in 
 
 ## All steps
 
+<div class="steps-table">
+
 | Step | What it does | JSON | JSONL | CSV |
 |------|-------------|:----:|:-----:|:---:|
 | [`assert`](./assert) | Assert record count or field existence | ✓ | ✓ | ✓ |
@@ -23,6 +25,16 @@ A step is a single transformation applied to the pipeline payload. Steps run in 
 | [`select`](./select) | Keep only the specified fields | ✓ | ✓ | ✓ |
 | [`sort`](./sort) | Sort records by a field, ascending or descending | ✓ | ✓ | ✓ |
 | [`validate-json`](./validate-json) | Validate records against a JSON Schema | ✓ | ✓ | |
+
+</div>
+
+<style>
+.steps-table table th:nth-child(n+3),
+.steps-table table td:nth-child(n+3) {
+  width: 1%;
+  white-space: nowrap;
+}
+</style>
 
 ## Step syntax
 
