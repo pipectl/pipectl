@@ -530,7 +530,7 @@ Notes:
 - `all` and `any` cannot be combined at the same level.
 - Group and flat rule fields (`field`, `equals`, etc.) cannot be mixed on the same step.
 - For JSON and JSONL, non-string field values are coerced to strings before comparison.
-- Records missing the specified field are always excluded.
+- Records missing the specified field are treated as non-matching and silently excluded — no error or warning is raised at the default log level. Run with `--verbose` (`-v`) to see the count of excluded records.
 - `greater-than` and `less-than` require the field value to be parseable as a number; records where the value is not numeric will cause the step to fail.
 - For `equals` and `not-equals`, when both the field value and the configured value parse as numbers, numeric comparison is used. Otherwise string comparison is used.
 

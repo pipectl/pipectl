@@ -86,7 +86,7 @@ Keep records that match **at least one** listed condition:
 
 ## Notes
 
-- Records missing the specified field are always excluded.
+- Records missing the specified field are treated as non-matching and silently excluded — no error or warning is raised at the default log level. Run with `--verbose` (`-v`) to see the count of excluded records.
 - For JSON and JSONL, non-string field values are coerced to strings before comparison.
 - `greater-than` and `less-than` require the field value to be parseable as a number. Records with non-numeric values will cause the step to fail.
 - `all` and `any` cannot be combined at the same nesting level.
