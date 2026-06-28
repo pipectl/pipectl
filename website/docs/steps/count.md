@@ -1,6 +1,6 @@
 # count
 
-Prints the current record count to stdout. The payload passes through unchanged.
+Prints the current record count to stderr. The payload passes through unchanged.
 
 **Supported formats:** `json` `jsonl` `csv`
 

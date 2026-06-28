@@ -1,6 +1,6 @@
 # log
 
-Prints a message, the current record count, and sample records to stdout. The payload passes through unchanged.
+Prints a message, the current record count, and sample records to stderr. The payload passes through unchanged.
 
 **Supported formats:** `json` `jsonl` `csv`
 

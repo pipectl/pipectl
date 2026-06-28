@@ -32,8 +32,8 @@ pipectl run <pipeline.yaml> [flags]
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--input <path>` | `-i` | Read pipeline input from a file. Alternative to piping via stdin. Cannot be combined with piped stdin. |
-| `--output <path>` | `-o` | Write pipeline output to a file instead of stdout. Step logs are always written to stdout regardless of this flag. |
-| `--verbose` | `-v` | Enable verbose logging. Prints per-step debug output — record counts, field operations, sort results — to stdout. |
+| `--output <path>` | `-o` | Write pipeline output to a file instead of stdout. Step logs are always written to stderr regardless of this flag. |
+| `--verbose` | `-v` | Enable verbose logging. Prints per-step debug output — record counts, field operations, sort results — to stderr. |
 | `--quiet` | `-q` | Suppress all diagnostic output. Only the final payload is written. Useful for scripting or when stderr noise is unwanted. |
 | `--dry-run` | | Validate the pipeline config and print the ordered step list without executing any steps or reading input. |
 | `--timing` | | Print a per-step table (duration, records in/out) to stderr after execution. Suppressed by `--quiet`. |
@@ -88,7 +88,7 @@ pipectl run pipeline.yaml --var ENV=prod --var LIMIT=100 < input.json
 - `run` requires exactly one argument: the pipeline file path.
 - Input can be provided via `--input <file>` or piped through stdin. If neither is provided, the runtime executes but most pipelines will fail when the input format is parsed.
 - `--input` and piped stdin cannot be used together.
-- Step logs (`log`, `count`) are written to `stdout`. Only the final payload output is affected by `-o`.
+- Step logs (`log`, `count`) are written to `stderr`. Only the final payload output is affected by `-o`.
 - `--var` substitutes `${KEY}` tokens in the pipeline YAML before parsing. Tokens left unresolved after all substitutions are applied cause an error at startup.
 
 ---

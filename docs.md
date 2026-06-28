@@ -52,7 +52,7 @@ Notes:
 
 - `run` requires exactly one argument: the pipeline file path.
 - Input is read from `stdin`. If nothing is piped in, the runtime still executes, but most pipelines will fail once the configured input format is parsed.
-- Step logs are always written to `stdout`. Only the final payload output is affected by `-o`.
+- Step logs are always written to `stderr`. Only the final payload output is affected by `-o`.
 - `-o` / `--output`: optional path to write the pipeline output to a file.
 - `-v` / `--verbose`: optional flag to enable verbose logging. Shows per-step debug output such as record counts, field operations, and sort results.
 - `--dry-run`: validates the pipeline config and prints the ordered step list without executing any steps or reading `stdin`.

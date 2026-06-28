@@ -11,7 +11,6 @@
 
 ## Documentation
 
-- Fix `log`/`count` stdout vs stderr — README says both write to "stdout" but diagnostics go to stderr; verify and correct across README.md and cli.md
 - Document `filter` silent exclusion behaviour — "missing fields are treated as non-matching" is in the code comment but not in the user-facing step docs
 - Clarify `http-transform` CSV support — spec allows `expect-format: csv` but step matrix shows ✗; decide if this is a supported path or a spec bug and fix whichever is wrong
 - Add advanced examples — nested `all`/`any` filters, `--var` with multiple vars, `http-transform` chained with format conversion
