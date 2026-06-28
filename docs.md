@@ -167,7 +167,7 @@ Supported payloads:
 
 Options:
 
-- `fields`: map of field name to strategy
+- `fields`: map of field name to strategy, or a `|`-separated chain of strategies applied left-to-right (e.g. `trim|lower`)
 
 Supported strategies:
 
@@ -184,8 +184,9 @@ Example:
 ```yaml
 - normalize:
     fields:
-      email: lower
-      first_name: capitalize
+      email: trim|lower
+      first_name: trim|capitalize
+      country: upper
       name: trim
 ```
 
@@ -193,6 +194,7 @@ Notes:
 
 - Fields must exist in the payload; an error is returned if a configured field is not found.
 - Only string values are changed; non-string fields that exist are left as-is.
+- Multiple strategies can be chained with `|` (e.g. `trim|lower`). They are applied left-to-right.
 
 ### `default`
 

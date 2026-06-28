@@ -54,12 +54,12 @@ var strategies = map[string]func(string) string{
 }
 
 func (s *Step) normalizeValue(value string, strategy string) string {
-	// TODO handle multiple strategies pipe separated eg: "trim|lower"
-	fn, ok := strategies[strategy]
-	if !ok {
-		return value
+	for _, part := range strings.Split(strategy, "|") {
+		if fn, ok := strategies[part]; ok {
+			value = fn(value)
+		}
 	}
-	return fn(value)
+	return value
 }
 
 func (s *Step) normalizeJSON(jsonPayload payload.JSONRecordPayload) error {

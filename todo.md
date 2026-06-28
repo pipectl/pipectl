@@ -7,7 +7,6 @@
 
 ## Step enhancements
 
-- `normalize` — support pipe-separated strategy chains, eg: `trim|lower|collapse-spaces` (TODO comment already in step.go)
 - `filter` — add `on-missing: exclude|include|error` option for records missing the filter field (currently silently excluded, which surprises users); default to `exclude` for backwards compatibility
 
 ## Documentation

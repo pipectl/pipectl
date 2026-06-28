@@ -22,9 +22,9 @@ steps:
 
   - normalize:
       fields:
-        country: upper
-        first_name: capitalize
-        last_name: capitalize
+        country: trim|upper
+        first_name: trim|capitalize
+        last_name: trim|capitalize
 
   - filter:
       field: country

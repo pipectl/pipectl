@@ -27,15 +27,15 @@ Normalises string fields in the payload.
 ```yaml
 - normalize:
     fields:
-      email: lower
-      first_name: capitalize
-      last_name: capitalize
+      email: trim|lower
+      first_name: trim|capitalize
+      last_name: trim|capitalize
       country: upper
-      description: trim
+      description: trim|collapse-spaces
 ```
 
 ## Notes
 
 - Fields must exist in the payload. An error is returned if a configured field is missing.
 - Only string values are normalised. Non-string fields that exist are left unchanged.
-- Multiple strategies cannot be applied to a single field in one step. Chain two `normalize` steps if needed.
+- Multiple strategies can be applied to a single field by separating them with `|` (e.g. `trim|lower`). Strategies are applied left-to-right.

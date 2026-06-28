@@ -871,6 +871,26 @@ func TestStepWrapperUnmarshalNormalizeStep(t *testing.T) {
 	}
 }
 
+func TestStepWrapperUnmarshalNormalizeStepChain(t *testing.T) {
+	raw := []byte("normalize:\n  fields:\n    email: trim|lower\n    name: trim|capitalize\n")
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error for valid chain: %v", err)
+	}
+
+	normalizeStep, ok := step.Step.(*NormalizeStep)
+	if !ok {
+		t.Fatalf("expected *NormalizeStep, got %T", step.Step)
+	}
+	if normalizeStep.Fields["email"] != "trim|lower" {
+		t.Fatalf("unexpected strategy for email: got %q want %q", normalizeStep.Fields["email"], "trim|lower")
+	}
+	if normalizeStep.Fields["name"] != "trim|capitalize" {
+		t.Fatalf("unexpected strategy for name: got %q want %q", normalizeStep.Fields["name"], "trim|capitalize")
+	}
+}
+
 func TestStepWrapperUnmarshalNormalizeStepValidation(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -886,6 +906,16 @@ func TestStepWrapperUnmarshalNormalizeStepValidation(t *testing.T) {
 			name:    "invalid strategy",
 			raw:     "normalize:\n  fields:\n    email: lowr\n",
 			message: `normalize field "email" has unknown strategy "lowr"`,
+		},
+		{
+			name:    "invalid strategy in chain",
+			raw:     "normalize:\n  fields:\n    email: trim|bogus\n",
+			message: `normalize field "email" has unknown strategy "bogus"`,
+		},
+		{
+			name:    "empty segment in chain",
+			raw:     "normalize:\n  fields:\n    email: trim|\n",
+			message: `normalize field "email" has unknown strategy ""`,
 		},
 	}
 

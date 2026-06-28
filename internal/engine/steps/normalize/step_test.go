@@ -72,6 +72,36 @@ func TestNormalizeValueStrategies(t *testing.T) {
 			strategy: "does-not-exist",
 			expected: "  Keep Me ",
 		},
+		{
+			name:     "chain-trim-lower",
+			input:    "  HELLO  ",
+			strategy: "trim|lower",
+			expected: "hello",
+		},
+		{
+			name:     "chain-trim-capitalize",
+			input:    "  alice smith  ",
+			strategy: "trim|capitalize",
+			expected: "Alice smith",
+		},
+		{
+			name:     "chain-trim-collapse-spaces-lower",
+			input:    "  HELLO   WORLD  ",
+			strategy: "trim|collapse-spaces|lower",
+			expected: "hello world",
+		},
+		{
+			name:     "chain-order-matters-capitalize-then-lower",
+			input:    "alice",
+			strategy: "capitalize|lower",
+			expected: "alice",
+		},
+		{
+			name:     "chain-order-matters-lower-then-capitalize",
+			input:    "alice",
+			strategy: "lower|capitalize",
+			expected: "Alice",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -219,6 +249,66 @@ func TestExecuteErrorsOnMissingCSVField(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "not found in CSV headers") {
 		t.Fatalf("unexpected error message: %v", err)
+	}
+}
+
+func TestExecuteNormalizesJSONChainedStrategies(t *testing.T) {
+	step := &Step{
+		Fields: map[string]string{
+			"name":  "trim|capitalize",
+			"email": "trim|lower",
+		},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.JSON{
+			Items: []map[string]interface{}{
+				{"name": "  alice  ", "email": "  ALICE@EXAMPLE.COM  "},
+			},
+			Shape: payload.JSONObjectShape,
+		},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out := ctx.Payload.(*payload.JSON)
+	if out.Items[0]["name"] != "Alice" {
+		t.Fatalf("expected name %q, got %q", "Alice", out.Items[0]["name"])
+	}
+	if out.Items[0]["email"] != "alice@example.com" {
+		t.Fatalf("expected email %q, got %q", "alice@example.com", out.Items[0]["email"])
+	}
+}
+
+func TestExecuteNormalizesCSVChainedStrategies(t *testing.T) {
+	step := &Step{
+		Fields: map[string]string{
+			"name": "trim|capitalize",
+		},
+	}
+
+	ctx := &engine.ExecutionContext{
+		Payload: &payload.CSV{
+			Rows: [][]string{
+				{"name", "id"},
+				{"  alice smith  ", "1"},
+				{"  BOB JONES  ", "2"},
+			},
+		},
+	}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out := ctx.Payload.(*payload.CSV)
+	if out.Rows[1][0] != "Alice smith" {
+		t.Fatalf("expected %q, got %q", "Alice smith", out.Rows[1][0])
+	}
+	if out.Rows[2][0] != "Bob jones" {
+		t.Fatalf("expected %q, got %q", "Bob jones", out.Rows[2][0])
 	}
 }
 

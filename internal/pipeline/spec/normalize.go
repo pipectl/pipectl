@@ -25,15 +25,17 @@ func (s *NormalizeStep) Validate() error {
 	}
 
 	for field, strategy := range s.Fields {
-		valid := false
-		for _, v := range validNormalizeStrategies {
-			if strategy == v {
-				valid = true
-				break
+		for _, part := range strings.Split(strategy, "|") {
+			valid := false
+			for _, v := range validNormalizeStrategies {
+				if part == v {
+					valid = true
+					break
+				}
 			}
-		}
-		if !valid {
-			return fmt.Errorf("normalize field %q has unknown strategy %q: must be one of: %s", field, strategy, strings.Join(validNormalizeStrategies, ", "))
+			if !valid {
+				return fmt.Errorf("normalize field %q has unknown strategy %q: must be one of: %s", field, part, strings.Join(validNormalizeStrategies, ", "))
+			}
 		}
 	}
 
