@@ -129,6 +129,7 @@ Supported step types:
 - `log`
 - `count`
 - `http-transform`
+- `http-request`
 
 ## Step Reference
 
@@ -718,6 +719,44 @@ Notes:
 - Response `Content-Type` must match `expect-format`.
 - Request bodies are only sent for `POST`, `PUT`, `PATCH`, and `DELETE`.
 - For JSONL requests without an explicit `Content-Type`, the step sends `application/x-ndjson`. For JSON requests, no `Content-Type` is set automatically — set it explicitly in `headers` if the target service requires it.
+
+### `http-request`
+
+Sends the current payload to an HTTP endpoint as a side effect and continues the pipeline with the payload unchanged. Useful for webhooks, notifications, or audit logging mid-pipeline.
+
+Supported payloads:
+
+- `json`
+- `jsonl`
+- `csv`
+
+Options:
+
+- `url`: required. Target URL.
+- `method`: required. HTTP method: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`.
+- `proxy`: optional proxy URL.
+- `headers`: optional map of request header key/value pairs.
+- `timeout`: optional timeout in seconds. Must be between `1` and `300`. Defaults to `60`.
+
+Example:
+
+```yaml
+- http-request:
+    url: https://hooks.example.com/pipeline-event
+    method: POST
+    timeout: 10
+    headers:
+      Authorization: Bearer ${WEBHOOK_TOKEN}
+```
+
+Notes:
+
+- Any `2xx` response is accepted. Non-2xx status codes fail the pipeline.
+- The response body is discarded. The pipeline payload is not modified.
+- For `POST`, `PUT`, `PATCH`, and `DELETE`, the current payload is sent as the request body.
+- For JSONL payloads, the step sends `application/x-ndjson` as `Content-Type` unless overridden in `headers`.
+- For CSV payloads, the step sends `text/csv` as `Content-Type` unless overridden in `headers`.
+- For JSON payloads, the step sends `application/json` as `Content-Type` unless overridden in `headers`.
 
 ## Example Pipelines
 
