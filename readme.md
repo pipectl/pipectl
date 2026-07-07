@@ -148,6 +148,7 @@ Flags:
       --dry-run         Validate pipeline and print plan without executing
       --timing          Print per-step timing table to stderr after execution
       --var KEY=VALUE   Substitute ${VAR} tokens in pipeline YAML (repeatable)
+      --max-input-size SIZE  Maximum size of stdin/--input data before failing (default 256MB)
 
 pipectl validate <pipeline.yaml>
 pipectl docs [step]

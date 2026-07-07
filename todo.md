@@ -1,9 +1,5 @@
 # TODO
 
-## Bugs / Correctness
-
-- **stdin data-size guard** — `cmd/pipectl/run.go:54` has a code TODO about unbounded `io.ReadAll(os.Stdin)`; large inputs can exhaust memory silently; add a configurable cap or hard ceiling
-
 ## Refactoring
 
 - **Extract CSV column-index helper** — `sort`, `cast`, `redact`, `normalize`, `rename`, and `dedupe` all independently build a `map[string]int` from the CSV header row; extract to a shared `payload.FindColumnIndices(headers, fields []string) (map[string]int, error)` in `internal/engine/payload/`

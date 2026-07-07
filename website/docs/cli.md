@@ -38,6 +38,7 @@ pipectl run <pipeline.yaml> [flags]
 | `--dry-run` | | Validate the pipeline config and print the ordered step list without executing any steps or reading input. |
 | `--timing` | | Print a per-step table (duration, records in/out) to stderr after execution. Suppressed by `--quiet`. |
 | `--var KEY=VALUE` | | Substitute `${VAR}` tokens in pipeline YAML before parsing. Repeatable. |
+| `--max-input-size <size>` | | Maximum size of input read from stdin or `--input`, e.g. `64KB`, `256MB`, `1GB`. Input exceeding this size is rejected. Default `256MB`. |
 
 ### Examples
 

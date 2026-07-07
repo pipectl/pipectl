@@ -229,6 +229,16 @@ pipectl run pipeline.yaml --var INPUT_FORMAT=jsonl --var LIMIT=50 < data.jsonl
 
 `--var` can be repeated as many times as needed. Any `${VAR}` token left unresolved after all substitutions are applied causes an error at startup.
 
+## Limit input size
+
+By default, `pipectl` rejects pipeline input (from stdin or `--input`) larger than 256MB, so a runaway or accidental oversized input fails fast with a clear error instead of exhausting memory silently. Use `--max-input-size` to raise or lower this cap:
+
+```bash
+pipectl run pipeline.yaml --max-input-size 50MB < input.json
+```
+
+The value accepts `B`, `KB`, `MB`, or `GB` suffixes (e.g. `64KB`, `256MB`, `1GB`), or a bare integer interpreted as bytes.
+
 ## Next steps
 
 - Read [Core Concepts](./concepts) to understand how pipelines, steps, and payloads fit together
