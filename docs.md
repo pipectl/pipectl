@@ -242,8 +242,8 @@ Each field configuration supports:
 
 - `type`: required. One of `int`, `float`, `bool`, `time`, `string`
 - `format`: optional. Date/time parse format (Go layout string). Only valid for `type: time`. Defaults to RFC 3339.
-- `true_values`: optional list of strings to treat as `true`. Only valid for `type: bool`.
-- `false_values`: optional list of strings to treat as `false`. Only valid for `type: bool`.
+- `true-values`: optional list of strings to treat as `true`. Only valid for `type: bool`.
+- `false-values`: optional list of strings to treat as `false`. Only valid for `type: bool`.
 
 Example:
 
@@ -256,8 +256,8 @@ Example:
         type: float
       active:
         type: bool
-        true_values: [yes, "1"]
-        false_values: [no, "0"]
+        true-values: [yes, "1"]
+        false-values: [no, "0"]
       created_at:
         type: time
         format: "2006-01-02"
@@ -267,7 +267,7 @@ Notes:
 
 - Field paths support dot notation and array indexing, eg: `user.address`, `tags[0]`.
 - For `type: bool`, default true values are `true`, `t`, `1`, `yes`, `y`, `on`. Default false values are `false`, `f`, `0`, `no`, `n`, `off`.
-- `true_values` and `false_values` must not overlap.
+- `true-values` and `false-values` must not overlap.
 - For `type: time`, the field value is parsed into a Go `time.Time`. The serialized output format depends on the output encoder.
 - Array fields are cast element-by-element.
 

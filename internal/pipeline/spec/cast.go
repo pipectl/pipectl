@@ -8,8 +8,8 @@ import (
 type CastField struct {
 	Type        string   `yaml:"type"`
 	Format      string   `yaml:"format,omitempty"`
-	TrueValues  []string `yaml:"true_values,omitempty"`
-	FalseValues []string `yaml:"false_values,omitempty"`
+	TrueValues  []string `yaml:"true-values,omitempty"`
+	FalseValues []string `yaml:"false-values,omitempty"`
 }
 
 type CastStep struct {
@@ -41,7 +41,7 @@ func (s *CastStep) Validate() error {
 		}
 
 		if field.Type != "bool" && (len(field.TrueValues) > 0 || len(field.FalseValues) > 0) {
-			return fmt.Errorf("cast field %q true_values/false_values are only supported for type bool", fieldName)
+			return fmt.Errorf("cast field %q true-values/false-values are only supported for type bool", fieldName)
 		}
 
 		if field.Type == "bool" {
@@ -52,7 +52,7 @@ func (s *CastStep) Validate() error {
 			for _, value := range field.FalseValues {
 				normalized := strings.ToLower(strings.TrimSpace(value))
 				if _, exists := seen[normalized]; exists {
-					return fmt.Errorf("cast field %q bool true_values and false_values must not overlap", fieldName)
+					return fmt.Errorf("cast field %q bool true-values and false-values must not overlap", fieldName)
 				}
 			}
 		}

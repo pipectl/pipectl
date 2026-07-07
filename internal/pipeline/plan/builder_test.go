@@ -138,7 +138,7 @@ func TestBuildCastStep(t *testing.T) {
 		t.Fatalf("unexpected age type: got %q want %q", got, "int")
 	}
 	if got := castStep.Fields["active"].TrueValues; len(got) != 1 || got[0] != "yes" {
-		t.Fatalf("unexpected active true_values: %#v", got)
+		t.Fatalf("unexpected active true-values: %#v", got)
 	}
 }
 

@@ -22,12 +22,12 @@ steps:
           format: "2006-01-02"
         clearance:
           type: bool
-          true_values: ["yes"]
-          false_values: ["no"]
+          true-values: ["yes"]
+          false-values: ["no"]
         archived:
           type: bool
-          true_values: ["yes"]
-          false_values: ["no"]
+          true-values: ["yes"]
+          false-values: ["no"]
 
   - assert:
       records-equal: 2

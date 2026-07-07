@@ -85,8 +85,8 @@ func TestStepWrapperUnmarshalCastStep(t *testing.T) {
       format: "2006-01-02"
     active:
       type: bool
-      true_values: ["yes", "1"]
-      false_values: ["no", "0"]
+      true-values: ["yes", "1"]
+      false-values: ["no", "0"]
 `)
 
 	var step StepWrapper
@@ -106,7 +106,7 @@ func TestStepWrapperUnmarshalCastStep(t *testing.T) {
 		t.Fatalf("unexpected created_at format: got %q want %q", got, "2006-01-02")
 	}
 	if got := castStep.Fields["active"].TrueValues; len(got) != 2 || got[0] != "yes" || got[1] != "1" {
-		t.Fatalf("unexpected active true_values: %#v", got)
+		t.Fatalf("unexpected active true-values: %#v", got)
 	}
 }
 
@@ -149,9 +149,9 @@ func TestStepWrapperUnmarshalCastStepRejectsInvalidOptionCombinations(t *testing
   fields:
     age:
       type: int
-      true_values: ["yes"]
+      true-values: ["yes"]
 `,
-			message: `cast field "age" true_values/false_values are only supported for type bool`,
+			message: `cast field "age" true-values/false-values are only supported for type bool`,
 		},
 		{
 			name: "overlapping bool values",
@@ -159,10 +159,10 @@ func TestStepWrapperUnmarshalCastStepRejectsInvalidOptionCombinations(t *testing
   fields:
     active:
       type: bool
-      true_values: ["yes"]
-      false_values: ["yes"]
+      true-values: ["yes"]
+      false-values: ["yes"]
 `,
-			message: `cast field "active" bool true_values and false_values must not overlap`,
+			message: `cast field "active" bool true-values and false-values must not overlap`,
 		},
 	}
 

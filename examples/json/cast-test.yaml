@@ -44,12 +44,12 @@ steps:
           type: float
         custom.on:
           type: bool
-          true_values: ["enabled"]
-          false_values: ["disabled"]
+          true-values: ["enabled"]
+          false-values: ["disabled"]
         custom.off:
           type: bool
-          true_values: ["enabled"]
-          false_values: ["disabled"]
+          true-values: ["enabled"]
+          false-values: ["disabled"]
 
   - log:
       message: "Final payload"

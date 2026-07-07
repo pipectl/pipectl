@@ -2,7 +2,6 @@
 
 ## Bugs / Correctness
 
-- **`cast` YAML naming inconsistency** — `true_values` and `false_values` use snake_case while every other step option uses kebab-case; standardise to `true-values` / `false-values` (breaking change — migrate testdata and docs accordingly)
 - **stdin data-size guard** — `cmd/pipectl/run.go:54` has a code TODO about unbounded `io.ReadAll(os.Stdin)`; large inputs can exhaust memory silently; add a configurable cap or hard ceiling
 
 ## Refactoring

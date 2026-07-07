@@ -16,8 +16,8 @@ Each field entry supports:
 |-----|------|----------|-------------|
 | `type` | string | Yes | Target type: `int`, `float`, `bool`, `string`, or `time` |
 | `format` | string | No | Date/time parse format (Go layout string). Only valid for `type: time`. Defaults to RFC 3339. |
-| `true_values` | list | No | Strings to treat as `true`. Only valid for `type: bool`. |
-| `false_values` | list | No | Strings to treat as `false`. Only valid for `type: bool`. |
+| `true-values` | list | No | Strings to treat as `true`. Only valid for `type: bool`. |
+| `false-values` | list | No | Strings to treat as `false`. Only valid for `type: bool`. |
 
 ## Examples
 
@@ -41,8 +41,8 @@ Custom bool values:
     fields:
       active:
         type: bool
-        true_values: [yes, "1", enabled]
-        false_values: [no, "0", disabled]
+        true-values: [yes, "1", enabled]
+        false-values: [no, "0", disabled]
 ```
 
 Parse a date string:
@@ -71,6 +71,6 @@ Nested fields:
 - Field paths support dot notation (`user.address`) and array indexing (`tags[0]`).
 - Default `true` values for `bool`: `true`, `t`, `1`, `yes`, `y`, `on`.
 - Default `false` values for `bool`: `false`, `f`, `0`, `no`, `n`, `off`.
-- `true_values` and `false_values` must not overlap.
+- `true-values` and `false-values` must not overlap.
 - For `type: time`, the `format` string uses [Go's time layout](https://pkg.go.dev/time#Layout). The reference time is `Mon Jan 2 15:04:05 MST 2006`.
 - Array fields are cast element-by-element.
