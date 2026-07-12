@@ -28,6 +28,14 @@ jobs:
           node-version: "22"
           cache: "npm"
           cache-dependency-path: website/package-lock.json
+      - name: Check for banned third-party JS
+        run: |
+          if grep -rEn --include='*.md' --include='*.ts' --include='*.mts' --include='*.vue' \
+            '(fonts\.googleapis\.com|fonts\.gstatic\.com|docsearch|algolia|google-analytics\.com|googletagmanager\.com|gtag\(|plausible\.io|fathom)' \
+            docs .vitepress; then
+            echo "::error::Found a reference to banned third-party JS/CDN (see playbooks/website-changes.md for why)."
+            exit 1
+          fi
       - run: npm ci
       - run: npm run docs:build
       - uses: actions/upload-pages-artifact@v3

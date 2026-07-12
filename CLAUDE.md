@@ -74,6 +74,7 @@ Task-level implementation details live in `playbooks/`.
 - add a new step: `playbooks/add-new-step.md`
 - add a payload format: `playbooks/add-payload-format.md`
 - add or extend step options: `playbooks/add-step-options.md`
+- change the website (`website/`): `playbooks/website-changes.md`
 
 Use these as checklists during implementation and review.
 
