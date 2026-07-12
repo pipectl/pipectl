@@ -134,6 +134,22 @@ func TestExecuteDedupeCSV(t *testing.T) {
 	assertContains(t, buf.String(), "removed 1 duplicate rows")
 }
 
+func TestExecuteErrorsOnMissingCSVField(t *testing.T) {
+	step := &Step{Fields: []string{"missing"}}
+	ctx := &engine.ExecutionContext{Payload: &payload.CSV{
+		Rows: [][]string{
+			{"id", "name"},
+			{"1", "Alice"},
+		},
+	}}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected error for missing CSV field, got nil")
+	}
+	assertContains(t, err.Error(), `dedupe: field "missing" not found in CSV headers`)
+}
+
 func TestExecuteDedupeNoDuplicates(t *testing.T) {
 	step := &Step{Fields: []string{"id"}}
 	var buf bytes.Buffer

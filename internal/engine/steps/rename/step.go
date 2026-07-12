@@ -61,19 +61,24 @@ func (s *Step) renameCSV(csvPayload *payload.CSV) error {
 	}
 
 	headerRow := csvPayload.Rows[0]
-	headerIndex := payload.HeaderIndex(headerRow)
+	fromFields := make([]string, 0, len(s.Fields))
+	for from := range s.Fields {
+		fromFields = append(fromFields, from)
+	}
+	fromIndex, err := payload.FindColumnIndices(headerRow, fromFields)
+	if err != nil {
+		return fmt.Errorf("rename: %w", err)
+	}
 
-	for from, to := range s.Fields {
-		if _, exists := headerIndex[from]; !exists {
-			return fmt.Errorf("rename: field %q not found in CSV headers", from)
-		}
+	headerIndex := payload.HeaderIndex(headerRow)
+	for _, to := range s.Fields {
 		if _, exists := headerIndex[to]; exists {
 			return fmt.Errorf("rename: target field %q already exists in CSV headers", to)
 		}
 	}
 
 	for from, to := range s.Fields {
-		headerRow[headerIndex[from]] = to
+		headerRow[fromIndex[from]] = to
 	}
 
 	return nil

@@ -1,5 +1,7 @@
 package payload
 
+import "fmt"
+
 const CSVType string = "csv"
 
 type CSV struct {
@@ -25,6 +27,21 @@ func HeaderIndex(headers []string) map[string]int {
 		idx[h] = i
 	}
 	return idx
+}
+
+// FindColumnIndices returns a map from each field name to its column index in headers.
+// It returns an error naming the first field not found in headers.
+func FindColumnIndices(headers []string, fields []string) (map[string]int, error) {
+	all := HeaderIndex(headers)
+	indices := make(map[string]int, len(fields))
+	for _, field := range fields {
+		i, ok := all[field]
+		if !ok {
+			return nil, fmt.Errorf("field %q not found in CSV headers", field)
+		}
+		indices[field] = i
+	}
+	return indices, nil
 }
 
 // CSVRowToRecord maps a single CSV row to a flat string-keyed record using the provided headers.

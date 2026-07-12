@@ -77,6 +77,10 @@ func (s *Step) dedupeCsv(csvPayload *payload.CSV, logger *engine.Logger) error {
 	}
 
 	headerRow := csvPayload.Rows[0]
+	if _, err := payload.FindColumnIndices(headerRow, s.Fields); err != nil {
+		return fmt.Errorf("dedupe: %w", err)
+	}
+
 	seen := make(map[string]struct{})
 	out := [][]string{headerRow}
 	removed := 0

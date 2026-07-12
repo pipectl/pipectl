@@ -149,6 +149,55 @@ func TestWriteJSONReturnsErrorForCSVRowLengthMismatch(t *testing.T) {
 	assertContains(t, err.Error(), "expected 2")
 }
 
+func TestFindColumnIndicesReturnsIndicesForAllFields(t *testing.T) {
+	headers := []string{"id", "name", "email"}
+
+	got, err := FindColumnIndices(headers, []string{"email", "id"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	want := map[string]int{"email": 2, "id": 0}
+	if len(got) != len(want) || got["email"] != want["email"] || got["id"] != want["id"] {
+		t.Fatalf("unexpected indices: got %v want %v", got, want)
+	}
+}
+
+func TestFindColumnIndicesReturnsEmptyMapForEmptyFields(t *testing.T) {
+	headers := []string{"id", "name"}
+
+	got, err := FindColumnIndices(headers, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(got) != 0 {
+		t.Fatalf("expected empty map, got %v", got)
+	}
+}
+
+func TestFindColumnIndicesErrorsOnMissingField(t *testing.T) {
+	headers := []string{"id", "name"}
+
+	_, err := FindColumnIndices(headers, []string{"id", "missing"})
+	if err == nil {
+		t.Fatal("expected error for missing field")
+	}
+
+	assertContains(t, err.Error(), `field "missing" not found in CSV headers`)
+}
+
+func TestFindColumnIndicesResolvesDuplicateHeadersToLastOccurrence(t *testing.T) {
+	headers := []string{"id", "name", "id"}
+
+	got, err := FindColumnIndices(headers, []string{"id"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got["id"] != 2 {
+		t.Fatalf("expected last occurrence index 2, got %d", got["id"])
+	}
+}
+
 func TestWriteJSONReturnsErrorForConflictingNestedCSVFields(t *testing.T) {
 	csvPayload := &CSV{
 		Rows: [][]string{

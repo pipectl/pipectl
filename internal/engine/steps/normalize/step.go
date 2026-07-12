@@ -84,21 +84,18 @@ func (s *Step) normalizeJSON(jsonPayload payload.JSONRecordPayload) error {
 
 func (s *Step) normalizeCsv(csvPayload *payload.CSV) error {
 	headerRow := csvPayload.Rows[0]
-	matched := make(map[string]bool)
-	normalizeFunctions := map[int]func(string) string{}
-	strategyIndex := map[int]string{}
-	for i, header := range headerRow {
-		if strategy, ok := s.Fields[header]; ok {
-			normalizeFunctions[i] = strategies[strategy]
-			strategyIndex[i] = strategy
-			matched[header] = true
-		}
+	fields := make([]string, 0, len(s.Fields))
+	for field := range s.Fields {
+		fields = append(fields, field)
+	}
+	colIndex, err := payload.FindColumnIndices(headerRow, fields)
+	if err != nil {
+		return fmt.Errorf("normalize: %w", err)
 	}
 
-	for field := range s.Fields {
-		if !matched[field] {
-			return fmt.Errorf("normalize: field %q not found in CSV headers", field)
-		}
+	strategyIndex := make(map[int]string, len(colIndex))
+	for field, i := range colIndex {
+		strategyIndex[i] = s.Fields[field]
 	}
 
 	for _, row := range csvPayload.Rows[1:] {

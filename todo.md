@@ -2,7 +2,6 @@
 
 ## Refactoring
 
-- **Extract CSV column-index helper** — `sort`, `cast`, `redact`, `normalize`, `rename`, and `dedupe` all independently build a `map[string]int` from the CSV header row; extract to a shared `payload.FindColumnIndices(headers, fields []string) (map[string]int, error)` in `internal/engine/payload/`
 - **Deduplicate HTTP method validation** — `spec/httprequest.go` and `spec/httptransform.go` contain identical method-validation loops; extract to a shared helper in `internal/pipeline/spec/`
 - **Deduplicate filter condition validation** — `FilterCondition.UnmarshalYAML` and `FilterStep.Validate` perform the same all/any/leaf consistency checks in separate code paths; consolidate
 - **Move `sort` direction default to `UnmarshalYAML`** — `SortStep.Validate()` currently mutates `s.Direction = "asc"`; defaults belong in `UnmarshalYAML`, not the validator (same pattern `dedupe` already follows)

@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -41,19 +40,14 @@ func (s *Step) Execute(context *engine.ExecutionContext) error {
 
 func (s *Step) redactCsv(csvPayload *payload.CSV) error {
 	headerRow := csvPayload.Rows[0]
-	toRedact := make([]bool, len(headerRow))
-	matched := make(map[string]bool)
-	for i, header := range headerRow {
-		if slices.Contains(s.Fields, header) {
-			toRedact[i] = true
-			matched[header] = true
-		}
+	colIndex, err := payload.FindColumnIndices(headerRow, s.Fields)
+	if err != nil {
+		return fmt.Errorf("redact: %w", err)
 	}
 
-	for _, field := range s.Fields {
-		if !matched[field] {
-			return fmt.Errorf("redact: field %q not found in CSV headers", field)
-		}
+	toRedact := make([]bool, len(headerRow))
+	for _, i := range colIndex {
+		toRedact[i] = true
 	}
 
 	for _, row := range csvPayload.Rows[1:] {

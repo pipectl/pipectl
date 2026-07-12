@@ -84,12 +84,13 @@ func (s *Step) executeCSV(csvPayload *payload.CSV) error {
 	}
 
 	headerRow := csvPayload.Rows[0]
-	colIndex := payload.HeaderIndex(headerRow)
-
+	fields := make([]string, 0, len(s.Fields))
 	for field := range s.Fields {
-		if _, ok := colIndex[field]; !ok {
-			return fmt.Errorf("cast: field %q not found in CSV headers", field)
-		}
+		fields = append(fields, field)
+	}
+	colIndex, err := payload.FindColumnIndices(headerRow, fields)
+	if err != nil {
+		return fmt.Errorf("cast: %w", err)
 	}
 
 	for rowIndex, row := range csvPayload.Rows[1:] {

@@ -33,5 +33,6 @@ Deduplicate by full name, case-insensitively:
 - Records are compared by the combined values of all listed fields. If every listed field matches a previously-seen record, the record is dropped.
 - Field order in `fields` does not affect which records are considered duplicates — only the combination of values matters.
 - If a field is missing from a record, its value is treated as an empty string for comparison purposes.
+- For CSV, every listed field must exist in the header row, or the step fails with an error.
 - For CSV, the header row is always preserved.
 - JSON object payloads (single record) are not supported — only JSON arrays.

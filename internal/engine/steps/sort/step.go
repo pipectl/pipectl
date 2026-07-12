@@ -63,24 +63,18 @@ func (s *Step) sortCSV(p *payload.CSV, logger *engine.Logger) error {
 	}
 
 	header := p.Rows[0]
-	colIndex := -1
-	for i, h := range header {
-		if h == s.Field {
-			colIndex = i
-			break
-		}
+	colIndex, err := payload.FindColumnIndices(header, []string{s.Field})
+	if err != nil {
+		return fmt.Errorf("sort: %w", err)
 	}
-
-	if colIndex == -1 {
-		return fmt.Errorf("sort: field %q not found in CSV headers", s.Field)
-	}
+	idx := colIndex[s.Field]
 
 	rows := make([][]string, len(p.Rows)-1)
 	copy(rows, p.Rows[1:])
 
 	sort.SliceStable(rows, func(i, j int) bool {
-		a := rows[i][colIndex]
-		b := rows[j][colIndex]
+		a := rows[i][idx]
+		b := rows[j][idx]
 		return s.less(a, b, a == "", b == "")
 	})
 
