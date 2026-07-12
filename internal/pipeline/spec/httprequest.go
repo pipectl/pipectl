@@ -22,26 +22,15 @@ func (s *HTTPRequestStep) String() string {
 }
 
 func (s *HTTPRequestStep) Validate() error {
-	s.Method = strings.ToUpper(strings.TrimSpace(s.Method))
-
 	if strings.TrimSpace(s.URL) == "" {
 		return fmt.Errorf("http-request url is required")
 	}
 
-	if s.Method == "" {
-		return fmt.Errorf("http-request method is required")
+	method, err := validateHTTPMethod(s.StepType(), s.Method)
+	if err != nil {
+		return err
 	}
-
-	validMethod := false
-	for _, m := range validHTTPMethods {
-		if s.Method == m {
-			validMethod = true
-			break
-		}
-	}
-	if !validMethod {
-		return fmt.Errorf("http-request method must be one of: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS")
-	}
+	s.Method = method
 
 	if s.Timeout < 0 {
 		return fmt.Errorf("http-request timeout must be >= 0")

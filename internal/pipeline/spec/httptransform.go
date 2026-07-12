@@ -5,8 +5,6 @@ import (
 	"strings"
 )
 
-var validHTTPMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
-
 type HTTPTransformStep struct {
 	URL          string            `yaml:"url"`
 	Method       string            `yaml:"method"`
@@ -25,26 +23,15 @@ func (s *HTTPTransformStep) String() string {
 }
 
 func (s *HTTPTransformStep) Validate() error {
-	s.Method = strings.ToUpper(strings.TrimSpace(s.Method))
-
 	if strings.TrimSpace(s.URL) == "" {
 		return fmt.Errorf("http-transform url is required")
 	}
 
-	if s.Method == "" {
-		return fmt.Errorf("http-transform method is required")
+	method, err := validateHTTPMethod(s.StepType(), s.Method)
+	if err != nil {
+		return err
 	}
-
-	validMethod := false
-	for _, m := range validHTTPMethods {
-		if s.Method == m {
-			validMethod = true
-			break
-		}
-	}
-	if !validMethod {
-		return fmt.Errorf("http-transform method must be one of: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS")
-	}
+	s.Method = method
 
 	if s.Timeout < 0 {
 		return fmt.Errorf("http-transform timeout must be >= 0")

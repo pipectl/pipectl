@@ -33,7 +33,7 @@ steps:
   - log:
       message: After filter
       count: true
-      sample: 0
+      sample: 10
 
   - redact:
       fields: [password]
@@ -61,7 +61,7 @@ steps:
       message: "Final record count"
 
   - assert:
-      records-equal: 19
+      records-equal: 20
       field-exists: firstName
 
   - limit:

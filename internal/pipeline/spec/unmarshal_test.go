@@ -1266,6 +1266,98 @@ func TestStepWrapperUnmarshalHTTPTransformStepValidation(t *testing.T) {
 	}
 }
 
+func TestStepWrapperUnmarshalHTTPRequestStep(t *testing.T) {
+	raw := []byte(`http-request:
+  url: https://example.com/request
+  method: POST
+  timeout: 30
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	httpStep, ok := step.Step.(*HTTPRequestStep)
+	if !ok {
+		t.Fatalf("expected *HTTPRequestStep, got %T", step.Step)
+	}
+
+	if httpStep.URL != "https://example.com/request" {
+		t.Fatalf("unexpected url: got %q", httpStep.URL)
+	}
+	if httpStep.Method != "POST" {
+		t.Fatalf("unexpected method: got %q want %q", httpStep.Method, "POST")
+	}
+	if httpStep.Timeout != 30 {
+		t.Fatalf("unexpected timeout: got %d want 30", httpStep.Timeout)
+	}
+}
+
+func TestStepWrapperUnmarshalHTTPRequestStepNormalisesMethodCase(t *testing.T) {
+	raw := []byte(`http-request:
+  url: https://example.com/request
+  method: post
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	httpStep := step.Step.(*HTTPRequestStep)
+	if httpStep.Method != "POST" {
+		t.Fatalf("expected method to be normalised to uppercase: got %q want %q", httpStep.Method, "POST")
+	}
+}
+
+func TestStepWrapperUnmarshalHTTPRequestStepValidation(t *testing.T) {
+	tests := []struct {
+		name    string
+		raw     string
+		message string
+	}{
+		{
+			name:    "missing url",
+			raw:     "http-request:\n  method: POST\n",
+			message: "http-request url is required",
+		},
+		{
+			name:    "missing method",
+			raw:     "http-request:\n  url: https://example.com\n",
+			message: "http-request method is required",
+		},
+		{
+			name:    "invalid method",
+			raw:     "http-request:\n  url: https://example.com\n  method: SEND\n",
+			message: "http-request method must be one of",
+		},
+		{
+			name:    "negative timeout",
+			raw:     "http-request:\n  url: https://example.com\n  method: POST\n  timeout: -1\n",
+			message: "http-request timeout must be >= 0",
+		},
+		{
+			name:    "timeout exceeds maximum",
+			raw:     "http-request:\n  url: https://example.com\n  method: POST\n  timeout: 301\n",
+			message: "http-request timeout must be <= 300 seconds",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			err := yaml.Unmarshal([]byte(tt.raw), &step)
+			if err == nil {
+				t.Fatal("expected unmarshal error")
+			}
+			if !strings.Contains(err.Error(), tt.message) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
 func TestStepWrapperRejectsUnknownFields(t *testing.T) {
 	tests := []struct {
 		name string
