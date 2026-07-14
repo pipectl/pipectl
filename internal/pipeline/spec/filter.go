@@ -29,23 +29,11 @@ func (c *FilterCondition) UnmarshalYAML(b []byte) error {
 		return err
 	}
 	*c = FilterCondition(raw)
+	return c.Validate()
+}
 
-	isGroup := len(c.All) > 0 || len(c.Any) > 0
-	isLeaf := c.Field != "" || c.Equals != "" || c.NotEquals != "" || c.Contains != "" ||
-		c.StartsWith != "" || c.EndsWith != "" || c.GreaterThan != "" || c.LessThan != ""
-
-	if isGroup && isLeaf {
-		return fmt.Errorf("filter condition cannot mix group (all/any) and rule fields")
-	}
-
-	if isGroup {
-		if len(c.All) > 0 && len(c.Any) > 0 {
-			return fmt.Errorf("filter condition cannot specify both all and any")
-		}
-		return nil
-	}
-
-	return validateFilterRule(c.Field, c.Equals, c.NotEquals, c.Contains, c.StartsWith, c.EndsWith, c.GreaterThan, c.LessThan)
+func (c *FilterCondition) Validate() error {
+	return validateFilterCondition(c.All, c.Any, c.Field, c.Equals, c.NotEquals, c.Contains, c.StartsWith, c.EndsWith, c.GreaterThan, c.LessThan)
 }
 
 type FilterStep struct {
@@ -91,26 +79,30 @@ func (s *FilterStep) String() string {
 }
 
 func (s *FilterStep) Validate() error {
-	hasGroup := len(s.All) > 0 || len(s.Any) > 0
-	hasFlat := s.Field != "" || s.Equals != "" || s.NotEquals != "" || s.Contains != "" ||
-		s.StartsWith != "" || s.EndsWith != "" || s.GreaterThan != "" || s.LessThan != ""
+	return validateFilterCondition(s.All, s.Any, s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.GreaterThan, s.LessThan)
+}
 
-	if hasGroup && hasFlat {
+func validateFilterCondition(all, any []FilterCondition, field, equals, notEquals, contains, startsWith, endsWith, greaterThan, lessThan string) error {
+	isGroup := len(all) > 0 || len(any) > 0
+	isLeaf := field != "" || equals != "" || notEquals != "" || contains != "" ||
+		startsWith != "" || endsWith != "" || greaterThan != "" || lessThan != ""
+
+	if isGroup && isLeaf {
 		return fmt.Errorf("filter cannot mix group (all/any) and rule fields")
 	}
 
-	if hasGroup {
-		if len(s.All) > 0 && len(s.Any) > 0 {
-			return fmt.Errorf("filter cannot specify both all and any at the top level")
+	if isGroup {
+		if len(all) > 0 && len(any) > 0 {
+			return fmt.Errorf("filter cannot specify both all and any")
 		}
 		return nil
 	}
 
-	if !hasFlat {
+	if !isLeaf {
 		return fmt.Errorf("filter requires a condition: specify field with an operator, or use all/any for grouped conditions")
 	}
 
-	return validateFilterRule(s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.GreaterThan, s.LessThan)
+	return validateFilterRule(field, equals, notEquals, contains, startsWith, endsWith, greaterThan, lessThan)
 }
 
 func validateFilterRule(field, equals, notEquals, contains, startsWith, endsWith, greaterThan, lessThan string) error {

@@ -2,7 +2,6 @@
 
 ## Refactoring
 
-- **Deduplicate filter condition validation** — `FilterCondition.UnmarshalYAML` and `FilterStep.Validate` perform the same all/any/leaf consistency checks in separate code paths; consolidate
 - **Move `sort` direction default to `UnmarshalYAML`** — `SortStep.Validate()` currently mutates `s.Direction = "asc"`; defaults belong in `UnmarshalYAML`, not the validator (same pattern `dedupe` already follows)
 - **Move `log` sample default to spec** — the default `Sample=10` is set in `plan/builder.go:117`; it should live in `spec/log.go` `UnmarshalYAML` alongside the struct definition
 - **Name magic-number constants** — HTTP timeout ceiling (300 s in `httprequest.go` and `httptransform.go`) and `log` default sample size (10 in `plan/builder.go`) should be named constants, not bare literals

@@ -790,6 +790,39 @@ func TestStepWrapperUnmarshalFilterStepAllAnyErrors(t *testing.T) {
 `,
 			message: "filter greater-than must be a number",
 		},
+		{
+			name: "empty condition inside all",
+			raw: `filter:
+  all:
+    - {}
+`,
+			message: "filter requires a condition",
+		},
+		{
+			name: "all and field mixed inside nested condition",
+			raw: `filter:
+  all:
+    - field: status
+      equals: active
+      all:
+        - field: status
+          equals: active
+`,
+			message: "filter cannot mix group",
+		},
+		{
+			name: "all and any both set inside nested condition",
+			raw: `filter:
+  all:
+    - all:
+        - field: status
+          equals: active
+      any:
+        - field: country
+          equals: AU
+`,
+			message: "filter cannot specify both all and any",
+		},
 	}
 
 	for _, tt := range tests {
