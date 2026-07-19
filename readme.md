@@ -10,6 +10,10 @@
 </p>
 
 <p align="center">
+  <img src="website/docs/public/demo.gif" alt="pipectl demo: normalizing, filtering, redacting, and selecting fields from a CSV file into JSONL" width="720" />
+</p>
+
+<p align="center">
   <a href="https://github.com/pipectl/pipectl/actions/workflows/ci.yml"><img src="https://github.com/pipectl/pipectl/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
   <a href="https://goreportcard.com/report/github.com/pipectl/pipectl"><img src="https://goreportcard.com/badge/github.com/pipectl/pipectl" alt="Go Report Card"/></a>
   <a href="https://pkg.go.dev/github.com/pipectl/pipectl"><img src="https://pkg.go.dev/badge/github.com/pipectl/pipectl.svg" alt="Go Reference"/></a>
@@ -138,6 +142,8 @@ go install github.com/pipectl/pipectl/cmd/pipectl@latest
 ## Usage
 
 ```bash
+pipectl init                      # interactively generate a starter pipeline YAML
+
 pipectl run <pipeline.yaml> [flags]
 
 Flags:

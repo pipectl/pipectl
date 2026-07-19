@@ -4,12 +4,45 @@
 
 | Flag | Short | Description |
 |------|-------|-------------|
-| `--version` | | Print the version and exit. |
+| `--version` | `-v` | Print the version and exit. |
+| `--help` | `-h` | Show help for `pipectl` or any subcommand. |
 
 ```bash
 pipectl --version
 # pipectl version v1.2.0
 ```
+
+---
+
+## `pipectl init`
+
+Interactively build a starter pipeline YAML file — no arguments or flags to memorize.
+
+```bash
+pipectl init
+```
+
+Walks through a short wizard: a pipeline ID, input format (`json`/`jsonl`/`csv`), which steps to include (multi-select from every built-in step), output format, and where to save the result. Leave the output file prompt empty to print the generated YAML to stdout instead of writing a file.
+
+### Examples
+
+Run the wizard and save to a file (defaults to `pipeline.yaml`):
+
+```bash
+pipectl init
+```
+
+Leave "Output file" blank when prompted to print to stdout instead:
+
+```bash
+pipectl init > pipeline.yaml
+```
+
+### Notes
+
+- Fully interactive — press `ctrl+c` at any time to exit without saving.
+- The generated YAML includes inline comments and placeholder values; edit it by hand afterward to fit your real data.
+- `init` takes no arguments; run `pipectl run` on the file it produces once you've customised it.
 
 ---
 

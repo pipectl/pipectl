@@ -114,6 +114,8 @@ go install github.com/pipectl/pipectl/cmd/pipectl@latest
 
 ## Your first pipeline
 
+You can hand-write a pipeline file, or run `pipectl init` for an interactive wizard that asks a few questions and generates a starter YAML file with placeholder values and inline comments — see [`pipectl init`](./cli#pipectl-init) in the CLI Reference.
+
 Create a pipeline file:
 
 ```yaml
