@@ -7,6 +7,11 @@ import (
 
 var validHTTPMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
 
+const (
+	minTimeoutSeconds = 0
+	maxTimeoutSeconds = 300
+)
+
 // validateHTTPMethod normalizes method (trim + uppercase) and checks it against
 // validHTTPMethods, returning errors prefixed with stepType to match each step's
 // own error conventions.

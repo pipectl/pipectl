@@ -33,12 +33,12 @@ func (s *HTTPTransformStep) Validate() error {
 	}
 	s.Method = method
 
-	if s.Timeout < 0 {
-		return fmt.Errorf("http-transform timeout must be >= 0")
+	if s.Timeout < minTimeoutSeconds {
+		return fmt.Errorf("http-transform timeout must be >= %d", minTimeoutSeconds)
 	}
 
-	if s.Timeout > 300 {
-		return fmt.Errorf("http-transform timeout must be <= 300 seconds")
+	if s.Timeout > maxTimeoutSeconds {
+		return fmt.Errorf("http-transform timeout must be <= %d seconds", maxTimeoutSeconds)
 	}
 
 	if s.ExpectFormat != "" {

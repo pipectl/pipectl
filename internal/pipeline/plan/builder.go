@@ -25,6 +25,8 @@ import (
 	"github.com/pipectl/pipectl/internal/pipeline/spec"
 )
 
+const defaultLogSample = 10
+
 func Build(p spec.Pipeline) ([]engine.ExecutableStep, error) {
 	executableSteps := make([]engine.ExecutableStep, 0, len(p.Steps))
 	for _, stepWrapper := range p.Steps {
@@ -114,7 +116,7 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 			recordCount = *s.Count
 		}
 
-		sample := 10
+		sample := defaultLogSample
 		if s.Sample != nil {
 			sample = *s.Sample
 		}
