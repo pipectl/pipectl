@@ -2,7 +2,6 @@ package _select
 
 import (
 	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/pipectl/pipectl/internal/engine"
@@ -54,10 +53,15 @@ func (s *Step) selectJSON(p payload.JSONRecordPayload) error {
 }
 
 func (s *Step) selectCsv(csvPayload *payload.CSV) error {
+	fieldSet := make(map[string]struct{}, len(s.Fields))
+	for _, field := range s.Fields {
+		fieldSet[field] = struct{}{}
+	}
+
 	headerRow := csvPayload.Rows[0]
 	toSelect := make([]bool, len(headerRow))
 	for i, header := range headerRow {
-		toSelect[i] = slices.Contains(s.Fields, header)
+		_, toSelect[i] = fieldSet[header]
 	}
 
 	for i, row := range csvPayload.Rows {

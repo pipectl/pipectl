@@ -6,10 +6,6 @@
 - **Move `log` sample default to spec** — the default `Sample=10` is set in `plan/builder.go:117`; it should live in `spec/log.go` `UnmarshalYAML` alongside the struct definition
 - **Remove dead `String()` methods on spec step types** — every spec step type implements `String()` but it is never called; delete them
 
-## Performance
-
-- **Fix O(n×m) field lookup in `select` step** — `select/step.go` calls `slices.Contains(s.Fields, header)` for every cell in every row; build a lookup set once before the row loop
-
 ## Step enhancements
 
 - `filter` — add `on-missing: exclude|include|error` option for records missing the filter field (currently silently excluded, which surprises users); default to `exclude` for backwards compatibility
