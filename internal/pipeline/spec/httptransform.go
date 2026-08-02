@@ -18,10 +18,6 @@ func (s *HTTPTransformStep) StepType() string {
 	return "http-transform"
 }
 
-func (s *HTTPTransformStep) String() string {
-	return fmt.Sprintf("[%s]: %v %v proxy=%v headers=%v timeout=%v expect-format=%v", s.StepType(), s.URL, s.Method, s.Proxy, s.Headers, s.Timeout, s.ExpectFormat)
-}
-
 func (s *HTTPTransformStep) Validate() error {
 	if strings.TrimSpace(s.URL) == "" {
 		return fmt.Errorf("http-transform url is required")

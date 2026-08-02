@@ -18,10 +18,6 @@ func (s *AssertStep) StepType() string {
 	return "assert"
 }
 
-func (s *AssertStep) String() string {
-	return fmt.Sprintf("[%s] min-records=%v max-records=%v records-equal=%v field-exists=%q", s.StepType(), s.MinRecords, s.MaxRecords, s.RecordsEqual, s.FieldExists)
-}
-
 func (s *AssertStep) UnmarshalYAML(b []byte) error {
 	type rawAssertStep AssertStep
 	var raw rawAssertStep

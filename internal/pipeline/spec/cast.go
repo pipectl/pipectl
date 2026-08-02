@@ -20,10 +20,6 @@ func (s *CastStep) StepType() string {
 	return "cast"
 }
 
-func (s *CastStep) String() string {
-	return fmt.Sprintf("[%s] fields: %v", s.StepType(), s.Fields)
-}
-
 func (s *CastStep) Validate() error {
 	if len(s.Fields) == 0 {
 		return fmt.Errorf("cast requires at least one field")

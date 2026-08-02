@@ -15,10 +15,6 @@ func (s *SortStep) StepType() string {
 	return "sort"
 }
 
-func (s *SortStep) String() string {
-	return fmt.Sprintf("[%s] field: %v direction: %v", s.StepType(), s.Field, s.Direction)
-}
-
 func (s *SortStep) UnmarshalYAML(b []byte) error {
 	type rawSortStep SortStep
 	raw := rawSortStep{Direction: "asc"}

@@ -53,31 +53,6 @@ func (s *FilterStep) StepType() string {
 	return "filter"
 }
 
-func (s *FilterStep) String() string {
-	switch {
-	case len(s.All) > 0:
-		return fmt.Sprintf("[%s] all: %d conditions", s.StepType(), len(s.All))
-	case len(s.Any) > 0:
-		return fmt.Sprintf("[%s] any: %d conditions", s.StepType(), len(s.Any))
-	case s.Equals != "":
-		return fmt.Sprintf("[%s] filter: %v equals %v", s.StepType(), s.Field, s.Equals)
-	case s.NotEquals != "":
-		return fmt.Sprintf("[%s] filter: %v not-equals %v", s.StepType(), s.Field, s.NotEquals)
-	case s.Contains != "":
-		return fmt.Sprintf("[%s] filter: %v contains %v", s.StepType(), s.Field, s.Contains)
-	case s.StartsWith != "":
-		return fmt.Sprintf("[%s] filter: %v starts-with %v", s.StepType(), s.Field, s.StartsWith)
-	case s.EndsWith != "":
-		return fmt.Sprintf("[%s] filter: %v ends-with %v", s.StepType(), s.Field, s.EndsWith)
-	case s.GreaterThan != "":
-		return fmt.Sprintf("[%s] filter: %v greater-than %v", s.StepType(), s.Field, s.GreaterThan)
-	case s.LessThan != "":
-		return fmt.Sprintf("[%s] filter: %v less-than %v", s.StepType(), s.Field, s.LessThan)
-	default:
-		return fmt.Sprintf("[%s] filter: %v", s.StepType(), s.Field)
-	}
-}
-
 func (s *FilterStep) Validate() error {
 	return validateFilterCondition(s.All, s.Any, s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.GreaterThan, s.LessThan)
 }

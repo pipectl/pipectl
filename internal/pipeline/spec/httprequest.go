@@ -17,10 +17,6 @@ func (s *HTTPRequestStep) StepType() string {
 	return "http-request"
 }
 
-func (s *HTTPRequestStep) String() string {
-	return fmt.Sprintf("[%s]: %v %v proxy=%v headers=%v timeout=%v", s.StepType(), s.URL, s.Method, s.Proxy, s.Headers, s.Timeout)
-}
-
 func (s *HTTPRequestStep) Validate() error {
 	if strings.TrimSpace(s.URL) == "" {
 		return fmt.Errorf("http-request url is required")

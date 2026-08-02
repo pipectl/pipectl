@@ -15,10 +15,6 @@ func (s *RedactStep) StepType() string {
 	return "redact"
 }
 
-func (s *RedactStep) String() string {
-	return fmt.Sprintf("[%s] fields: %v", s.StepType(), s.Fields)
-}
-
 func (s *RedactStep) Validate() error {
 	if len(s.Fields) == 0 {
 		return fmt.Errorf("redact requires at least one field")

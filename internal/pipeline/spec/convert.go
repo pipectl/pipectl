@@ -10,10 +10,6 @@ func (s *ConvertStep) StepType() string {
 	return "convert"
 }
 
-func (s *ConvertStep) String() string {
-	return fmt.Sprintf("[%s] format=%q", s.StepType(), s.Format)
-}
-
 func (s *ConvertStep) Validate() error {
 	switch s.Format {
 	case "json", "jsonl", "csv":

@@ -1,8 +1,6 @@
 package spec
 
 import (
-	"fmt"
-
 	"github.com/goccy/go-yaml"
 )
 
@@ -16,10 +14,6 @@ type LogStep struct {
 
 func (s *LogStep) StepType() string {
 	return "log"
-}
-
-func (s *LogStep) String() string {
-	return fmt.Sprintf("[%s] message=%q count=%v sample=%v", s.StepType(), s.Message, s.Count, s.Sample)
 }
 
 func (s *LogStep) UnmarshalYAML(b []byte) error {

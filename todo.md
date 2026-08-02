@@ -1,9 +1,5 @@
 # TODO
 
-## Refactoring
-
-- **Remove dead `String()` methods on spec step types** — every spec step type implements `String()` but it is never called; delete them
-
 ## Step enhancements
 
 - `filter` — add `on-missing: exclude|include|error` option for records missing the filter field (currently silently excluded, which surprises users); default to `exclude` for backwards compatibility

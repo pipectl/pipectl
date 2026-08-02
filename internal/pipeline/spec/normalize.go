@@ -15,10 +15,6 @@ func (s *NormalizeStep) StepType() string {
 	return "normalize"
 }
 
-func (s *NormalizeStep) String() string {
-	return fmt.Sprintf("[%s] fields: %v", s.StepType(), s.Fields)
-}
-
 func (s *NormalizeStep) Validate() error {
 	if len(s.Fields) == 0 {
 		return fmt.Errorf("normalize requires at least one field")

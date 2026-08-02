@@ -15,10 +15,6 @@ func (s *DedupeStep) StepType() string {
 	return "dedupe"
 }
 
-func (s *DedupeStep) String() string {
-	return fmt.Sprintf("[%s] fields: %v", s.StepType(), s.Fields)
-}
-
 func (s *DedupeStep) UnmarshalYAML(b []byte) error {
 	type rawDedupeStep DedupeStep
 	raw := rawDedupeStep{CaseSensitive: true}
