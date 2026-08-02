@@ -173,10 +173,14 @@ func TestBuildConvertStep(t *testing.T) {
 }
 
 func TestBuildLogStepDefaults(t *testing.T) {
+	// Sample defaulting now happens in spec.LogStep.UnmarshalYAML (see
+	// spec/unmarshal_test.go); here we supply it explicitly since Build
+	// trusts the spec layer to have already populated it.
+	sample := 10
 	pipeline := spec.Pipeline{
 		Steps: []spec.StepWrapper{
 			{
-				Step: &spec.LogStep{},
+				Step: &spec.LogStep{Sample: &sample},
 			},
 		},
 	}

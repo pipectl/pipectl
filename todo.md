@@ -2,7 +2,6 @@
 
 ## Refactoring
 
-- **Move `log` sample default to spec** — the default `Sample=10` is set in `plan/builder.go:117`; it should live in `spec/log.go` `UnmarshalYAML` alongside the struct definition
 - **Remove dead `String()` methods on spec step types** — every spec step type implements `String()` but it is never called; delete them
 
 ## Step enhancements

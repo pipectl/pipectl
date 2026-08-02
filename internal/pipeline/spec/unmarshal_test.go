@@ -245,6 +245,47 @@ func TestStepWrapperUnmarshalLogStep(t *testing.T) {
 	}
 }
 
+func TestStepWrapperUnmarshalLogStepDefaultsSample(t *testing.T) {
+	raw := []byte(`log:
+  message: Payload after step 2
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	logStep, ok := step.Step.(*LogStep)
+	if !ok {
+		t.Fatalf("expected *LogStep, got %T", step.Step)
+	}
+
+	if logStep.Sample == nil || *logStep.Sample != 10 {
+		t.Fatalf("unexpected sample default: got %v want 10", logStep.Sample)
+	}
+}
+
+func TestStepWrapperUnmarshalLogStepOverridesSample(t *testing.T) {
+	raw := []byte(`log:
+  message: Payload after step 2
+  sample: 3
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	logStep, ok := step.Step.(*LogStep)
+	if !ok {
+		t.Fatalf("expected *LogStep, got %T", step.Step)
+	}
+
+	if logStep.Sample == nil || *logStep.Sample != 3 {
+		t.Fatalf("unexpected sample: got %v want 3", logStep.Sample)
+	}
+}
+
 func TestStepWrapperUnmarshalCountStep(t *testing.T) {
 	raw := []byte(`count:
   message: Payload before output
@@ -1411,6 +1452,10 @@ func TestStepWrapperRejectsUnknownFields(t *testing.T) {
 		{
 			name: "sort with unknown field",
 			raw:  "sort:\n  field: name\n  unknown_key: x\n",
+		},
+		{
+			name: "log with unknown field",
+			raw:  "log:\n  message: hi\n  unknown_key: x\n",
 		},
 		{
 			name: "convert with unknown field",
