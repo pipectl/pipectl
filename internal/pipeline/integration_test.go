@@ -21,6 +21,8 @@ func TestStepPipelines(t *testing.T) {
 	run(t, []testCase{
 		{name: "filter/operators", pipeline: "step/filter-operators.yaml", input: "people.jsonl", golden: "step/filter-operators.json"},
 		{name: "filter/conditions", pipeline: "step/filter-conditions.yaml", input: "people.jsonl", golden: "step/filter-conditions.json"},
+		{name: "filter/on-missing", pipeline: "step/filter-on-missing.yaml", input: "people.jsonl", golden: "step/filter-on-missing.json"},
+		{name: "filter/on-missing-csv", pipeline: "step/filter-on-missing-csv.yaml", input: "products.csv", golden: "step/filter-on-missing-csv.json"},
 		{name: "cast", pipeline: "step/cast.yaml", input: "products.json", golden: "step/cast.json"},
 		{name: "cast/csv", pipeline: "step/cast-csv.yaml", input: "products.csv", golden: "step/cast-csv.csv"},
 		{name: "normalize", pipeline: "step/normalize.yaml", input: "people.jsonl", golden: "step/normalize.jsonl"},

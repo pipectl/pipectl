@@ -19,11 +19,18 @@ const (
 	OpLessThan    = "less-than"
 )
 
+const (
+	OnMissingExclude = "exclude"
+	OnMissingInclude = "include"
+	OnMissingError   = "error"
+)
+
 type Rule struct {
 	Field        string
 	Op           string
 	Value        string
 	NumericValue float64
+	OnMissing    string
 }
 
 // Condition is either a leaf Rule or an All/Any group (recursive).
@@ -34,12 +41,23 @@ type Condition struct {
 }
 
 // evaluate reports whether the condition matches the given record.
-// Missing fields on a leaf rule are treated as non-matching.
+// Missing fields on a leaf rule are handled per Rule.OnMissing: "exclude" (the
+// default, and the zero value) treats them as non-matching, "include" treats
+// them as matching, and "error" fails the step with an error naming the field.
 func (c *Condition) evaluate(record map[string]interface{}) (bool, error) {
 	if c.Rule != nil {
 		value, exists := record[c.Rule.Field]
 		if !exists {
-			return false, nil
+			switch c.Rule.OnMissing {
+			case OnMissingInclude:
+				return true, nil
+			case OnMissingError:
+				return false, fmt.Errorf("filter: field %q is missing from record", c.Rule.Field)
+			case OnMissingExclude, "":
+				return false, nil
+			default:
+				return false, nil
+			}
 		}
 		return c.Rule.matches(fmt.Sprintf("%v", value))
 	}

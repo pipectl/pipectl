@@ -613,6 +613,35 @@ func TestStepWrapperUnmarshalFilterStep(t *testing.T) {
 			checkField: func(s *FilterStep) bool { return s.LessThan == "30" },
 			wantField:  "LessThan=30",
 		},
+		{
+			name: "on-missing defaults to exclude",
+			raw: `filter:
+  field: status
+  equals: active
+`,
+			checkField: func(s *FilterStep) bool { return s.OnMissing == "exclude" },
+			wantField:  "OnMissing=exclude",
+		},
+		{
+			name: "on-missing include",
+			raw: `filter:
+  field: status
+  equals: active
+  on-missing: include
+`,
+			checkField: func(s *FilterStep) bool { return s.OnMissing == "include" },
+			wantField:  "OnMissing=include",
+		},
+		{
+			name: "on-missing error",
+			raw: `filter:
+  field: status
+  equals: active
+  on-missing: error
+`,
+			checkField: func(s *FilterStep) bool { return s.OnMissing == "error" },
+			wantField:  "OnMissing=error",
+		},
 	}
 
 	for _, tt := range tests {
@@ -687,6 +716,15 @@ func TestStepWrapperUnmarshalFilterStepValidation(t *testing.T) {
   less-than: abc
 `,
 			message: "filter less-than must be a number",
+		},
+		{
+			name: "invalid on-missing",
+			raw: `filter:
+  field: status
+  equals: active
+  on-missing: skip
+`,
+			message: "filter on-missing must be exclude, include, or error",
 		},
 	}
 

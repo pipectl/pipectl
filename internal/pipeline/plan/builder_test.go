@@ -8,6 +8,7 @@ import (
 	"github.com/pipectl/pipectl/internal/engine/steps/convert"
 	"github.com/pipectl/pipectl/internal/engine/steps/count"
 	"github.com/pipectl/pipectl/internal/engine/steps/default"
+	"github.com/pipectl/pipectl/internal/engine/steps/filter"
 	"github.com/pipectl/pipectl/internal/engine/steps/limit"
 	_log "github.com/pipectl/pipectl/internal/engine/steps/log"
 	"github.com/pipectl/pipectl/internal/engine/steps/rename"
@@ -348,5 +349,91 @@ func TestBuildAssertStep(t *testing.T) {
 	}
 	if assertStep.FieldExists != "email" {
 		t.Fatalf("unexpected field-exists: got %q want %q", assertStep.FieldExists, "email")
+	}
+}
+
+func TestBuildFilterStep(t *testing.T) {
+	pipeline := spec.Pipeline{
+		Steps: []spec.StepWrapper{
+			{
+				Step: &spec.FilterStep{
+					Field:     "status",
+					Equals:    "active",
+					OnMissing: "include",
+				},
+			},
+		},
+	}
+
+	executableSteps, err := Build(pipeline)
+	if err != nil {
+		t.Fatalf("build returned error: %v", err)
+	}
+
+	if len(executableSteps) != 1 {
+		t.Fatalf("unexpected step count: got %d want %d", len(executableSteps), 1)
+	}
+
+	filterStep, ok := executableSteps[0].(*filter.Step)
+	if !ok {
+		t.Fatalf("expected *filter.Step, got %T", executableSteps[0])
+	}
+
+	if filterStep.Condition.Rule == nil {
+		t.Fatal("expected a leaf rule")
+	}
+	if filterStep.Condition.Rule.Field != "status" {
+		t.Fatalf("unexpected field: got %q want %q", filterStep.Condition.Rule.Field, "status")
+	}
+	if filterStep.Condition.Rule.OnMissing != "include" {
+		t.Fatalf("unexpected on-missing: got %q want %q", filterStep.Condition.Rule.OnMissing, "include")
+	}
+}
+
+func TestBuildFilterStepAllAnyThreadsOnMissing(t *testing.T) {
+	pipeline := spec.Pipeline{
+		Steps: []spec.StepWrapper{
+			{
+				Step: &spec.FilterStep{
+					OnMissing: "error",
+					All: []spec.FilterCondition{
+						{Field: "status", Equals: "active"},
+						{
+							Any: []spec.FilterCondition{
+								{Field: "age", GreaterThan: "18"},
+								{Field: "department", Equals: "HR"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	executableSteps, err := Build(pipeline)
+	if err != nil {
+		t.Fatalf("build returned error: %v", err)
+	}
+
+	filterStep, ok := executableSteps[0].(*filter.Step)
+	if !ok {
+		t.Fatalf("expected *filter.Step, got %T", executableSteps[0])
+	}
+
+	if len(filterStep.Condition.All) != 2 {
+		t.Fatalf("unexpected all count: got %d want %d", len(filterStep.Condition.All), 2)
+	}
+	if got := filterStep.Condition.All[0].Rule.OnMissing; got != "error" {
+		t.Fatalf("unexpected on-missing on flat rule: got %q want %q", got, "error")
+	}
+
+	nested := filterStep.Condition.All[1]
+	if len(nested.Any) != 2 {
+		t.Fatalf("unexpected any count: got %d want %d", len(nested.Any), 2)
+	}
+	for _, sub := range nested.Any {
+		if got := sub.Rule.OnMissing; got != "error" {
+			t.Fatalf("unexpected on-missing on nested rule: got %q want %q", got, "error")
+		}
 	}
 }

@@ -1,0 +1,17 @@
+id: filter-on-missing-csv
+
+input:
+  format: csv
+
+steps:
+  # discount has no column in products.csv, so it's missing on every row.
+  # on-missing: include keeps both rows.
+  - filter:
+      field: discount
+      on-missing: include
+      equals: "10"
+  - assert:
+      records-equal: 2
+
+output:
+  format: json

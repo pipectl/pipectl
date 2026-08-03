@@ -2,7 +2,6 @@
 
 ## Step enhancements
 
-- `filter` — add `on-missing: exclude|include|error` option for records missing the filter field (currently silently excluded, which surprises users); default to `exclude` for backwards compatibility
 - `filter` — add `case-sensitive: false` option for string operators (`equals`, `not-equals`, `contains`, `starts-with`, `ends-with`)
 - `filter` — add `matches` operator for regex matching
 - `sort` — multi-field sort: allow an ordered list of `field`/`direction` pairs as compound sort keys
@@ -23,7 +22,7 @@
 - Add `count: message:` integration test — the `message` option has no testdata pipeline or golden file
 - Add zero-record JSONL integration test — verify empty-input end-to-end behaviour
 - Add `http-request` spec unmarshal tests — `unmarshal_test.go` covers every step except `http-request`
-- Expand plan builder tests — `plan/builder_test.go` has no coverage for `filter`, `sort`, `dedupe`, `select`, `normalize`, `redact`, or `validate-json` plan compilation
+- Expand plan builder tests — `plan/builder_test.go` has no coverage for `sort`, `dedupe`, `select`, `normalize`, `redact`, or `validate-json` plan compilation
 - Add CLI flag tests — `cmd/pipectl/run_test.go` only tests `--output`; add coverage for `--verbose`, `--quiet`, `--dry-run`, `--timing`, and `--var`
 
 ## Documentation

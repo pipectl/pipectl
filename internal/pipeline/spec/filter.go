@@ -47,13 +47,38 @@ type FilterStep struct {
 	LessThan    string            `yaml:"less-than"`
 	All         []FilterCondition `yaml:"all"`
 	Any         []FilterCondition `yaml:"any"`
+	OnMissing   string            `yaml:"on-missing,omitempty"`
 }
 
 func (s *FilterStep) StepType() string {
 	return "filter"
 }
 
+func (s *FilterStep) UnmarshalYAML(b []byte) error {
+	type rawFilterStep FilterStep
+	raw := rawFilterStep{OnMissing: "exclude"}
+	if err := yaml.UnmarshalWithOptions(b, &raw, yaml.DisallowUnknownField()); err != nil {
+		return err
+	}
+	// An empty step body (e.g. "filter:\n") unmarshals as a no-op that resets
+	// the whole raw struct to its zero value, wiping the pre-set default.
+	if raw.OnMissing == "" {
+		raw.OnMissing = "exclude"
+	}
+	*s = FilterStep(raw)
+	return s.Validate()
+}
+
 func (s *FilterStep) Validate() error {
+	// "" is accepted alongside "exclude" because a fully empty step body (e.g.
+	// "filter:\n") never reaches UnmarshalYAML's default-seeding, so Validate
+	// can be called directly against a zero-valued FilterStep; the engine
+	// treats an unset OnMissing the same as "exclude".
+	switch s.OnMissing {
+	case "", "exclude", "include", "error":
+	default:
+		return fmt.Errorf("filter on-missing must be exclude, include, or error")
+	}
 	return validateFilterCondition(s.All, s.Any, s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.GreaterThan, s.LessThan)
 }
 

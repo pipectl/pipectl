@@ -92,19 +92,19 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 	case *spec.FilterStep:
 		var condition *filter.Condition
 		if len(s.All) > 0 {
-			subs, err := buildFilterConditions(s.All)
+			subs, err := buildFilterConditions(s.All, s.OnMissing)
 			if err != nil {
 				return nil, err
 			}
 			condition = &filter.Condition{All: subs}
 		} else if len(s.Any) > 0 {
-			subs, err := buildFilterConditions(s.Any)
+			subs, err := buildFilterConditions(s.Any, s.OnMissing)
 			if err != nil {
 				return nil, err
 			}
 			condition = &filter.Condition{Any: subs}
 		} else {
-			rule := buildFilterRule(s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.GreaterThan, s.LessThan)
+			rule := buildFilterRule(s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.GreaterThan, s.LessThan, s.OnMissing)
 			condition = &filter.Condition{Rule: rule}
 		}
 		return &filter.Step{Condition: condition}, nil
@@ -159,10 +159,10 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 	}
 }
 
-func buildFilterConditions(conditions []spec.FilterCondition) ([]*filter.Condition, error) {
+func buildFilterConditions(conditions []spec.FilterCondition, onMissing string) ([]*filter.Condition, error) {
 	result := make([]*filter.Condition, 0, len(conditions))
 	for _, c := range conditions {
-		built, err := buildFilterCondition(c)
+		built, err := buildFilterCondition(c, onMissing)
 		if err != nil {
 			return nil, err
 		}
@@ -171,27 +171,27 @@ func buildFilterConditions(conditions []spec.FilterCondition) ([]*filter.Conditi
 	return result, nil
 }
 
-func buildFilterCondition(c spec.FilterCondition) (*filter.Condition, error) {
+func buildFilterCondition(c spec.FilterCondition, onMissing string) (*filter.Condition, error) {
 	if len(c.All) > 0 {
-		subs, err := buildFilterConditions(c.All)
+		subs, err := buildFilterConditions(c.All, onMissing)
 		if err != nil {
 			return nil, err
 		}
 		return &filter.Condition{All: subs}, nil
 	}
 	if len(c.Any) > 0 {
-		subs, err := buildFilterConditions(c.Any)
+		subs, err := buildFilterConditions(c.Any, onMissing)
 		if err != nil {
 			return nil, err
 		}
 		return &filter.Condition{Any: subs}, nil
 	}
-	rule := buildFilterRule(c.Field, c.Equals, c.NotEquals, c.Contains, c.StartsWith, c.EndsWith, c.GreaterThan, c.LessThan)
+	rule := buildFilterRule(c.Field, c.Equals, c.NotEquals, c.Contains, c.StartsWith, c.EndsWith, c.GreaterThan, c.LessThan, onMissing)
 	return &filter.Condition{Rule: rule}, nil
 }
 
-func buildFilterRule(field, equals, notEquals, contains, startsWith, endsWith, greaterThan, lessThan string) *filter.Rule {
-	rule := &filter.Rule{Field: field}
+func buildFilterRule(field, equals, notEquals, contains, startsWith, endsWith, greaterThan, lessThan, onMissing string) *filter.Rule {
+	rule := &filter.Rule{Field: field, OnMissing: onMissing}
 	switch {
 	case equals != "":
 		rule.Op, rule.Value = filter.OpEquals, equals

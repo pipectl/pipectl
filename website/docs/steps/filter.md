@@ -84,9 +84,27 @@ Keep records that match **at least one** listed condition:
             equals: NZ
 ```
 
+## Missing fields
+
+By default, records missing the field a rule tests are treated as non-matching and silently excluded — no error or warning is raised at the default log level. Run with `--verbose` (`-v`) to see the count of excluded records. Set `on-missing` on the step to change this:
+
+| Value | Behavior |
+|-------|----------|
+| `exclude` (default) | Records missing the field are excluded — the original behavior. |
+| `include` | Records missing the field are treated as matching. |
+| `error` | The pipeline fails with an error naming the missing field. |
+
+```yaml
+- filter:
+    field: status
+    equals: active
+    on-missing: include # keep records that don't have `status` at all
+```
+
+`on-missing` is a single step-level setting — it's not configurable per rule, and it applies uniformly to every leaf rule evaluated by the step, including ones nested inside `all`/`any` groups.
+
 ## Notes
 
-- Records missing the specified field are treated as non-matching and silently excluded — no error or warning is raised at the default log level. Run with `--verbose` (`-v`) to see the count of excluded records.
 - For JSON and JSONL, non-string field values are coerced to strings before comparison.
 - `greater-than` and `less-than` require the field value to be parseable as a number. Records with non-numeric values will cause the step to fail.
 - `all` and `any` cannot be combined at the same nesting level.

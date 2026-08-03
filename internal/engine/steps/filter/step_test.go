@@ -190,12 +190,13 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 
 func TestExecuteFiltersJSONRecords(t *testing.T) {
 	tests := []struct {
-		name     string
-		op       string
-		field    string
-		value    string
-		items    []map[string]interface{}
-		expected []map[string]interface{}
+		name      string
+		op        string
+		field     string
+		value     string
+		onMissing string
+		items     []map[string]interface{}
+		expected  []map[string]interface{}
 	}{
 		{
 			name:  "equals",
@@ -318,6 +319,19 @@ func TestExecuteFiltersJSONRecords(t *testing.T) {
 			expected: []map[string]interface{}{},
 		},
 		{
+			name:      "missing field included",
+			op:        OpEquals,
+			field:     "missing",
+			value:     "x",
+			onMissing: OnMissingInclude,
+			items: []map[string]interface{}{
+				{"id": "1", "status": "active"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "1", "status": "active"},
+			},
+		},
+		{
 			name:  "greater-than with float64 field",
 			op:    OpGreaterThan,
 			field: "age",
@@ -350,6 +364,7 @@ func TestExecuteFiltersJSONRecords(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			step := ruleStep(tt.field, tt.op, tt.value)
+			step.Condition.Rule.OnMissing = tt.onMissing
 
 			jsonPayload := &payload.JSON{
 				Shape: payload.JSONArrayShape,
@@ -374,6 +389,25 @@ func TestExecuteFiltersJSONRecords(t *testing.T) {
 				t.Fatalf("unexpected items:\nexpected: %#v\ngot: %#v", tt.expected, out.Items)
 			}
 		})
+	}
+}
+
+func TestExecuteReturnsErrorForMissingFieldWithOnMissingError(t *testing.T) {
+	step := &Step{Condition: &Condition{Rule: &Rule{Field: "missing", Op: OpEquals, Value: "x", OnMissing: OnMissingError}}}
+
+	ctx := &engine.ExecutionContext{Payload: &payload.JSON{
+		Shape: payload.JSONArrayShape,
+		Items: []map[string]interface{}{
+			{"id": "1", "status": "active"},
+		},
+	}}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected error for missing field with on-missing: error")
+	}
+	if !strings.Contains(err.Error(), `field "missing"`) {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 

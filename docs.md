@@ -438,6 +438,7 @@ Options:
 - `ends-with`: keep records where the field value ends with this string.
 - `greater-than`: keep records where the field value is numerically greater than the specified number.
 - `less-than`: keep records where the field value is numerically less than the specified number.
+- `on-missing`: optional, one of `exclude` (default), `include`, or `error`. Controls how a record missing the target field is handled — see [Missing fields](#missing-fields) below. Applies to the whole step, including every leaf rule inside `all`/`any` groups.
 
 Exactly one operator must be specified.
 
@@ -525,12 +526,31 @@ Use `any` to keep records that match at least one listed condition.
             equals: NZ
 ```
 
+#### Missing fields
+
+By default, records missing the field a rule tests are treated as non-matching and silently excluded — no error or warning is raised at the default log level. Run with `--verbose` (`-v`) to see the count of excluded records. Set `on-missing` on the step to change this:
+
+```yaml
+- filter:
+    field: status
+    equals: active
+    on-missing: include # keep records that don't have `status` at all
+```
+
+```yaml
+- filter:
+    field: status
+    equals: active
+    on-missing: error # fail the pipeline if any record is missing `status`
+```
+
+`on-missing` is a single step-level setting — it's not configurable per rule, and it applies uniformly to every leaf rule evaluated by the step, including ones nested inside `all`/`any` groups.
+
 Notes:
 
 - `all` and `any` cannot be combined at the same level.
 - Group and flat rule fields (`field`, `equals`, etc.) cannot be mixed on the same step.
 - For JSON and JSONL, non-string field values are coerced to strings before comparison.
-- Records missing the specified field are treated as non-matching and silently excluded — no error or warning is raised at the default log level. Run with `--verbose` (`-v`) to see the count of excluded records.
 - `greater-than` and `less-than` require the field value to be parseable as a number; records where the value is not numeric will cause the step to fail.
 - For `equals` and `not-equals`, when both the field value and the configured value parse as numbers, numeric comparison is used. Otherwise string comparison is used.
 

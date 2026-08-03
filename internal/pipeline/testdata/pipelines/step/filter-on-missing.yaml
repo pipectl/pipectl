@@ -1,0 +1,18 @@
+id: filter-on-missing
+
+input:
+  format: jsonl
+
+steps:
+  # status is present only on Alice ("active") and Grace ("hr-director").
+  # on-missing: include treats the 6 records without status as matching too,
+  # so only Grace (status set but not "active") is excluded -> 7 remain.
+  - filter:
+      field: status
+      on-missing: include
+      equals: "active"
+  - assert:
+      records-equal: 7
+
+output:
+  format: json
