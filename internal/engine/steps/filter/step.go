@@ -26,11 +26,12 @@ const (
 )
 
 type Rule struct {
-	Field        string
-	Op           string
-	Value        string
-	NumericValue float64
-	OnMissing    string
+	Field         string
+	Op            string
+	Value         string
+	NumericValue  float64
+	OnMissing     string
+	CaseSensitive bool
 }
 
 // Condition is either a leaf Rule or an All/Any group (recursive).
@@ -173,7 +174,10 @@ func (r *Rule) equalValues(fieldValue string) bool {
 	if errField == nil && errThreshold == nil {
 		return fField == fThreshold
 	}
-	return fieldValue == r.Value
+	if r.CaseSensitive {
+		return fieldValue == r.Value
+	}
+	return strings.EqualFold(fieldValue, r.Value)
 }
 
 func (r *Rule) matches(value string) (bool, error) {
@@ -183,11 +187,20 @@ func (r *Rule) matches(value string) (bool, error) {
 	case OpNotEquals:
 		return !r.equalValues(value), nil
 	case OpContains:
-		return strings.Contains(value, r.Value), nil
+		if r.CaseSensitive {
+			return strings.Contains(value, r.Value), nil
+		}
+		return strings.Contains(strings.ToLower(value), strings.ToLower(r.Value)), nil
 	case OpStartsWith:
-		return strings.HasPrefix(value, r.Value), nil
+		if r.CaseSensitive {
+			return strings.HasPrefix(value, r.Value), nil
+		}
+		return strings.HasPrefix(strings.ToLower(value), strings.ToLower(r.Value)), nil
 	case OpEndsWith:
-		return strings.HasSuffix(value, r.Value), nil
+		if r.CaseSensitive {
+			return strings.HasSuffix(value, r.Value), nil
+		}
+		return strings.HasSuffix(strings.ToLower(value), strings.ToLower(r.Value)), nil
 	case OpGreaterThan:
 		f, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
 		if err != nil {

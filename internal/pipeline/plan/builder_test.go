@@ -437,3 +437,45 @@ func TestBuildFilterStepAllAnyThreadsOnMissing(t *testing.T) {
 		}
 	}
 }
+
+func TestBuildFilterStepCaseSensitivity(t *testing.T) {
+	pipeline := spec.Pipeline{
+		Steps: []spec.StepWrapper{
+			{
+				Step: &spec.FilterStep{
+					CaseSensitive: false,
+					All: []spec.FilterCondition{
+						{Field: "status", Equals: "active"},
+						{
+							Any: []spec.FilterCondition{
+								{Field: "age", GreaterThan: "18"},
+								{Field: "department", Equals: "HR"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	executableSteps, err := Build(pipeline)
+	if err != nil {
+		t.Fatalf("build returned error: %v", err)
+	}
+
+	filterStep, ok := executableSteps[0].(*filter.Step)
+	if !ok {
+		t.Fatalf("expected *filter.Step, got %T", executableSteps[0])
+	}
+
+	if got := filterStep.Condition.All[0].Rule.CaseSensitive; got != false {
+		t.Fatalf("unexpected case-sensitive on flat rule: got %v want %v", got, false)
+	}
+
+	nested := filterStep.Condition.All[1]
+	for _, sub := range nested.Any {
+		if got := sub.Rule.CaseSensitive; got != false {
+			t.Fatalf("unexpected case-sensitive on nested rule: got %v want %v", got, false)
+		}
+	}
+}

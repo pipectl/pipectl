@@ -2,7 +2,6 @@
 
 ## Step enhancements
 
-- `filter` — add `case-sensitive: false` option for string operators (`equals`, `not-equals`, `contains`, `starts-with`, `ends-with`)
 - `filter` — add `matches` operator for regex matching
 - `sort` — multi-field sort: allow an ordered list of `field`/`direction` pairs as compound sort keys
 - `sort` — add `nulls: first|last` option; currently nulls are always last with no way to override

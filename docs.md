@@ -439,6 +439,7 @@ Options:
 - `greater-than`: keep records where the field value is numerically greater than the specified number.
 - `less-than`: keep records where the field value is numerically less than the specified number.
 - `on-missing`: optional, one of `exclude` (default), `include`, or `error`. Controls how a record missing the target field is handled — see [Missing fields](#missing-fields) below. Applies to the whole step, including every leaf rule inside `all`/`any` groups.
+- `case-sensitive`: optional boolean. When `false`, `equals`, `not-equals`, `contains`, `starts-with`, and `ends-with` compare values case-insensitively. Does not affect `greater-than`/`less-than`, which are always numeric. Defaults to `true`. See [Case sensitivity](#case-sensitivity) below.
 
 Exactly one operator must be specified.
 
@@ -545,6 +546,19 @@ By default, records missing the field a rule tests are treated as non-matching a
 ```
 
 `on-missing` is a single step-level setting — it's not configurable per rule, and it applies uniformly to every leaf rule evaluated by the step, including ones nested inside `all`/`any` groups.
+
+#### Case sensitivity
+
+By default, `equals`, `not-equals`, `contains`, `starts-with`, and `ends-with` compare values case-sensitively. Set `case-sensitive: false` on the step to fold case for these operators:
+
+```yaml
+- filter:
+    field: email
+    equals: "alice@example.com"
+    case-sensitive: false # matches ALICE@EXAMPLE.COM too
+```
+
+`case-sensitive` does not affect `greater-than`/`less-than`, which are always numeric comparisons. Like `on-missing`, it is a single step-level setting — it's not configurable per rule, and it applies uniformly to every leaf rule evaluated by the step, including ones nested inside `all`/`any` groups.
 
 Notes:
 

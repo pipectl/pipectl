@@ -918,6 +918,39 @@ func TestStepWrapperUnmarshalFilterStepAllAnyErrors(t *testing.T) {
 	}
 }
 
+func TestStepWrapperUnmarshalFilterStepCaseSensitivity(t *testing.T) {
+	t.Run("defaults to case-sensitive", func(t *testing.T) {
+		raw := []byte(`filter:
+  field: status
+  equals: active
+`)
+		var step StepWrapper
+		if err := yaml.Unmarshal(raw, &step); err != nil {
+			t.Fatalf("unmarshal returned error: %v", err)
+		}
+		filterStep := step.Step.(*FilterStep)
+		if !filterStep.CaseSensitive {
+			t.Fatal("expected CaseSensitive to default to true")
+		}
+	})
+
+	t.Run("explicit case-sensitive: false", func(t *testing.T) {
+		raw := []byte(`filter:
+  field: status
+  equals: active
+  case-sensitive: false
+`)
+		var step StepWrapper
+		if err := yaml.Unmarshal(raw, &step); err != nil {
+			t.Fatalf("unmarshal returned error: %v", err)
+		}
+		filterStep := step.Step.(*FilterStep)
+		if filterStep.CaseSensitive {
+			t.Fatal("expected CaseSensitive to be false")
+		}
+	})
+}
+
 func TestStepWrapperUnmarshalValidateJSONStep(t *testing.T) {
 	raw := []byte(`validate-json:
   schema: ./schema.json

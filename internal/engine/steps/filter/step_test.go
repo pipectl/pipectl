@@ -33,17 +33,33 @@ func TestSupports(t *testing.T) {
 	}
 }
 
-// ruleStep builds a Step with a single leaf Condition.
+// ruleStep builds a case-sensitive Step with a single leaf Condition.
 func ruleStep(field, op, value string) *Step {
 	var numericValue float64
 	if op == OpGreaterThan || op == OpLessThan {
 		numericValue, _ = strconv.ParseFloat(value, 64)
 	}
 	return &Step{Condition: &Condition{Rule: &Rule{
-		Field:        field,
-		Op:           op,
-		Value:        value,
-		NumericValue: numericValue,
+		Field:         field,
+		Op:            op,
+		Value:         value,
+		NumericValue:  numericValue,
+		CaseSensitive: true,
+	}}}
+}
+
+// ruleStepCaseInsensitive builds a case-insensitive Step with a single leaf Condition.
+func ruleStepCaseInsensitive(field, op, value string) *Step {
+	var numericValue float64
+	if op == OpGreaterThan || op == OpLessThan {
+		numericValue, _ = strconv.ParseFloat(value, 64)
+	}
+	return &Step{Condition: &Condition{Rule: &Rule{
+		Field:         field,
+		Op:            op,
+		Value:         value,
+		NumericValue:  numericValue,
+		CaseSensitive: false,
 	}}}
 }
 
@@ -637,5 +653,141 @@ func TestExecuteAllConditionsCSV(t *testing.T) {
 	}
 	if !reflect.DeepEqual(out.Rows, expected) {
 		t.Fatalf("unexpected rows:\nexpected: %#v\ngot: %#v", expected, out.Rows)
+	}
+}
+
+func TestExecuteFiltersCaseInsensitive(t *testing.T) {
+	tests := []struct {
+		name     string
+		op       string
+		field    string
+		value    string
+		items    []map[string]interface{}
+		expected []map[string]interface{}
+	}{
+		{
+			name:  "equals",
+			op:    OpEquals,
+			field: "status",
+			value: "ACTIVE",
+			items: []map[string]interface{}{
+				{"id": "1", "status": "active"},
+				{"id": "2", "status": "inactive"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "1", "status": "active"},
+			},
+		},
+		{
+			name:  "not-equals",
+			op:    OpNotEquals,
+			field: "status",
+			value: "INACTIVE",
+			items: []map[string]interface{}{
+				{"id": "1", "status": "active"},
+				{"id": "2", "status": "Inactive"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "1", "status": "active"},
+			},
+		},
+		{
+			name:  "contains",
+			op:    OpContains,
+			field: "email",
+			value: "EXAMPLE",
+			items: []map[string]interface{}{
+				{"id": "1", "email": "alice@EXAMPLE.com"},
+				{"id": "2", "email": "bob@other.org"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "1", "email": "alice@EXAMPLE.com"},
+			},
+		},
+		{
+			name:  "starts-with",
+			op:    OpStartsWith,
+			field: "email",
+			value: "ALICE",
+			items: []map[string]interface{}{
+				{"id": "1", "email": "alice@example.com"},
+				{"id": "2", "email": "bob@example.com"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "1", "email": "alice@example.com"},
+			},
+		},
+		{
+			name:  "ends-with",
+			op:    OpEndsWith,
+			field: "email",
+			value: ".ORG",
+			items: []map[string]interface{}{
+				{"id": "1", "email": "alice@example.com"},
+				{"id": "2", "email": "bob@example.org"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "2", "email": "bob@example.org"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			step := ruleStepCaseInsensitive(tt.field, tt.op, tt.value)
+			ctx := &engine.ExecutionContext{Payload: &payload.JSONL{Items: tt.items}}
+
+			if err := step.Execute(ctx); err != nil {
+				t.Fatalf("execute returned error: %v", err)
+			}
+
+			out := ctx.Payload.(*payload.JSONL)
+			if !reflect.DeepEqual(out.Items, tt.expected) {
+				t.Fatalf("unexpected items:\nexpected: %#v\ngot: %#v", tt.expected, out.Items)
+			}
+		})
+	}
+}
+
+func TestExecuteFiltersCaseSensitiveByDefault(t *testing.T) {
+	step := ruleStep("status", OpEquals, "ACTIVE")
+	ctx := &engine.ExecutionContext{Payload: &payload.JSONL{Items: []map[string]interface{}{
+		{"id": "1", "status": "active"},
+		{"id": "2", "status": "ACTIVE"},
+	}}}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out := ctx.Payload.(*payload.JSONL)
+	expected := []map[string]interface{}{
+		{"id": "2", "status": "ACTIVE"},
+	}
+	if !reflect.DeepEqual(out.Items, expected) {
+		t.Fatalf("unexpected items:\nexpected: %#v\ngot: %#v", expected, out.Items)
+	}
+}
+
+// TestExecuteFiltersCaseInsensitiveNumericOperatorsUnaffected confirms that
+// CaseSensitive has no effect on greater-than/less-than, which are always
+// numeric comparisons.
+func TestExecuteFiltersCaseInsensitiveNumericOperatorsUnaffected(t *testing.T) {
+	step := ruleStepCaseInsensitive("age", OpGreaterThan, "30")
+	ctx := &engine.ExecutionContext{Payload: &payload.JSONL{Items: []map[string]interface{}{
+		{"id": "1", "age": float64(25)},
+		{"id": "2", "age": float64(35)},
+	}}}
+
+	if err := step.Execute(ctx); err != nil {
+		t.Fatalf("execute returned error: %v", err)
+	}
+
+	out := ctx.Payload.(*payload.JSONL)
+	expected := []map[string]interface{}{
+		{"id": "2", "age": float64(35)},
+	}
+	if !reflect.DeepEqual(out.Items, expected) {
+		t.Fatalf("unexpected items:\nexpected: %#v\ngot: %#v", expected, out.Items)
 	}
 }

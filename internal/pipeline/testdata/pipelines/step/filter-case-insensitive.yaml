@@ -1,0 +1,53 @@
+id: filter-case-insensitive
+
+input:
+  format: jsonl
+
+steps:
+  # contains, case-insensitive: every email is uppercase (e.g. ALICE@EXAMPLE.COM);
+  # rule value is lowercase "example.com" -> all 8 still match -> 8 remain.
+  - filter:
+      field: email
+      contains: "example.com"
+      case-sensitive: false
+  - assert:
+      records-equal: 8
+
+  # ends-with, case-insensitive: lowercase ".com" against uppercase ".COM" ->
+  # still all 8 match -> 8 remain.
+  - filter:
+      field: email
+      ends-with: ".com"
+      case-sensitive: false
+  - assert:
+      records-equal: 8
+
+  # starts-with, case-insensitive: only Alice's email (ALICE@EXAMPLE.COM) starts
+  # with lowercase "alice" once folded -> 1 remains.
+  - filter:
+      field: email
+      starts-with: "alice"
+      case-sensitive: false
+  - assert:
+      records-equal: 1
+
+  # equals, case-insensitive: remaining record's email matches lowercase
+  # "alice@example.com" once folded -> still 1 remains.
+  - filter:
+      field: email
+      equals: "alice@example.com"
+      case-sensitive: false
+  - assert:
+      records-equal: 1
+
+  # not-equals, case-insensitive: remaining record's email folds equal to
+  # "ALICE@EXAMPLE.COM", so not-equals excludes it -> 0 remain.
+  - filter:
+      field: email
+      not-equals: "ALICE@EXAMPLE.COM"
+      case-sensitive: false
+  - assert:
+      records-equal: 0
+
+output:
+  format: json
