@@ -37,8 +37,11 @@ func TestSupports(t *testing.T) {
 // ruleStep builds a case-sensitive Step with a single leaf Condition.
 func ruleStep(field, op, value string) *Step {
 	var numericValue float64
+	var numeric bool
 	if op == OpGreaterThan || op == OpLessThan {
-		numericValue, _ = strconv.ParseFloat(value, 64)
+		if f, err := strconv.ParseFloat(value, 64); err == nil {
+			numericValue, numeric = f, true
+		}
 	}
 	var compiled *regexp.Regexp
 	if op == OpMatches {
@@ -49,6 +52,7 @@ func ruleStep(field, op, value string) *Step {
 		Op:            op,
 		Value:         value,
 		NumericValue:  numericValue,
+		Numeric:       numeric,
 		CompiledRegex: compiled,
 		CaseSensitive: true,
 	}}}
@@ -57,8 +61,11 @@ func ruleStep(field, op, value string) *Step {
 // ruleStepCaseInsensitive builds a case-insensitive Step with a single leaf Condition.
 func ruleStepCaseInsensitive(field, op, value string) *Step {
 	var numericValue float64
+	var numeric bool
 	if op == OpGreaterThan || op == OpLessThan {
-		numericValue, _ = strconv.ParseFloat(value, 64)
+		if f, err := strconv.ParseFloat(value, 64); err == nil {
+			numericValue, numeric = f, true
+		}
 	}
 	var compiled *regexp.Regexp
 	if op == OpMatches {
@@ -69,6 +76,7 @@ func ruleStepCaseInsensitive(field, op, value string) *Step {
 		Op:            op,
 		Value:         value,
 		NumericValue:  numericValue,
+		Numeric:       numeric,
 		CompiledRegex: compiled,
 		CaseSensitive: false,
 	}}}
@@ -211,6 +219,39 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 			expected: [][]string{
 				{"id", "age"},
 				{"1", "25"},
+			},
+		},
+		{
+			name:  "greater-than text mode",
+			op:    OpGreaterThan,
+			field: "name",
+			value: "M",
+			rows: [][]string{
+				{"id", "name"},
+				{"1", "Alice"},
+				{"2", "Nathan"},
+				{"3", "Zoe"},
+			},
+			expected: [][]string{
+				{"id", "name"},
+				{"2", "Nathan"},
+				{"3", "Zoe"},
+			},
+		},
+		{
+			name:  "less-than text mode",
+			op:    OpLessThan,
+			field: "name",
+			value: "M",
+			rows: [][]string{
+				{"id", "name"},
+				{"1", "Alice"},
+				{"2", "Nathan"},
+				{"3", "Zoe"},
+			},
+			expected: [][]string{
+				{"id", "name"},
+				{"1", "Alice"},
 			},
 		},
 	}
@@ -416,6 +457,35 @@ func TestExecuteFiltersJSONRecords(t *testing.T) {
 				{"id": "1", "age": float64(25)},
 			},
 		},
+		{
+			name:  "greater-than text mode",
+			op:    OpGreaterThan,
+			field: "name",
+			value: "M",
+			items: []map[string]interface{}{
+				{"id": "1", "name": "Alice"},
+				{"id": "2", "name": "Nathan"},
+				{"id": "3", "name": "Zoe"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "2", "name": "Nathan"},
+				{"id": "3", "name": "Zoe"},
+			},
+		},
+		{
+			name:  "less-than text mode",
+			op:    OpLessThan,
+			field: "name",
+			value: "M",
+			items: []map[string]interface{}{
+				{"id": "1", "name": "Alice"},
+				{"id": "2", "name": "Nathan"},
+				{"id": "3", "name": "Zoe"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "1", "name": "Alice"},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -469,7 +539,7 @@ func TestExecuteReturnsErrorForMissingFieldWithOnMissingError(t *testing.T) {
 }
 
 func TestExecuteReturnsErrorForNonNumericFieldWithGreaterThan(t *testing.T) {
-	step := &Step{Condition: &Condition{Rule: &Rule{Field: "status", Op: OpGreaterThan, NumericValue: 10}}}
+	step := &Step{Condition: &Condition{Rule: &Rule{Field: "status", Op: OpGreaterThan, NumericValue: 10, Numeric: true}}}
 
 	ctx := &engine.ExecutionContext{Payload: &payload.JSON{
 		Shape: payload.JSONArrayShape,
@@ -543,7 +613,7 @@ func TestExecuteAllConditions(t *testing.T) {
 			name: "all: first condition fails excludes record",
 			step: &Step{Condition: &Condition{All: []*Condition{
 				{Rule: &Rule{Field: "status", Op: OpEquals, Value: "active"}},
-				{Rule: &Rule{Field: "age", Op: OpGreaterThan, NumericValue: 18}},
+				{Rule: &Rule{Field: "age", Op: OpGreaterThan, NumericValue: 18, Numeric: true}},
 			}}},
 			items: []map[string]interface{}{
 				{"id": "1", "status": "inactive", "age": float64(25)},
@@ -635,7 +705,7 @@ func TestExecuteAnyConditions(t *testing.T) {
 func TestExecuteNestedConditions(t *testing.T) {
 	// all: age > 18, any: country AU or NZ
 	step := &Step{Condition: &Condition{All: []*Condition{
-		{Rule: &Rule{Field: "age", Op: OpGreaterThan, NumericValue: 18}},
+		{Rule: &Rule{Field: "age", Op: OpGreaterThan, NumericValue: 18, Numeric: true}},
 		{Any: []*Condition{
 			{Rule: &Rule{Field: "country", Op: OpEquals, Value: "AU"}},
 			{Rule: &Rule{Field: "country", Op: OpEquals, Value: "NZ"}},
@@ -782,6 +852,22 @@ func TestExecuteFiltersCaseInsensitive(t *testing.T) {
 			},
 			expected: []map[string]interface{}{
 				{"id": "1", "email": "alice@example.com"},
+			},
+		},
+		{
+			// Without case-folding, "Nathan" (byte-compared) is *less* than "m"
+			// because uppercase 'N' (78) sorts before lowercase 'm' (109) in
+			// ASCII — this case proves the fold happens before comparing.
+			name:  "greater-than text mode",
+			op:    OpGreaterThan,
+			field: "name",
+			value: "m",
+			items: []map[string]interface{}{
+				{"id": "1", "name": "Alice"},
+				{"id": "2", "name": "Nathan"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "2", "name": "Nathan"},
 			},
 		},
 	}

@@ -3,7 +3,6 @@ package spec
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 
 	"github.com/goccy/go-yaml"
 )
@@ -137,15 +136,9 @@ func validateFilterRule(field, equals, notEquals, contains, startsWith, endsWith
 		set++
 	}
 	if greaterThan != "" {
-		if _, err := strconv.ParseFloat(greaterThan, 64); err != nil {
-			return fmt.Errorf("filter greater-than must be a number")
-		}
 		set++
 	}
 	if lessThan != "" {
-		if _, err := strconv.ParseFloat(lessThan, 64); err != nil {
-			return fmt.Errorf("filter less-than must be a number")
-		}
 		set++
 	}
 

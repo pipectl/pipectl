@@ -390,6 +390,45 @@ func TestBuildFilterStep(t *testing.T) {
 	}
 }
 
+func TestBuildFilterStepGreaterThanNumericOrText(t *testing.T) {
+	tests := []struct {
+		name        string
+		greaterThan string
+		wantNumeric bool
+		wantValue   float64
+		wantText    string
+	}{
+		{name: "numeric threshold", greaterThan: "18", wantNumeric: true, wantValue: 18},
+		{name: "text threshold", greaterThan: "banana", wantNumeric: false, wantText: "banana"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pipeline := spec.Pipeline{
+				Steps: []spec.StepWrapper{
+					{Step: &spec.FilterStep{Field: "name", GreaterThan: tt.greaterThan}},
+				},
+			}
+
+			executableSteps, err := Build(pipeline)
+			if err != nil {
+				t.Fatalf("build returned error: %v", err)
+			}
+
+			rule := executableSteps[0].(*filter.Step).Condition.Rule
+			if rule.Numeric != tt.wantNumeric {
+				t.Fatalf("unexpected Numeric: got %v want %v", rule.Numeric, tt.wantNumeric)
+			}
+			if tt.wantNumeric && rule.NumericValue != tt.wantValue {
+				t.Fatalf("unexpected NumericValue: got %v want %v", rule.NumericValue, tt.wantValue)
+			}
+			if !tt.wantNumeric && rule.Value != tt.wantText {
+				t.Fatalf("unexpected Value: got %q want %q", rule.Value, tt.wantText)
+			}
+		})
+	}
+}
+
 func TestBuildFilterStepAllAnyThreadsOnMissing(t *testing.T) {
 	pipeline := spec.Pipeline{
 		Steps: []spec.StepWrapper{

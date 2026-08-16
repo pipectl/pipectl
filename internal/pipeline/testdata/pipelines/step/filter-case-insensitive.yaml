@@ -40,6 +40,24 @@ steps:
   - assert:
       records-equal: 1
 
+  # greater-than, text mode, case-insensitive: "Aaa" is not numeric, so this
+  # compares lexically with folding; folded "alice smith" > "aaa" -> 1 remains.
+  - filter:
+      field: name
+      greater-than: "Aaa"
+      case-sensitive: false
+  - assert:
+      records-equal: 1
+
+  # less-than, text mode, case-insensitive: folded "alice smith" < "zzz" ->
+  # still 1 remains.
+  - filter:
+      field: name
+      less-than: "Zzz"
+      case-sensitive: false
+  - assert:
+      records-equal: 1
+
   # equals, case-insensitive: remaining record's email matches lowercase
   # "alice@example.com" once folded -> still 1 remains.
   - filter:

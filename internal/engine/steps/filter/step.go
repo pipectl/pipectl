@@ -32,6 +32,7 @@ type Rule struct {
 	Op            string
 	Value         string
 	NumericValue  float64
+	Numeric       bool
 	CompiledRegex *regexp.Regexp
 	OnMissing     string
 	CaseSensitive bool
@@ -183,6 +184,14 @@ func (r *Rule) equalValues(fieldValue string) bool {
 	return strings.EqualFold(fieldValue, r.Value)
 }
 
+func (r *Rule) compareText(value string) int {
+	a, b := value, r.Value
+	if !r.CaseSensitive {
+		a, b = strings.ToLower(a), strings.ToLower(b)
+	}
+	return strings.Compare(a, b)
+}
+
 func (r *Rule) matches(value string) (bool, error) {
 	switch r.Op {
 	case OpEquals:
@@ -207,17 +216,23 @@ func (r *Rule) matches(value string) (bool, error) {
 	case OpMatches:
 		return r.CompiledRegex.MatchString(value), nil
 	case OpGreaterThan:
-		f, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
-		if err != nil {
-			return false, fmt.Errorf("filter: field %q value %q is not a number", r.Field, value)
+		if r.Numeric {
+			f, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
+			if err != nil {
+				return false, fmt.Errorf("filter: field %q value %q is not a number", r.Field, value)
+			}
+			return f > r.NumericValue, nil
 		}
-		return f > r.NumericValue, nil
+		return r.compareText(value) > 0, nil
 	case OpLessThan:
-		f, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
-		if err != nil {
-			return false, fmt.Errorf("filter: field %q value %q is not a number", r.Field, value)
+		if r.Numeric {
+			f, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
+			if err != nil {
+				return false, fmt.Errorf("filter: field %q value %q is not a number", r.Field, value)
+			}
+			return f < r.NumericValue, nil
 		}
-		return f < r.NumericValue, nil
+		return r.compareText(value) < 0, nil
 	default:
 		return false, nil
 	}

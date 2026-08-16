@@ -437,10 +437,10 @@ Options:
 - `starts-with`: keep records where the field value starts with this string.
 - `ends-with`: keep records where the field value ends with this string.
 - `matches`: keep records where the field value matches this regular expression. Uses Go's `regexp` package (RE2 syntax) — see [Regex syntax](#regex-syntax) below.
-- `greater-than`: keep records where the field value is numerically greater than the specified number.
-- `less-than`: keep records where the field value is numerically less than the specified number.
+- `greater-than`: keep records where the field value is greater than the specified value. If the specified value parses as a number, comparison is numeric — a record whose field value isn't numeric causes the step to fail. Otherwise comparison is lexicographic (string) ordering. See [Text vs numeric comparison](#text-vs-numeric-comparison) below.
+- `less-than`: keep records where the field value is less than the specified value. Same numeric-or-text rule as `greater-than`.
 - `on-missing`: optional, one of `exclude` (default), `include`, or `error`. Controls how a record missing the target field is handled — see [Missing fields](#missing-fields) below. Applies to the whole step, including every leaf rule inside `all`/`any` groups.
-- `case-sensitive`: optional boolean. When `false`, `equals`, `not-equals`, `contains`, `starts-with`, `ends-with`, and `matches` compare values case-insensitively. Does not affect `greater-than`/`less-than`, which are always numeric. Defaults to `true`. See [Case sensitivity](#case-sensitivity) below.
+- `case-sensitive`: optional boolean. When `false`, `equals`, `not-equals`, `contains`, `starts-with`, `ends-with`, and `matches` compare values case-insensitively, and text-mode `greater-than`/`less-than` fold case before ordering. Has no effect on numeric-mode `greater-than`/`less-than`. Defaults to `true`. See [Case sensitivity](#case-sensitivity) below.
 
 Exactly one operator must be specified.
 
@@ -490,6 +490,12 @@ Exactly one operator must be specified.
 - filter:
     field: price
     less-than: 100
+```
+
+```yaml
+- filter:
+    field: name
+    greater-than: "M" # text mode: keeps names alphabetically after "M"
 ```
 
 #### Multi-condition: `all` (AND)
@@ -567,7 +573,18 @@ By default, `equals`, `not-equals`, `contains`, `starts-with`, `ends-with`, and 
 
 For `matches`, case folding is applied by prefixing the pattern with the inline flag `(?i)` before compiling — equivalent to writing `(?i)` at the start of the pattern yourself.
 
-`case-sensitive` does not affect `greater-than`/`less-than`, which are always numeric comparisons. Like `on-missing`, it is a single step-level setting — it's not configurable per rule, and it applies uniformly to every leaf rule evaluated by the step, including ones nested inside `all`/`any` groups.
+For text-mode `greater-than`/`less-than` (see [Text vs numeric comparison](#text-vs-numeric-comparison) below), case folding lowercases both the field value and the configured threshold before comparing, so ordering isn't affected by case. `case-sensitive` has no effect on numeric-mode `greater-than`/`less-than`, which always compare numerically regardless of the setting.
+
+Like `on-missing`, `case-sensitive` is a single step-level setting — it's not configurable per rule, and it applies uniformly to every leaf rule evaluated by the step, including ones nested inside `all`/`any` groups.
+
+#### Text vs numeric comparison
+
+`greater-than`/`less-than` decide, once per step at pipeline-load time, whether to compare numerically or as text — based on whether the *configured threshold* itself parses as a number, not on the data being filtered:
+
+- `greater-than: "20"` — the threshold parses as a number, so the rule is numeric for every record it evaluates. This is unchanged from before text-mode existed: a record whose field value isn't numeric causes the step to fail with an error, it does not silently fall back to text comparison.
+- `greater-than: "M"` — the threshold doesn't parse as a number, so the rule is lexicographic (string) comparison for every record it evaluates, regardless of what any individual field value looks like.
+
+This is a deliberate departure from how `equals`/`not-equals` and `sort` handle mixed numeric/text data — see the note at the bottom of this section for why.
 
 #### Regex syntax
 
@@ -580,15 +597,16 @@ Common syntax that *is* supported:
 - `^(foo|bar|baz)$` — alternation
 - `^[A-Z][a-z]+ [A-Z][a-z]+$` — character classes + quantifiers (e.g. a "First Last" name shape)
 
-An invalid pattern is rejected when the pipeline is validated (at load time), not at runtime — the same as an invalid `greater-than`/`less-than` value.
+An invalid pattern is rejected when the pipeline is validated (at load time), not at runtime.
 
 Notes:
 
 - `all` and `any` cannot be combined at the same level.
 - Group and flat rule fields (`field`, `equals`, etc.) cannot be mixed on the same step.
 - For JSON and JSONL, non-string field values are coerced to strings before comparison.
-- `greater-than` and `less-than` require the field value to be parseable as a number; records where the value is not numeric will cause the step to fail.
+- `greater-than`/`less-than` require the field value to be parseable as a number only when the configured threshold is itself numeric; records where the value is not numeric will cause the step to fail in that case. When the threshold is not numeric, the field value is always compared as text and this failure mode doesn't apply.
 - For `equals` and `not-equals`, when both the field value and the configured value parse as numbers, numeric comparison is used. Otherwise string comparison is used.
+- Unlike `greater-than`/`less-than`, `equals`/`not-equals` and `sort` decide numeric-vs-text comparison dynamically per value/pair rather than once per step. This is intentional: for an ordering operator, silently falling back to string comparison when a numeric threshold was configured can flip the answer without looking like an error — `"9" > "10"` is `true` as strings but `false` numerically — so `greater-than`/`less-than` fail loudly instead. A type mismatch in `equals`/`not-equals` or `sort` can't produce a wrong-but-plausible result the same way, so the added strictness wasn't worth it there.
 
 ### `sort`
 

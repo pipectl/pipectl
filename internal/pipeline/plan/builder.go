@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/pipectl/pipectl/internal/engine"
 	"github.com/pipectl/pipectl/internal/engine/steps/assert"
@@ -213,10 +214,20 @@ func buildFilterRule(field, equals, notEquals, contains, startsWith, endsWith, m
 		rule.CompiledRegex, _ = regexp.Compile(pattern) // already validated as a regex in spec
 	case greaterThan != "":
 		rule.Op = filter.OpGreaterThan
-		rule.NumericValue, _ = strconv.ParseFloat(greaterThan, 64) // already validated as a number in spec
+		if f, err := strconv.ParseFloat(strings.TrimSpace(greaterThan), 64); err == nil {
+			rule.Numeric = true
+			rule.NumericValue = f
+		} else {
+			rule.Value = greaterThan
+		}
 	case lessThan != "":
 		rule.Op = filter.OpLessThan
-		rule.NumericValue, _ = strconv.ParseFloat(lessThan, 64) // already validated as a number in spec
+		if f, err := strconv.ParseFloat(strings.TrimSpace(lessThan), 64); err == nil {
+			rule.Numeric = true
+			rule.NumericValue = f
+		} else {
+			rule.Value = lessThan
+		}
 	}
 	return rule
 }

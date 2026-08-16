@@ -623,6 +623,15 @@ func TestStepWrapperUnmarshalFilterStep(t *testing.T) {
 			wantField:  "LessThan=30",
 		},
 		{
+			name: "greater-than text threshold",
+			raw: `filter:
+  field: name
+  greater-than: banana
+`,
+			checkField: func(s *FilterStep) bool { return s.GreaterThan == "banana" },
+			wantField:  "GreaterThan=banana",
+		},
+		{
 			name: "on-missing defaults to exclude",
 			raw: `filter:
   field: status
@@ -665,7 +674,7 @@ func TestStepWrapperUnmarshalFilterStep(t *testing.T) {
 				t.Fatalf("expected *FilterStep, got %T", step.Step)
 			}
 
-			if filterStep.Field != "status" && filterStep.Field != "email" && filterStep.Field != "age" {
+			if filterStep.Field != "status" && filterStep.Field != "email" && filterStep.Field != "age" && filterStep.Field != "name" {
 				t.Fatalf("unexpected field: got %q", filterStep.Field)
 			}
 
@@ -709,22 +718,6 @@ func TestStepWrapperUnmarshalFilterStepValidation(t *testing.T) {
   not-equals: inactive
 `,
 			message: "filter requires exactly one operator",
-		},
-		{
-			name: "greater-than non-numeric",
-			raw: `filter:
-  field: age
-  greater-than: abc
-`,
-			message: "filter greater-than must be a number",
-		},
-		{
-			name: "less-than non-numeric",
-			raw: `filter:
-  field: age
-  less-than: abc
-`,
-			message: "filter less-than must be a number",
 		},
 		{
 			name: "invalid regex",
@@ -876,15 +869,6 @@ func TestStepWrapperUnmarshalFilterStepAllAnyErrors(t *testing.T) {
     - field: status
 `,
 			message: "filter requires exactly one operator",
-		},
-		{
-			name: "greater-than non-numeric inside group",
-			raw: `filter:
-  all:
-    - field: age
-      greater-than: abc
-`,
-			message: "filter greater-than must be a number",
 		},
 		{
 			name: "empty condition inside all",
