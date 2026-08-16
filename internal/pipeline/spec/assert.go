@@ -2,16 +2,26 @@ package spec
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/goccy/go-yaml"
 )
 
+type AssertFieldCheck struct {
+	Field string `yaml:"field"`
+	Value string `yaml:"value"`
+}
+
 type AssertStep struct {
-	MinRecords   *int   `yaml:"min-records"`
-	MaxRecords   *int   `yaml:"max-records"`
-	RecordsEqual *int   `yaml:"records-equal"`
-	FieldExists  string `yaml:"field-exists"`
+	MinRecords    *int              `yaml:"min-records"`
+	MaxRecords    *int              `yaml:"max-records"`
+	RecordsEqual  *int              `yaml:"records-equal"`
+	FieldExists   string            `yaml:"field-exists"`
+	FieldEquals   *AssertFieldCheck `yaml:"field-equals"`
+	FieldContains *AssertFieldCheck `yaml:"field-contains"`
+	FieldMatches  *AssertFieldCheck `yaml:"field-matches"`
+	CaseSensitive bool              `yaml:"case-sensitive,omitempty"`
 }
 
 func (s *AssertStep) StepType() string {
@@ -20,7 +30,7 @@ func (s *AssertStep) StepType() string {
 
 func (s *AssertStep) UnmarshalYAML(b []byte) error {
 	type rawAssertStep AssertStep
-	var raw rawAssertStep
+	raw := rawAssertStep{CaseSensitive: true}
 	if err := yaml.Unmarshal(b, &raw); err != nil {
 		return err
 	}
@@ -57,9 +67,36 @@ func (s *AssertStep) Validate() error {
 		return fmt.Errorf("assert field-exists must be a non-empty string")
 	}
 
-	if s.MinRecords == nil && s.MaxRecords == nil && s.RecordsEqual == nil && strings.TrimSpace(s.FieldExists) == "" {
-		return fmt.Errorf("assert requires at least one option: min-records, max-records, records-equal, or field-exists")
+	if err := validateAssertFieldCheck("field-equals", s.FieldEquals); err != nil {
+		return err
+	}
+	if err := validateAssertFieldCheck("field-contains", s.FieldContains); err != nil {
+		return err
+	}
+	if err := validateAssertFieldCheck("field-matches", s.FieldMatches); err != nil {
+		return err
+	}
+	if s.FieldMatches != nil {
+		if _, err := regexp.Compile(s.FieldMatches.Value); err != nil {
+			return fmt.Errorf("assert field-matches value must be a valid regular expression: %v", err)
+		}
 	}
 
+	if s.MinRecords == nil && s.MaxRecords == nil && s.RecordsEqual == nil &&
+		strings.TrimSpace(s.FieldExists) == "" &&
+		s.FieldEquals == nil && s.FieldContains == nil && s.FieldMatches == nil {
+		return fmt.Errorf("assert requires at least one option: min-records, max-records, records-equal, field-exists, field-equals, field-contains, or field-matches")
+	}
+
+	return nil
+}
+
+func validateAssertFieldCheck(option string, check *AssertFieldCheck) error {
+	if check == nil {
+		return nil
+	}
+	if strings.TrimSpace(check.Field) == "" {
+		return fmt.Errorf("assert %s field must be a non-empty string", option)
+	}
 	return nil
 }

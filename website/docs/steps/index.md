@@ -8,7 +8,7 @@ A step is a single transformation applied to the pipeline payload. Steps run in 
 
 | Step | What it does | JSON | JSONL | CSV |
 |------|-------------|:----:|:-----:|:---:|
-| [`assert`](./assert) | Assert record count or field existence | ✓ | ✓ | ✓ |
+| [`assert`](./assert) | Assert record count, field existence, or field value | ✓ | ✓ | ✓ |
 | [`cast`](./cast) | Convert field types — int, float, bool, string, time | ✓ | ✓ | |
 | [`convert`](./convert) | Convert payload format — json ↔ jsonl ↔ csv | ✓ | ✓ | ✓ |
 | [`count`](./count) | Print current record count to stdout | ✓ | ✓ | ✓ |

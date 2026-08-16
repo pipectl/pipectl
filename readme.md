@@ -172,7 +172,7 @@ pipectl docs [step]
 
 | Step | What it does |
 |------|-------------|
-| `assert` | Assert record count or field existence |
+| `assert` | Assert record count, field existence, or field value |
 | `cast` | Convert field types — int, float, bool, string, time |
 | `convert` | Convert payload format — json ↔ jsonl ↔ csv |
 | `count` | Print current record count to stderr |

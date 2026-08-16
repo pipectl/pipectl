@@ -299,7 +299,7 @@ Notes:
 
 ### `assert`
 
-Checks record-count and field-existence conditions.
+Checks record-count, field-existence, and field-value conditions.
 
 Supported payloads:
 
@@ -313,6 +313,10 @@ Options:
 - `max-records`: optional integer, must be `>= 0`
 - `records-equal`: optional integer, must be `>= 0`
 - `field-exists`: optional string
+- `field-equals`: optional object with `field` and `value` — every record's `field` must equal `value`
+- `field-contains`: optional object with `field` and `value` — every record's `field` must contain `value` as a substring
+- `field-matches`: optional object with `field` and `value` — every record's `field` must match the regular expression in `value`
+- `case-sensitive`: optional boolean, defaults to `true` — applies to `field-equals`, `field-contains`, and `field-matches`
 
 At least one option is required.
 
@@ -323,6 +327,9 @@ Example:
     min-records: 10
     max-records: 1000
     field-exists: email
+    field-equals:
+      field: status
+      value: active
 ```
 
 Notes:
@@ -331,6 +338,8 @@ Notes:
 - `records-equal` must fit within the min/max bounds when they are also set.
 - For CSV, `field-exists` checks the header row.
 - For JSON and JSONL, `field-exists` passes if any record contains the field.
+- `field-equals`, `field-contains`, and `field-matches` check every record (not just any record); the assertion fails on the first record where the field is missing or its value fails the check.
+- `field-matches` uses Go's RE2 regular expression engine.
 
 ### `rename`
 

@@ -1,0 +1,13 @@
+id: failing-assert-field-matches
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      field-matches:
+        field: status
+        value: '^active$'
+
+output:
+  format: jsonl

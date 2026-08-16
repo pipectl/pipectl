@@ -72,12 +72,7 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 			Format: s.Format,
 		}, nil
 	case *spec.AssertStep:
-		return &assert.Step{
-			MinRecords:   s.MinRecords,
-			MaxRecords:   s.MaxRecords,
-			RecordsEqual: s.RecordsEqual,
-			FieldExists:  s.FieldExists,
-		}, nil
+		return buildAssertStep(s), nil
 	case *spec.RenameStep:
 		return &rename.Step{
 			Fields: s.Fields,
@@ -159,6 +154,33 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 	default:
 		return nil, fmt.Errorf("invalid step type %T", step)
 	}
+}
+
+func buildAssertStep(s *spec.AssertStep) *assert.Step {
+	a := &assert.Step{
+		MinRecords:    s.MinRecords,
+		MaxRecords:    s.MaxRecords,
+		RecordsEqual:  s.RecordsEqual,
+		FieldExists:   s.FieldExists,
+		CaseSensitive: s.CaseSensitive,
+	}
+
+	if s.FieldEquals != nil {
+		a.FieldEquals = &assert.FieldCheck{Field: s.FieldEquals.Field, Value: s.FieldEquals.Value}
+	}
+	if s.FieldContains != nil {
+		a.FieldContains = &assert.FieldCheck{Field: s.FieldContains.Field, Value: s.FieldContains.Value}
+	}
+	if s.FieldMatches != nil {
+		pattern := s.FieldMatches.Value
+		if !s.CaseSensitive {
+			pattern = "(?i)" + pattern
+		}
+		regex, _ := regexp.Compile(pattern) // already validated as a regex in spec
+		a.FieldMatches = &assert.FieldCheck{Field: s.FieldMatches.Field, Value: s.FieldMatches.Value, Regex: regex}
+	}
+
+	return a
 }
 
 func buildFilterConditions(conditions []spec.FilterCondition, onMissing string, caseSensitive bool) ([]*filter.Condition, error) {

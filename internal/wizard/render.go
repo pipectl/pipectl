@@ -60,7 +60,7 @@ var stepTemplates = map[string]string{
       case-sensitive: true`,
 
 	"assert": `  - assert:
-      min-records: 1  # also: max-records, records-equal, field-exists`,
+      min-records: 1  # also: max-records, records-equal, field-exists, field-equals, field-contains, field-matches`,
 
 	"validate-json": `  - validate-json:
       schema: ./schema.json`,
@@ -88,9 +88,9 @@ var stepTemplates = map[string]string{
 // Render converts a wizard Result into a pipeline YAML string.
 func Render(r Result) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "id: %s\n", r.ID)
+	b.WriteString(fmt.Sprintf("id: %s\n", r.ID))
 	b.WriteString("input:\n")
-	fmt.Fprintf(&b, "  format: %s\n", r.InputFormat)
+	b.WriteString(fmt.Sprintf("  format: %s\n", r.InputFormat))
 	b.WriteString("steps:\n")
 	for _, step := range r.Steps {
 		if tpl, ok := stepTemplates[step]; ok {
@@ -99,6 +99,6 @@ func Render(r Result) string {
 		}
 	}
 	b.WriteString("output:\n")
-	fmt.Fprintf(&b, "  format: %s\n", r.OutputFormat)
+	b.WriteString(fmt.Sprintf("  format: %s\n", r.OutputFormat))
 	return b.String()
 }

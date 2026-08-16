@@ -1,0 +1,13 @@
+id: failing-assert-field-contains
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      field-contains:
+        field: email
+        value: "example.org"
+
+output:
+  format: jsonl

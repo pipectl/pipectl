@@ -1,0 +1,23 @@
+id: assert-field-checks
+
+input:
+  format: jsonl
+
+steps:
+  - filter:
+      field: department
+      equals: Engineering
+  - assert:
+      field-equals:
+        field: department
+        value: Engineering
+      field-contains:
+        field: email
+        value: "@"
+      field-matches:
+        field: email
+        value: '^[^@]+@[^@]+\.[^@]+$'
+      case-sensitive: true
+
+output:
+  format: jsonl

@@ -1,0 +1,13 @@
+id: failing-assert-field-equals
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      field-equals:
+        field: department
+        value: Engineering
+
+output:
+  format: jsonl

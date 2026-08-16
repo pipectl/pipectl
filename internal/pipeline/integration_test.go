@@ -39,6 +39,8 @@ func TestStepPipelines(t *testing.T) {
 		{name: "log", pipeline: "step/log.yaml", input: "people.jsonl", golden: "step/log.jsonl"},
 		{name: "dedupe", pipeline: "step/dedupe.yaml", input: "people.jsonl", golden: "step/dedupe.jsonl"},
 		{name: "dedupe/csv", pipeline: "step/dedupe-csv.yaml", input: "customers.csv", golden: "step/dedupe-csv.csv"},
+		{name: "assert/field-checks", pipeline: "step/assert-field-checks.yaml", input: "people.jsonl", golden: "step/assert-field-checks.jsonl"},
+		{name: "assert/field-checks-csv", pipeline: "step/assert-field-checks-csv.yaml", input: "products.csv", golden: "step/assert-field-checks-csv.csv"},
 	})
 }
 
@@ -67,6 +69,30 @@ func TestAssertFailureReturnsError(t *testing.T) {
 	err = pipeline.Run("testdata/pipelines/step/failing-assert.yaml", input, &buf, false, false, false, false, nil)
 	if err == nil {
 		t.Fatal("expected pipeline with failing assert to return an error, got nil")
+	}
+}
+
+// TestAssertFieldChecksFailureReturnsError confirms that a failing field-equals,
+// field-contains, or field-matches assertion propagates as a non-nil error from
+// pipeline.Run, mirroring TestAssertFailureReturnsError for the new field checks.
+func TestAssertFieldChecksFailureReturnsError(t *testing.T) {
+	input, err := os.ReadFile("testdata/input/people.jsonl")
+	if err != nil {
+		t.Fatalf("read input: %v", err)
+	}
+
+	for _, name := range []string{
+		"failing-assert-field-equals",
+		"failing-assert-field-contains",
+		"failing-assert-field-matches",
+	} {
+		t.Run(name, func(t *testing.T) {
+			var buf bytes.Buffer
+			err := pipeline.Run(filepath.Join("testdata", "pipelines", "step", name+".yaml"), input, &buf, false, false, false, false, nil)
+			if err == nil {
+				t.Fatalf("expected pipeline %q to return an error, got nil", name)
+			}
+		})
 	}
 }
 

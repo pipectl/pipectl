@@ -73,7 +73,7 @@ func Run() (Result, error) {
 					huh.NewOption("limit          — truncate to the first N records", "limit"),
 					// Validation
 					huh.NewOption("validate-json  — validate records against a JSON Schema file", "validate-json"),
-					huh.NewOption("assert         — fail the pipeline if record counts are out of range", "assert"),
+					huh.NewOption("assert         — fail the pipeline if record counts, fields, or field values don't match", "assert"),
 					// Diagnostics
 					huh.NewOption("count          — print record count to stderr (payload passes through)", "count"),
 					huh.NewOption("log            — print a message and optional sample records to stderr", "log"),

@@ -352,6 +352,55 @@ func TestBuildAssertStep(t *testing.T) {
 	}
 }
 
+func TestBuildAssertStepFieldChecks(t *testing.T) {
+	pipeline := spec.Pipeline{
+		Steps: []spec.StepWrapper{
+			{
+				Step: &spec.AssertStep{
+					FieldEquals:   &spec.AssertFieldCheck{Field: "status", Value: "active"},
+					FieldContains: &spec.AssertFieldCheck{Field: "email", Value: "@"},
+					FieldMatches:  &spec.AssertFieldCheck{Field: "status", Value: "^active$"},
+					CaseSensitive: false,
+				},
+			},
+		},
+	}
+
+	executableSteps, err := Build(pipeline)
+	if err != nil {
+		t.Fatalf("build returned error: %v", err)
+	}
+
+	assertStep, ok := executableSteps[0].(*assert.Step)
+	if !ok {
+		t.Fatalf("expected *assert.Step, got %T", executableSteps[0])
+	}
+
+	if assertStep.CaseSensitive {
+		t.Fatalf("unexpected case-sensitive: got true want false")
+	}
+
+	if assertStep.FieldEquals == nil || assertStep.FieldEquals.Field != "status" || assertStep.FieldEquals.Value != "active" {
+		t.Fatalf("unexpected field-equals: got %+v", assertStep.FieldEquals)
+	}
+	if assertStep.FieldContains == nil || assertStep.FieldContains.Field != "email" || assertStep.FieldContains.Value != "@" {
+		t.Fatalf("unexpected field-contains: got %+v", assertStep.FieldContains)
+	}
+	if assertStep.FieldMatches == nil || assertStep.FieldMatches.Field != "status" || assertStep.FieldMatches.Value != "^active$" {
+		t.Fatalf("unexpected field-matches: got %+v", assertStep.FieldMatches)
+	}
+	if assertStep.FieldMatches.Regex == nil {
+		t.Fatal("expected field-matches regex to be compiled")
+	}
+	if !assertStep.FieldMatches.Regex.MatchString("active") {
+		t.Fatal("expected compiled field-matches regex to match")
+	}
+	// case-sensitive: false should fold the regex to case-insensitive.
+	if !assertStep.FieldMatches.Regex.MatchString("ACTIVE") {
+		t.Fatal("expected compiled field-matches regex to be case-insensitive")
+	}
+}
+
 func TestBuildFilterStep(t *testing.T) {
 	pipeline := spec.Pipeline{
 		Steps: []spec.StepWrapper{

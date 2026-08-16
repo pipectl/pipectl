@@ -466,6 +466,97 @@ func TestStepWrapperUnmarshalAssertStepWithRecordsEqualOnly(t *testing.T) {
 	}
 }
 
+func TestStepWrapperUnmarshalAssertStepFieldChecks(t *testing.T) {
+	raw := []byte(`assert:
+  field-equals:
+    field: status
+    value: active
+  field-contains:
+    field: email
+    value: "@"
+  field-matches:
+    field: email
+    value: '^[^@]+@[^@]+$'
+  case-sensitive: false
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	assertStep, ok := step.Step.(*AssertStep)
+	if !ok {
+		t.Fatalf("expected *AssertStep, got %T", step.Step)
+	}
+
+	if assertStep.FieldEquals == nil || assertStep.FieldEquals.Field != "status" || assertStep.FieldEquals.Value != "active" {
+		t.Fatalf("unexpected field-equals: got %+v", assertStep.FieldEquals)
+	}
+	if assertStep.FieldContains == nil || assertStep.FieldContains.Field != "email" || assertStep.FieldContains.Value != "@" {
+		t.Fatalf("unexpected field-contains: got %+v", assertStep.FieldContains)
+	}
+	if assertStep.FieldMatches == nil || assertStep.FieldMatches.Field != "email" || assertStep.FieldMatches.Value != "^[^@]+@[^@]+$" {
+		t.Fatalf("unexpected field-matches: got %+v", assertStep.FieldMatches)
+	}
+	if assertStep.CaseSensitive {
+		t.Fatalf("unexpected case-sensitive: got true want false")
+	}
+}
+
+func TestStepWrapperUnmarshalAssertStepDefaultsCaseSensitiveTrue(t *testing.T) {
+	raw := []byte(`assert:
+  field-exists: email
+`)
+
+	var step StepWrapper
+	if err := yaml.Unmarshal(raw, &step); err != nil {
+		t.Fatalf("unmarshal returned error: %v", err)
+	}
+
+	assertStep, ok := step.Step.(*AssertStep)
+	if !ok {
+		t.Fatalf("expected *AssertStep, got %T", step.Step)
+	}
+
+	if !assertStep.CaseSensitive {
+		t.Fatalf("expected case-sensitive to default to true")
+	}
+}
+
+func TestStepWrapperUnmarshalAssertStepRejectsInvalidFieldMatchesRegex(t *testing.T) {
+	raw := []byte(`assert:
+  field-matches:
+    field: email
+    value: '['
+`)
+
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for invalid field-matches regex")
+	}
+	if !strings.Contains(err.Error(), "assert field-matches value must be a valid regular expression") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestStepWrapperUnmarshalAssertStepRejectsEmptyFieldOnFieldEquals(t *testing.T) {
+	raw := []byte(`assert:
+  field-equals:
+    value: active
+`)
+
+	var step StepWrapper
+	err := yaml.Unmarshal(raw, &step)
+	if err == nil {
+		t.Fatal("expected unmarshal error for field-equals with empty field")
+	}
+	if !strings.Contains(err.Error(), "assert field-equals field must be a non-empty string") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestStepWrapperUnmarshalSortStep(t *testing.T) {
 	tests := []struct {
 		name      string
