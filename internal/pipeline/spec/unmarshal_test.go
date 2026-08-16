@@ -596,6 +596,15 @@ func TestStepWrapperUnmarshalFilterStep(t *testing.T) {
 			wantField:  "StartsWith=alice",
 		},
 		{
+			name: "matches",
+			raw: `filter:
+  field: email
+  matches: '^[a-z]+@example\.com$'
+`,
+			checkField: func(s *FilterStep) bool { return s.Matches == `^[a-z]+@example\.com$` },
+			wantField:  `Matches=^[a-z]+@example\.com$`,
+		},
+		{
 			name: "greater-than",
 			raw: `filter:
   field: age
@@ -716,6 +725,14 @@ func TestStepWrapperUnmarshalFilterStepValidation(t *testing.T) {
   less-than: abc
 `,
 			message: "filter less-than must be a number",
+		},
+		{
+			name: "invalid regex",
+			raw: `filter:
+  field: name
+  matches: "[invalid"
+`,
+			message: "filter matches must be a valid regular expression",
 		},
 		{
 			name: "invalid on-missing",

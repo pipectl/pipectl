@@ -2,6 +2,7 @@ package filter
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -15,6 +16,7 @@ const (
 	OpContains    = "contains"
 	OpStartsWith  = "starts-with"
 	OpEndsWith    = "ends-with"
+	OpMatches     = "matches"
 	OpGreaterThan = "greater-than"
 	OpLessThan    = "less-than"
 )
@@ -30,6 +32,7 @@ type Rule struct {
 	Op            string
 	Value         string
 	NumericValue  float64
+	CompiledRegex *regexp.Regexp
 	OnMissing     string
 	CaseSensitive bool
 }
@@ -201,6 +204,8 @@ func (r *Rule) matches(value string) (bool, error) {
 			return strings.HasSuffix(value, r.Value), nil
 		}
 		return strings.HasSuffix(strings.ToLower(value), strings.ToLower(r.Value)), nil
+	case OpMatches:
+		return r.CompiledRegex.MatchString(value), nil
 	case OpGreaterThan:
 		f, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
 		if err != nil {

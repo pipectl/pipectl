@@ -15,6 +15,7 @@ Specify `field` and exactly one operator:
 | `contains` | Field value contains the given substring |
 | `starts-with` | Field value starts with the given string |
 | `ends-with` | Field value ends with the given string |
+| `matches` | Field value matches the given regular expression (RE2 syntax — see [Regex syntax](#regex-syntax)) |
 | `greater-than` | Field value is numerically greater than the given number |
 | `less-than` | Field value is numerically less than the given number |
 
@@ -40,6 +41,12 @@ Specify `field` and exactly one operator:
 - filter:
     field: email
     contains: "@example.com"
+```
+
+```yaml
+- filter:
+    field: email
+    matches: '^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$'
 ```
 
 ## Multi-condition: `all` (AND)
@@ -105,7 +112,7 @@ By default, records missing the field a rule tests are treated as non-matching a
 
 ## Case sensitivity
 
-By default, `equals`, `not-equals`, `contains`, `starts-with`, and `ends-with` compare values case-sensitively. Set `case-sensitive: false` on the step to fold case for these operators:
+By default, `equals`, `not-equals`, `contains`, `starts-with`, `ends-with`, and `matches` compare values case-sensitively. Set `case-sensitive: false` on the step to fold case for these operators:
 
 ```yaml
 - filter:
@@ -114,7 +121,24 @@ By default, `equals`, `not-equals`, `contains`, `starts-with`, and `ends-with` c
     case-sensitive: false # matches ALICE@EXAMPLE.COM too
 ```
 
+For `matches`, case folding is applied by prefixing the pattern with the inline flag `(?i)` before compiling — equivalent to writing `(?i)` at the start of the pattern yourself.
+
 Like `on-missing`, `case-sensitive` is a single step-level setting — it's not configurable per rule, and it applies uniformly to every leaf rule, including ones nested inside `all`/`any` groups.
+
+## Regex syntax
+
+`matches` compiles the pattern using Go's standard library [`regexp`](https://pkg.go.dev/regexp) package, which implements **RE2** syntax — described in full at [pkg.go.dev/regexp/syntax](https://pkg.go.dev/regexp/syntax). This is **not** the same flavor as PCRE (Perl/JavaScript/Python-style regex): RE2 guarantees linear-time matching (a user-supplied pattern can't cause a catastrophic-backtracking hang), but it does not support **backreferences** (e.g. `\1`) or **lookahead/lookbehind** (e.g. `(?=...)`, `(?<=...)`). Users coming from PCRE-flavored tools may need to rework patterns that rely on those features.
+
+Common syntax that *is* supported:
+
+| Pattern | What it does |
+|---------|--------------|
+| `^\d{3}-\d{4}$` | Anchors + digit character class + quantifier (e.g. a phone extension field) |
+| `(?i)^error` | Inline case-insensitive flag (equivalent to `case-sensitive: false`) |
+| `^(foo\|bar\|baz)$` | Alternation |
+| `^[A-Z][a-z]+ [A-Z][a-z]+$` | Character classes + quantifiers (e.g. a "First Last" name shape) |
+
+An invalid pattern is rejected when the pipeline is validated (at load time), not at runtime — the same as an invalid `greater-than`/`less-than` value.
 
 ## Notes
 
@@ -122,4 +146,4 @@ Like `on-missing`, `case-sensitive` is a single step-level setting — it's not 
 - `greater-than` and `less-than` require the field value to be parseable as a number. Records with non-numeric values will cause the step to fail.
 - `all` and `any` cannot be combined at the same nesting level.
 - Group conditions (`all`, `any`) and flat rule fields (`field`, `equals`, etc.) cannot be mixed on the same step.
-- `case-sensitive: false` only affects `equals`, `not-equals`, `contains`, `starts-with`, and `ends-with` — it has no effect on `greater-than`/`less-than`. Defaults to `true`.
+- `case-sensitive: false` only affects `equals`, `not-equals`, `contains`, `starts-with`, `ends-with`, and `matches` — it has no effect on `greater-than`/`less-than`. Defaults to `true`.

@@ -53,5 +53,12 @@ steps:
   - assert:
       records-equal: 1
 
+  # matches: Alice Smith's name matches "^Alice \w+$" → still 1 remain
+  - filter:
+      field: name
+      matches: '^Alice \w+$'
+  - assert:
+      records-equal: 1
+
 output:
   format: json

@@ -31,6 +31,15 @@ steps:
   - assert:
       records-equal: 1
 
+  # matches, case-insensitive: pattern is lowercase but email is uppercase
+  # (ALICE@EXAMPLE.COM); case-insensitive matching still matches -> 1 remains.
+  - filter:
+      field: email
+      matches: '^alice@'
+      case-sensitive: false
+  - assert:
+      records-equal: 1
+
   # equals, case-insensitive: remaining record's email matches lowercase
   # "alice@example.com" once folded -> still 1 remains.
   - filter:

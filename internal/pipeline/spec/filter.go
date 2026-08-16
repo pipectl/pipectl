@@ -2,6 +2,7 @@ package spec
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 
 	"github.com/goccy/go-yaml"
@@ -15,6 +16,7 @@ type FilterCondition struct {
 	Contains    string `yaml:"contains"`
 	StartsWith  string `yaml:"starts-with"`
 	EndsWith    string `yaml:"ends-with"`
+	Matches     string `yaml:"matches"`
 	GreaterThan string `yaml:"greater-than"`
 	LessThan    string `yaml:"less-than"`
 	// Group fields
@@ -33,7 +35,7 @@ func (c *FilterCondition) UnmarshalYAML(b []byte) error {
 }
 
 func (c *FilterCondition) Validate() error {
-	return validateFilterCondition(c.All, c.Any, c.Field, c.Equals, c.NotEquals, c.Contains, c.StartsWith, c.EndsWith, c.GreaterThan, c.LessThan)
+	return validateFilterCondition(c.All, c.Any, c.Field, c.Equals, c.NotEquals, c.Contains, c.StartsWith, c.EndsWith, c.Matches, c.GreaterThan, c.LessThan)
 }
 
 type FilterStep struct {
@@ -43,6 +45,7 @@ type FilterStep struct {
 	Contains      string            `yaml:"contains"`
 	StartsWith    string            `yaml:"starts-with"`
 	EndsWith      string            `yaml:"ends-with"`
+	Matches       string            `yaml:"matches"`
 	GreaterThan   string            `yaml:"greater-than"`
 	LessThan      string            `yaml:"less-than"`
 	All           []FilterCondition `yaml:"all"`
@@ -80,13 +83,13 @@ func (s *FilterStep) Validate() error {
 	default:
 		return fmt.Errorf("filter on-missing must be exclude, include, or error")
 	}
-	return validateFilterCondition(s.All, s.Any, s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.GreaterThan, s.LessThan)
+	return validateFilterCondition(s.All, s.Any, s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.Matches, s.GreaterThan, s.LessThan)
 }
 
-func validateFilterCondition(all, any []FilterCondition, field, equals, notEquals, contains, startsWith, endsWith, greaterThan, lessThan string) error {
+func validateFilterCondition(all, any []FilterCondition, field, equals, notEquals, contains, startsWith, endsWith, matches, greaterThan, lessThan string) error {
 	isGroup := len(all) > 0 || len(any) > 0
 	isLeaf := field != "" || equals != "" || notEquals != "" || contains != "" ||
-		startsWith != "" || endsWith != "" || greaterThan != "" || lessThan != ""
+		startsWith != "" || endsWith != "" || matches != "" || greaterThan != "" || lessThan != ""
 
 	if isGroup && isLeaf {
 		return fmt.Errorf("filter cannot mix group (all/any) and rule fields")
@@ -103,10 +106,10 @@ func validateFilterCondition(all, any []FilterCondition, field, equals, notEqual
 		return fmt.Errorf("filter requires a condition: specify field with an operator, or use all/any for grouped conditions")
 	}
 
-	return validateFilterRule(field, equals, notEquals, contains, startsWith, endsWith, greaterThan, lessThan)
+	return validateFilterRule(field, equals, notEquals, contains, startsWith, endsWith, matches, greaterThan, lessThan)
 }
 
-func validateFilterRule(field, equals, notEquals, contains, startsWith, endsWith, greaterThan, lessThan string) error {
+func validateFilterRule(field, equals, notEquals, contains, startsWith, endsWith, matches, greaterThan, lessThan string) error {
 	if field == "" {
 		return fmt.Errorf("filter field is required")
 	}
@@ -127,6 +130,12 @@ func validateFilterRule(field, equals, notEquals, contains, startsWith, endsWith
 	if endsWith != "" {
 		set++
 	}
+	if matches != "" {
+		if _, err := regexp.Compile(matches); err != nil {
+			return fmt.Errorf("filter matches must be a valid regular expression: %v", err)
+		}
+		set++
+	}
 	if greaterThan != "" {
 		if _, err := strconv.ParseFloat(greaterThan, 64); err != nil {
 			return fmt.Errorf("filter greater-than must be a number")
@@ -141,10 +150,10 @@ func validateFilterRule(field, equals, notEquals, contains, startsWith, endsWith
 	}
 
 	if set == 0 {
-		return fmt.Errorf("filter requires exactly one operator: equals, not-equals, contains, starts-with, ends-with, greater-than, or less-than")
+		return fmt.Errorf("filter requires exactly one operator: equals, not-equals, contains, starts-with, ends-with, matches, greater-than, or less-than")
 	}
 	if set > 1 {
-		return fmt.Errorf("filter requires exactly one operator: equals, not-equals, contains, starts-with, ends-with, greater-than, or less-than")
+		return fmt.Errorf("filter requires exactly one operator: equals, not-equals, contains, starts-with, ends-with, matches, greater-than, or less-than")
 	}
 
 	return nil

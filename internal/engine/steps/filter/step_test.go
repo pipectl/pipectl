@@ -2,6 +2,7 @@ package filter
 
 import (
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -39,11 +40,16 @@ func ruleStep(field, op, value string) *Step {
 	if op == OpGreaterThan || op == OpLessThan {
 		numericValue, _ = strconv.ParseFloat(value, 64)
 	}
+	var compiled *regexp.Regexp
+	if op == OpMatches {
+		compiled = regexp.MustCompile(value)
+	}
 	return &Step{Condition: &Condition{Rule: &Rule{
 		Field:         field,
 		Op:            op,
 		Value:         value,
 		NumericValue:  numericValue,
+		CompiledRegex: compiled,
 		CaseSensitive: true,
 	}}}
 }
@@ -54,11 +60,16 @@ func ruleStepCaseInsensitive(field, op, value string) *Step {
 	if op == OpGreaterThan || op == OpLessThan {
 		numericValue, _ = strconv.ParseFloat(value, 64)
 	}
+	var compiled *regexp.Regexp
+	if op == OpMatches {
+		compiled = regexp.MustCompile("(?i)" + value)
+	}
 	return &Step{Condition: &Condition{Rule: &Rule{
 		Field:         field,
 		Op:            op,
 		Value:         value,
 		NumericValue:  numericValue,
+		CompiledRegex: compiled,
 		CaseSensitive: false,
 	}}}
 }
@@ -151,6 +162,23 @@ func TestExecuteFiltersCSVRows(t *testing.T) {
 			expected: [][]string{
 				{"id", "email"},
 				{"2", "bob@example.org"},
+			},
+		},
+		{
+			name:  "matches",
+			op:    OpMatches,
+			field: "email",
+			value: `^[a-z]+@example\.com$`,
+			rows: [][]string{
+				{"id", "email"},
+				{"1", "alice@example.com"},
+				{"2", "bob@example.org"},
+				{"3", "carol@example.com"},
+			},
+			expected: [][]string{
+				{"id", "email"},
+				{"1", "alice@example.com"},
+				{"3", "carol@example.com"},
 			},
 		},
 		{
@@ -283,6 +311,19 @@ func TestExecuteFiltersJSONRecords(t *testing.T) {
 			},
 			expected: []map[string]interface{}{
 				{"id": "2", "email": "bob@example.org"},
+			},
+		},
+		{
+			name:  "matches",
+			op:    OpMatches,
+			field: "email",
+			value: `^[a-z]+@example\.com$`,
+			items: []map[string]interface{}{
+				{"id": "1", "email": "alice@example.com"},
+				{"id": "2", "email": "bob@example.org"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "1", "email": "alice@example.com"},
 			},
 		},
 		{
@@ -728,6 +769,19 @@ func TestExecuteFiltersCaseInsensitive(t *testing.T) {
 			},
 			expected: []map[string]interface{}{
 				{"id": "2", "email": "bob@example.org"},
+			},
+		},
+		{
+			name:  "matches",
+			op:    OpMatches,
+			field: "email",
+			value: `^ALICE@`,
+			items: []map[string]interface{}{
+				{"id": "1", "email": "alice@example.com"},
+				{"id": "2", "email": "bob@example.com"},
+			},
+			expected: []map[string]interface{}{
+				{"id": "1", "email": "alice@example.com"},
 			},
 		},
 	}

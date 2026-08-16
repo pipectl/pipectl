@@ -2,6 +2,7 @@ package plan
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 
 	"github.com/pipectl/pipectl/internal/engine"
@@ -104,7 +105,7 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 			}
 			condition = &filter.Condition{Any: subs}
 		} else {
-			rule := buildFilterRule(s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.GreaterThan, s.LessThan, s.OnMissing, s.CaseSensitive)
+			rule := buildFilterRule(s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.Matches, s.GreaterThan, s.LessThan, s.OnMissing, s.CaseSensitive)
 			condition = &filter.Condition{Rule: rule}
 		}
 		return &filter.Step{Condition: condition}, nil
@@ -186,11 +187,11 @@ func buildFilterCondition(c spec.FilterCondition, onMissing string, caseSensitiv
 		}
 		return &filter.Condition{Any: subs}, nil
 	}
-	rule := buildFilterRule(c.Field, c.Equals, c.NotEquals, c.Contains, c.StartsWith, c.EndsWith, c.GreaterThan, c.LessThan, onMissing, caseSensitive)
+	rule := buildFilterRule(c.Field, c.Equals, c.NotEquals, c.Contains, c.StartsWith, c.EndsWith, c.Matches, c.GreaterThan, c.LessThan, onMissing, caseSensitive)
 	return &filter.Condition{Rule: rule}, nil
 }
 
-func buildFilterRule(field, equals, notEquals, contains, startsWith, endsWith, greaterThan, lessThan, onMissing string, caseSensitive bool) *filter.Rule {
+func buildFilterRule(field, equals, notEquals, contains, startsWith, endsWith, matches, greaterThan, lessThan, onMissing string, caseSensitive bool) *filter.Rule {
 	rule := &filter.Rule{Field: field, OnMissing: onMissing, CaseSensitive: caseSensitive}
 	switch {
 	case equals != "":
@@ -203,6 +204,13 @@ func buildFilterRule(field, equals, notEquals, contains, startsWith, endsWith, g
 		rule.Op, rule.Value = filter.OpStartsWith, startsWith
 	case endsWith != "":
 		rule.Op, rule.Value = filter.OpEndsWith, endsWith
+	case matches != "":
+		rule.Op = filter.OpMatches
+		pattern := matches
+		if !caseSensitive {
+			pattern = "(?i)" + pattern
+		}
+		rule.CompiledRegex, _ = regexp.Compile(pattern) // already validated as a regex in spec
 	case greaterThan != "":
 		rule.Op = filter.OpGreaterThan
 		rule.NumericValue, _ = strconv.ParseFloat(greaterThan, 64) // already validated as a number in spec

@@ -436,10 +436,11 @@ Options:
 - `contains`: keep records where the field value contains this substring.
 - `starts-with`: keep records where the field value starts with this string.
 - `ends-with`: keep records where the field value ends with this string.
+- `matches`: keep records where the field value matches this regular expression. Uses Go's `regexp` package (RE2 syntax) — see [Regex syntax](#regex-syntax) below.
 - `greater-than`: keep records where the field value is numerically greater than the specified number.
 - `less-than`: keep records where the field value is numerically less than the specified number.
 - `on-missing`: optional, one of `exclude` (default), `include`, or `error`. Controls how a record missing the target field is handled — see [Missing fields](#missing-fields) below. Applies to the whole step, including every leaf rule inside `all`/`any` groups.
-- `case-sensitive`: optional boolean. When `false`, `equals`, `not-equals`, `contains`, `starts-with`, and `ends-with` compare values case-insensitively. Does not affect `greater-than`/`less-than`, which are always numeric. Defaults to `true`. See [Case sensitivity](#case-sensitivity) below.
+- `case-sensitive`: optional boolean. When `false`, `equals`, `not-equals`, `contains`, `starts-with`, `ends-with`, and `matches` compare values case-insensitively. Does not affect `greater-than`/`less-than`, which are always numeric. Defaults to `true`. See [Case sensitivity](#case-sensitivity) below.
 
 Exactly one operator must be specified.
 
@@ -471,6 +472,12 @@ Exactly one operator must be specified.
 - filter:
     field: email
     ends-with: "@example.com"
+```
+
+```yaml
+- filter:
+    field: email
+    matches: '^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$'
 ```
 
 ```yaml
@@ -549,7 +556,7 @@ By default, records missing the field a rule tests are treated as non-matching a
 
 #### Case sensitivity
 
-By default, `equals`, `not-equals`, `contains`, `starts-with`, and `ends-with` compare values case-sensitively. Set `case-sensitive: false` on the step to fold case for these operators:
+By default, `equals`, `not-equals`, `contains`, `starts-with`, `ends-with`, and `matches` compare values case-sensitively. Set `case-sensitive: false` on the step to fold case for these operators:
 
 ```yaml
 - filter:
@@ -558,7 +565,22 @@ By default, `equals`, `not-equals`, `contains`, `starts-with`, and `ends-with` c
     case-sensitive: false # matches ALICE@EXAMPLE.COM too
 ```
 
+For `matches`, case folding is applied by prefixing the pattern with the inline flag `(?i)` before compiling — equivalent to writing `(?i)` at the start of the pattern yourself.
+
 `case-sensitive` does not affect `greater-than`/`less-than`, which are always numeric comparisons. Like `on-missing`, it is a single step-level setting — it's not configurable per rule, and it applies uniformly to every leaf rule evaluated by the step, including ones nested inside `all`/`any` groups.
+
+#### Regex syntax
+
+`matches` compiles the pattern using Go's standard library [`regexp`](https://pkg.go.dev/regexp) package, which implements **RE2** syntax — described in full at [pkg.go.dev/regexp/syntax](https://pkg.go.dev/regexp/syntax). This is **not** the same flavor as PCRE (Perl/JavaScript/Python-style regex): RE2 guarantees linear-time matching (a user-supplied pattern can't cause a catastrophic-backtracking hang), but it does not support **backreferences** (e.g. `\1`) or **lookahead/lookbehind** (e.g. `(?=...)`, `(?<=...)`). Users coming from PCRE-flavored tools may need to rework patterns that rely on those features.
+
+Common syntax that *is* supported:
+
+- `^\d{3}-\d{4}$` — anchors + digit character class + quantifier (e.g. a phone extension field)
+- `(?i)^error` — inline case-insensitive flag (equivalent to setting `case-sensitive: false`)
+- `^(foo|bar|baz)$` — alternation
+- `^[A-Z][a-z]+ [A-Z][a-z]+$` — character classes + quantifiers (e.g. a "First Last" name shape)
+
+An invalid pattern is rejected when the pipeline is validated (at load time), not at runtime — the same as an invalid `greater-than`/`less-than` value.
 
 Notes:
 
