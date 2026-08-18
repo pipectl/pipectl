@@ -37,3 +37,4 @@ Sends the current payload to an HTTP endpoint and replaces the payload with the 
 - For CSV payloads, the step sends `text/csv` as the `Content-Type` unless you override it in `headers`.
 - For JSON payloads, the step sends `application/json` as the `Content-Type` unless you override it in `headers`.
 - Environment variables in header values (e.g. `${API_TOKEN}`) are not automatically expanded. Use your shell or a secrets manager to inject values before running the pipeline.
+- `proxy`, `headers`, and `timeout` can be set once for all `http-request`/`http-transform` steps via the pipeline-level [`defaults.http`](../concepts#defaults) instead of repeating them on every step. A step's own value always overrides the default; `headers` are merged, with the step's value winning on a key conflict.

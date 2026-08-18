@@ -50,6 +50,12 @@ func TestVarPipelines(t *testing.T) {
 	})
 }
 
+func TestDefaultsPipelines(t *testing.T) {
+	run(t, []testCase{
+		{name: "defaults/case-sensitive", pipeline: "defaults/case-sensitive.yaml", input: "people.jsonl", golden: "defaults/case-sensitive.json"},
+	})
+}
+
 func TestWorkflowPipelines(t *testing.T) {
 	run(t, []testCase{
 		{name: "csv-enrichment", pipeline: "workflow/csv-enrichment.yaml", input: "customers.csv", golden: "workflow/csv-enrichment.jsonl"},

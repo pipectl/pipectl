@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-
-	"github.com/goccy/go-yaml"
 )
 
 type AssertFieldCheck struct {
@@ -21,21 +19,11 @@ type AssertStep struct {
 	FieldEquals   *AssertFieldCheck `yaml:"field-equals"`
 	FieldContains *AssertFieldCheck `yaml:"field-contains"`
 	FieldMatches  *AssertFieldCheck `yaml:"field-matches"`
-	CaseSensitive bool              `yaml:"case-sensitive,omitempty"`
+	CaseSensitive *bool             `yaml:"case-sensitive,omitempty"`
 }
 
 func (s *AssertStep) StepType() string {
 	return "assert"
-}
-
-func (s *AssertStep) UnmarshalYAML(b []byte) error {
-	type rawAssertStep AssertStep
-	raw := rawAssertStep{CaseSensitive: true}
-	if err := yaml.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	*s = AssertStep(raw)
-	return s.Validate()
 }
 
 func (s *AssertStep) Validate() error {

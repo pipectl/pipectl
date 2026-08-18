@@ -167,6 +167,7 @@ pipectl docs [step]
 | **Pipeline** | A YAML file with an `id`, `input` format, ordered `steps`, and `output` format |
 | **Step** | A single operation that reads the payload, transforms it, and passes it on |
 | **Payload** | The data flowing through the pipeline — a JSON object/array, JSONL stream, or CSV |
+| **Defaults** | Optional pipeline-level values (e.g. HTTP proxy/headers/timeout, text case-sensitivity) inherited by matching steps unless overridden |
 
 ## Steps
 

@@ -499,12 +499,12 @@ func TestStepWrapperUnmarshalAssertStepFieldChecks(t *testing.T) {
 	if assertStep.FieldMatches == nil || assertStep.FieldMatches.Field != "email" || assertStep.FieldMatches.Value != "^[^@]+@[^@]+$" {
 		t.Fatalf("unexpected field-matches: got %+v", assertStep.FieldMatches)
 	}
-	if assertStep.CaseSensitive {
-		t.Fatalf("unexpected case-sensitive: got true want false")
+	if assertStep.CaseSensitive == nil || *assertStep.CaseSensitive {
+		t.Fatalf("unexpected case-sensitive: got %v want false", assertStep.CaseSensitive)
 	}
 }
 
-func TestStepWrapperUnmarshalAssertStepDefaultsCaseSensitiveTrue(t *testing.T) {
+func TestStepWrapperUnmarshalAssertStepCaseSensitiveUnsetByDefault(t *testing.T) {
 	raw := []byte(`assert:
   field-exists: email
 `)
@@ -519,8 +519,10 @@ func TestStepWrapperUnmarshalAssertStepDefaultsCaseSensitiveTrue(t *testing.T) {
 		t.Fatalf("expected *AssertStep, got %T", step.Step)
 	}
 
-	if !assertStep.CaseSensitive {
-		t.Fatalf("expected case-sensitive to default to true")
+	// CaseSensitive is left unset (nil) here; Load resolves it to true in the
+	// absence of a pipeline-level defaults.text.case-sensitive override.
+	if assertStep.CaseSensitive != nil {
+		t.Fatalf("expected case-sensitive to be unset, got %v", *assertStep.CaseSensitive)
 	}
 }
 
@@ -1011,7 +1013,7 @@ func TestStepWrapperUnmarshalFilterStepAllAnyErrors(t *testing.T) {
 }
 
 func TestStepWrapperUnmarshalFilterStepCaseSensitivity(t *testing.T) {
-	t.Run("defaults to case-sensitive", func(t *testing.T) {
+	t.Run("unset by default", func(t *testing.T) {
 		raw := []byte(`filter:
   field: status
   equals: active
@@ -1021,8 +1023,10 @@ func TestStepWrapperUnmarshalFilterStepCaseSensitivity(t *testing.T) {
 			t.Fatalf("unmarshal returned error: %v", err)
 		}
 		filterStep := step.Step.(*FilterStep)
-		if !filterStep.CaseSensitive {
-			t.Fatal("expected CaseSensitive to default to true")
+		// CaseSensitive is left unset (nil) here; Load resolves it to true in
+		// the absence of a pipeline-level defaults.text.case-sensitive override.
+		if filterStep.CaseSensitive != nil {
+			t.Fatalf("expected CaseSensitive to be unset, got %v", *filterStep.CaseSensitive)
 		}
 	})
 
@@ -1037,8 +1041,8 @@ func TestStepWrapperUnmarshalFilterStepCaseSensitivity(t *testing.T) {
 			t.Fatalf("unmarshal returned error: %v", err)
 		}
 		filterStep := step.Step.(*FilterStep)
-		if filterStep.CaseSensitive {
-			t.Fatal("expected CaseSensitive to be false")
+		if filterStep.CaseSensitive == nil || *filterStep.CaseSensitive {
+			t.Fatalf("expected CaseSensitive to be false, got %v", filterStep.CaseSensitive)
 		}
 	})
 }
@@ -1363,7 +1367,7 @@ func TestStepWrapperUnmarshalDedupeStep(t *testing.T) {
 }
 
 func TestStepWrapperUnmarshalDedupeStepCaseSensitivity(t *testing.T) {
-	t.Run("defaults to case-sensitive", func(t *testing.T) {
+	t.Run("unset by default", func(t *testing.T) {
 		raw := []byte(`dedupe:
   fields: [email]
 `)
@@ -1372,8 +1376,10 @@ func TestStepWrapperUnmarshalDedupeStepCaseSensitivity(t *testing.T) {
 			t.Fatalf("unmarshal returned error: %v", err)
 		}
 		dedupeStep := step.Step.(*DedupeStep)
-		if !dedupeStep.CaseSensitive {
-			t.Fatal("expected CaseSensitive to default to true")
+		// CaseSensitive is left unset (nil) here; Load resolves it to true in
+		// the absence of a pipeline-level defaults.text.case-sensitive override.
+		if dedupeStep.CaseSensitive != nil {
+			t.Fatalf("expected CaseSensitive to be unset, got %v", *dedupeStep.CaseSensitive)
 		}
 	})
 
@@ -1387,8 +1393,8 @@ func TestStepWrapperUnmarshalDedupeStepCaseSensitivity(t *testing.T) {
 			t.Fatalf("unmarshal returned error: %v", err)
 		}
 		dedupeStep := step.Step.(*DedupeStep)
-		if dedupeStep.CaseSensitive {
-			t.Fatal("expected CaseSensitive to be false")
+		if dedupeStep.CaseSensitive == nil || *dedupeStep.CaseSensitive {
+			t.Fatalf("expected CaseSensitive to be false, got %v", dedupeStep.CaseSensitive)
 		}
 	})
 }

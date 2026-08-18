@@ -14,10 +14,11 @@ import (
 var validFormats = []string{"json", "jsonl", "csv"}
 
 type Pipeline struct {
-	ID     string        `yaml:"id"`
-	Input  Input         `yaml:"input"`
-	Steps  []StepWrapper `yaml:"steps"`
-	Output Output        `yaml:"output"`
+	ID       string        `yaml:"id"`
+	Input    Input         `yaml:"input"`
+	Defaults *Defaults     `yaml:"defaults,omitempty"`
+	Steps    []StepWrapper `yaml:"steps"`
+	Output   Output        `yaml:"output"`
 }
 
 type Input struct {
@@ -92,6 +93,13 @@ func Load(path string, vars map[string]string) (Pipeline, error) {
 	if len(p.Steps) == 0 {
 		return Pipeline{}, fmt.Errorf("pipeline must have at least one step")
 	}
+
+	if p.Defaults != nil {
+		if err := p.Defaults.Validate(); err != nil {
+			return Pipeline{}, err
+		}
+	}
+	applyDefaults(p.Steps, p.Defaults)
 
 	return p, nil
 }

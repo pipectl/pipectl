@@ -89,19 +89,19 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 	case *spec.FilterStep:
 		var condition *filter.Condition
 		if len(s.All) > 0 {
-			subs, err := buildFilterConditions(s.All, s.OnMissing, s.CaseSensitive)
+			subs, err := buildFilterConditions(s.All, s.OnMissing, *s.CaseSensitive)
 			if err != nil {
 				return nil, err
 			}
 			condition = &filter.Condition{All: subs}
 		} else if len(s.Any) > 0 {
-			subs, err := buildFilterConditions(s.Any, s.OnMissing, s.CaseSensitive)
+			subs, err := buildFilterConditions(s.Any, s.OnMissing, *s.CaseSensitive)
 			if err != nil {
 				return nil, err
 			}
 			condition = &filter.Condition{Any: subs}
 		} else {
-			rule := buildFilterRule(s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.Matches, s.GreaterThan, s.LessThan, s.OnMissing, s.CaseSensitive)
+			rule := buildFilterRule(s.Field, s.Equals, s.NotEquals, s.Contains, s.StartsWith, s.EndsWith, s.Matches, s.GreaterThan, s.LessThan, s.OnMissing, *s.CaseSensitive)
 			condition = &filter.Condition{Rule: rule}
 		}
 		return &filter.Step{Condition: condition}, nil
@@ -132,7 +132,7 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 	case *spec.DedupeStep:
 		return &dedupe.Step{
 			Fields:        s.Fields,
-			CaseSensitive: s.CaseSensitive,
+			CaseSensitive: *s.CaseSensitive,
 		}, nil
 	case *spec.HTTPRequestStep:
 		return &httprequest.Step{
@@ -162,7 +162,7 @@ func buildAssertStep(s *spec.AssertStep) *assert.Step {
 		MaxRecords:    s.MaxRecords,
 		RecordsEqual:  s.RecordsEqual,
 		FieldExists:   s.FieldExists,
-		CaseSensitive: s.CaseSensitive,
+		CaseSensitive: *s.CaseSensitive,
 	}
 
 	if s.FieldEquals != nil {
@@ -173,7 +173,7 @@ func buildAssertStep(s *spec.AssertStep) *assert.Step {
 	}
 	if s.FieldMatches != nil {
 		pattern := s.FieldMatches.Value
-		if !s.CaseSensitive {
+		if !*s.CaseSensitive {
 			pattern = "(?i)" + pattern
 		}
 		regex, _ := regexp.Compile(pattern) // already validated as a regex in spec

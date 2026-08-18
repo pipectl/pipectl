@@ -2,13 +2,17 @@
 
 ## Pipeline
 
-A pipeline is a YAML file that describes how data should be transformed. It has four top-level fields:
+A pipeline is a YAML file that describes how data should be transformed. It has four required top-level fields, plus an optional fifth:
 
 ```yaml
 id: my-pipeline        # identifier used in console output
 
 input:
   format: csv          # how to parse stdin
+
+defaults:               # optional: values inherited by matching steps
+  text:
+    case-sensitive: false
 
 steps:                 # ordered list of transformations
   - normalize:
@@ -24,6 +28,19 @@ The runtime flow is:
 1. Parse `stdin` using `input.format`
 2. Run each step in order, passing the payload from one to the next
 3. Write the final payload to `stdout` using `output.format`
+
+## Defaults
+
+`defaults` lets you set a value once and have it inherited by every step that supports
+it, instead of repeating the same option on every step. A step's own value always
+overrides the matching default. Defaults are grouped by concern:
+
+- `defaults.http`: `proxy`, `headers`, `timeout` — inherited by `http-request` and
+  `http-transform`. `headers` are merged with any step-level `headers`; on a key
+  conflict the step's value wins.
+- `defaults.text`: `case-sensitive` — inherited by `assert`, `filter`, and `dedupe`.
+
+See [`http-request`](./steps/http-request), [`http-transform`](./steps/http-transform), [`assert`](./steps/assert), [`filter`](./steps/filter), and [`dedupe`](./steps/dedupe) for which options each step inherits.
 
 ## Step
 

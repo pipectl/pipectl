@@ -81,6 +81,7 @@ Top-level fields:
 
 - `id`: pipeline identifier used only for console output.
 - `input`: input configuration.
+- `defaults`: optional. Default values inherited by matching steps unless overridden.
 - `steps`: ordered list of steps. Each list item must contain exactly one step type.
 - `output`: output configuration.
 
@@ -90,6 +91,42 @@ Supported fields:
 
 - `format`: required. `json`, `jsonl`, or `csv`
 - `delimiter`: optional. A single character to use as the CSV field separator. Defaults to `,`. Only applies when `format` is `csv`.
+
+### `defaults`
+
+Optional pipeline-level default values, grouped by concern, that are inherited by any
+step supporting the matching option. An explicit value on a step always overrides the
+default.
+
+```yaml
+defaults:
+  http:
+    proxy: http://proxy.internal:8080
+    timeout: 30
+    headers:
+      X-Api-Key: shared-key
+  text:
+    case-sensitive: false
+
+steps:
+  - http-request:
+      url: https://example.com/a
+      # proxy/timeout/headers inherited from defaults.http
+  - http-request:
+      url: https://example.com/b
+      timeout: 10   # overrides the default for this step only
+  - filter:
+      field: name
+      equals: Bob
+      # case-sensitive inherited from defaults.text
+```
+
+Supported groups:
+
+- `http`: `proxy`, `headers`, `timeout` — inherited by `http-request` and `http-transform`.
+  `headers` are merged with any step-level `headers`; on a key conflict the step's value
+  wins.
+- `text`: `case-sensitive` — inherited by `assert`, `filter`, and `dedupe`.
 
 ### `output`
 
@@ -337,6 +374,9 @@ Notes:
 - `min-records` must be `<= max-records` when both are set.
 - `records-equal` must fit within the min/max bounds when they are also set.
 - For CSV, `field-exists` checks the header row.
+- `case-sensitive` can be set once for all `assert`/`filter`/`dedupe` steps via the
+  pipeline-level [`defaults.text.case-sensitive`](#defaults) instead of repeating it on
+  every step.
 - For JSON and JSONL, `field-exists` passes if any record contains the field.
 - `field-equals`, `field-contains`, and `field-matches` check every record (not just any record); the assertion fails on the first record where the field is missing or its value fails the check.
 - `field-matches` uses Go's RE2 regular expression engine.
@@ -586,6 +626,10 @@ For text-mode `greater-than`/`less-than` (see [Text vs numeric comparison](#text
 
 Like `on-missing`, `case-sensitive` is a single step-level setting — it's not configurable per rule, and it applies uniformly to every leaf rule evaluated by the step, including ones nested inside `all`/`any` groups.
 
+`case-sensitive` can also be set once for all `assert`/`filter`/`dedupe` steps via the
+pipeline-level [`defaults.text.case-sensitive`](#defaults) instead of repeating it on
+every step.
+
 #### Text vs numeric comparison
 
 `greater-than`/`less-than` decide, once per step at pipeline-load time, whether to compare numerically or as text — based on whether the *configured threshold* itself parses as a number, not on the data being filtered:
@@ -715,6 +759,9 @@ Notes:
 - For CSV, every listed field must exist in the header row, or the step fails with an error.
 - For CSV, the header row is always preserved.
 - JSON object payloads (single record) are not supported — only JSON arrays.
+- `case-sensitive` can be set once for all `assert`/`filter`/`dedupe` steps via the
+  pipeline-level [`defaults.text.case-sensitive`](#defaults) instead of repeating it on
+  every step.
 
 ### `log`
 
@@ -805,6 +852,10 @@ Notes:
 - Response `Content-Type` must match `expect-format`.
 - Request bodies are only sent for `POST`, `PUT`, `PATCH`, and `DELETE`.
 - For JSONL requests without an explicit `Content-Type`, the step sends `application/x-ndjson`. For JSON requests, no `Content-Type` is set automatically — set it explicitly in `headers` if the target service requires it.
+- `proxy`, `headers`, and `timeout` can be set once for all `http-request`/`http-transform`
+  steps via the pipeline-level [`defaults.http`](#defaults) instead of repeating them on
+  every step. A step's own value always overrides the default; `headers` are merged, with
+  the step's value winning on a key conflict.
 
 ### `http-request`
 
@@ -843,6 +894,10 @@ Notes:
 - For JSONL payloads, the step sends `application/x-ndjson` as `Content-Type` unless overridden in `headers`.
 - For CSV payloads, the step sends `text/csv` as `Content-Type` unless overridden in `headers`.
 - For JSON payloads, the step sends `application/json` as `Content-Type` unless overridden in `headers`.
+- `proxy`, `headers`, and `timeout` can be set once for all `http-request`/`http-transform`
+  steps via the pipeline-level [`defaults.http`](#defaults) instead of repeating them on
+  every step. A step's own value always overrides the default; `headers` are merged, with
+  the step's value winning on a key conflict.
 
 ## Example Pipelines
 

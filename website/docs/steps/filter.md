@@ -133,6 +133,8 @@ For text-mode `greater-than`/`less-than` (see [Text vs numeric comparison](#text
 
 Like `on-missing`, `case-sensitive` is a single step-level setting — it's not configurable per rule, and it applies uniformly to every leaf rule, including ones nested inside `all`/`any` groups.
 
+`case-sensitive` can also be set once for all `assert`/`filter`/`dedupe` steps via the pipeline-level [`defaults.text.case-sensitive`](../concepts#defaults) instead of repeating it on every step.
+
 ## Text vs numeric comparison
 
 `greater-than`/`less-than` decide, once per step at pipeline-load time, whether to compare numerically or as text — based on whether the **configured threshold** itself parses as a number, not on the data being filtered:

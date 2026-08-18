@@ -217,6 +217,185 @@ steps:
 	}
 }
 
+func TestLoadNoDefaultsBlockPreservesExistingBehavior(t *testing.T) {
+	content := `id: test
+input:
+  format: json
+output:
+  format: json
+steps:
+  - http-request:
+      url: https://example.com
+      method: GET
+  - filter:
+      field: name
+      equals: Bob
+`
+	path := writeTempPipeline(t, content)
+	p, err := Load(path, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	httpStep := p.Steps[0].Step.(*HTTPRequestStep)
+	if httpStep.Proxy != "" {
+		t.Fatalf("unexpected proxy: got %q want %q", httpStep.Proxy, "")
+	}
+	if httpStep.Timeout != 0 {
+		t.Fatalf("unexpected timeout: got %d want 0", httpStep.Timeout)
+	}
+
+	filterStep := p.Steps[1].Step.(*FilterStep)
+	if filterStep.CaseSensitive == nil || !*filterStep.CaseSensitive {
+		t.Fatalf("expected case-sensitive to default to true, got %v", filterStep.CaseSensitive)
+	}
+}
+
+func TestLoadAppliesHTTPDefaults(t *testing.T) {
+	content := `id: test
+input:
+  format: json
+defaults:
+  http:
+    proxy: http://proxy.internal:8080
+    timeout: 30
+    headers:
+      X-Api-Key: shared-key
+      X-Common: default-value
+steps:
+  - http-request:
+      url: https://example.com/a
+      method: GET
+  - http-request:
+      url: https://example.com/b
+      method: GET
+      timeout: 10
+      headers:
+        X-Common: step-value
+output:
+  format: json
+`
+	path := writeTempPipeline(t, content)
+	p, err := Load(path, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	inherited := p.Steps[0].Step.(*HTTPRequestStep)
+	if inherited.Proxy != "http://proxy.internal:8080" {
+		t.Fatalf("unexpected proxy: got %q", inherited.Proxy)
+	}
+	if inherited.Timeout != 30 {
+		t.Fatalf("unexpected timeout: got %d want 30", inherited.Timeout)
+	}
+	if inherited.Headers["X-Api-Key"] != "shared-key" {
+		t.Fatalf("expected inherited header X-Api-Key, got %+v", inherited.Headers)
+	}
+
+	overridden := p.Steps[1].Step.(*HTTPRequestStep)
+	if overridden.Proxy != "http://proxy.internal:8080" {
+		t.Fatalf("expected proxy to still be inherited: got %q", overridden.Proxy)
+	}
+	if overridden.Timeout != 10 {
+		t.Fatalf("expected step timeout to override default: got %d want 10", overridden.Timeout)
+	}
+	if overridden.Headers["X-Api-Key"] != "shared-key" {
+		t.Fatalf("expected non-conflicting default header to merge in, got %+v", overridden.Headers)
+	}
+	if overridden.Headers["X-Common"] != "step-value" {
+		t.Fatalf("expected step header to win on key conflict, got %+v", overridden.Headers)
+	}
+}
+
+func TestLoadAppliesTextDefaults(t *testing.T) {
+	content := `id: test
+input:
+  format: json
+defaults:
+  text:
+    case-sensitive: false
+steps:
+  - filter:
+      field: name
+      equals: bob
+  - assert:
+      field-exists: name
+      case-sensitive: true
+  - dedupe:
+      fields: [name]
+output:
+  format: json
+`
+	path := writeTempPipeline(t, content)
+	p, err := Load(path, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	filterStep := p.Steps[0].Step.(*FilterStep)
+	if filterStep.CaseSensitive == nil || *filterStep.CaseSensitive {
+		t.Fatalf("expected filter to inherit case-sensitive: false, got %v", filterStep.CaseSensitive)
+	}
+
+	assertStep := p.Steps[1].Step.(*AssertStep)
+	if assertStep.CaseSensitive == nil || !*assertStep.CaseSensitive {
+		t.Fatalf("expected assert step-level case-sensitive: true to override default, got %v", assertStep.CaseSensitive)
+	}
+
+	dedupeStep := p.Steps[2].Step.(*DedupeStep)
+	if dedupeStep.CaseSensitive == nil || *dedupeStep.CaseSensitive {
+		t.Fatalf("expected dedupe to inherit case-sensitive: false, got %v", dedupeStep.CaseSensitive)
+	}
+}
+
+func TestLoadRejectsOutOfBoundsHTTPDefaultTimeout(t *testing.T) {
+	content := `id: test
+input:
+  format: json
+defaults:
+  http:
+    timeout: 500
+steps:
+  - http-request:
+      url: https://example.com
+      method: GET
+output:
+  format: json
+`
+	path := writeTempPipeline(t, content)
+	_, err := Load(path, nil)
+	if err == nil {
+		t.Fatal("expected error for out-of-bounds defaults.http timeout")
+	}
+	if !strings.Contains(err.Error(), "defaults.http timeout") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestLoadRejectsUnknownDefaultsField(t *testing.T) {
+	content := `id: test
+input:
+  format: json
+defaults:
+  http:
+    bogus: true
+steps:
+  - http-request:
+      url: https://example.com
+      method: GET
+output:
+  format: json
+`
+	path := writeTempPipeline(t, content)
+	_, err := Load(path, nil)
+	if err == nil {
+		t.Fatal("expected error for unknown defaults.http field")
+	}
+	if !strings.Contains(err.Error(), "bogus") {
+		t.Fatalf("expected field name in error, got: %v", err)
+	}
+}
+
 func writeTempPipeline(t *testing.T, content string) string {
 	t.Helper()
 	dir := t.TempDir()

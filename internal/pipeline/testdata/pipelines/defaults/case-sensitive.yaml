@@ -1,0 +1,32 @@
+id: defaults-case-sensitive
+
+input:
+  format: jsonl
+
+defaults:
+  text:
+    case-sensitive: false
+
+steps:
+  # No case-sensitive set on this filter -> inherits false from defaults.text.
+  # Every email in the fixture is uppercase (e.g. ALICE@EXAMPLE.COM); the
+  # lowercase "example.com" value only matches all 8 records under
+  # case-insensitive comparison.
+  - filter:
+      field: email
+      contains: "example.com"
+  - assert:
+      records-equal: 8
+
+  # Still inherits case-sensitive: false -> narrows to Alice's uppercase email.
+  - filter:
+      field: email
+      equals: "alice@example.com"
+  - assert:
+      records-equal: 1
+
+  - select:
+      fields: [email]
+
+output:
+  format: json

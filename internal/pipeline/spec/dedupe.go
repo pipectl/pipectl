@@ -2,27 +2,15 @@ package spec
 
 import (
 	"fmt"
-
-	"github.com/goccy/go-yaml"
 )
 
 type DedupeStep struct {
 	Fields        []string `yaml:"fields"`
-	CaseSensitive bool     `yaml:"case-sensitive,omitempty"`
+	CaseSensitive *bool    `yaml:"case-sensitive,omitempty"`
 }
 
 func (s *DedupeStep) StepType() string {
 	return "dedupe"
-}
-
-func (s *DedupeStep) UnmarshalYAML(b []byte) error {
-	type rawDedupeStep DedupeStep
-	raw := rawDedupeStep{CaseSensitive: true}
-	if err := yaml.Unmarshal(b, &raw); err != nil {
-		return err
-	}
-	*s = DedupeStep(raw)
-	return s.Validate()
 }
 
 func (s *DedupeStep) Validate() error {

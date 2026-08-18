@@ -35,4 +35,5 @@ Deduplicate by full name, case-insensitively:
 - If a field is missing from a record, its value is treated as an empty string for comparison purposes.
 - For CSV, every listed field must exist in the header row, or the step fails with an error.
 - For CSV, the header row is always preserved.
+- `case-sensitive` can be set once for all `assert`/`filter`/`dedupe` steps via the pipeline-level [`defaults.text.case-sensitive`](../concepts#defaults) instead of repeating it on every step.
 - JSON object payloads (single record) are not supported — only JSON arrays.

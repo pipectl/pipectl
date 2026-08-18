@@ -101,3 +101,4 @@ Combined:
 - `field-equals`, `field-contains`, and `field-matches` check every record, not just any record — this differs from `field-exists`, which only checks the schema/header. The assertion fails on the first record where the field is missing, or where the value fails the check.
 - `field-matches` uses Go's RE2 regular expression engine — see the [filter step's regex syntax notes](./filter#regex-syntax) for supported syntax and caveats.
 - `case-sensitive` defaults to `true` and only affects `field-equals`, `field-contains`, and `field-matches` (it has no effect on `field-exists`, which compares field names, not values).
+- `case-sensitive` can be set once for all `assert`/`filter`/`dedupe` steps via the pipeline-level [`defaults.text.case-sensitive`](../concepts#defaults) instead of repeating it on every step.

@@ -15,6 +15,8 @@ import (
 	"github.com/pipectl/pipectl/internal/pipeline/spec"
 )
 
+func boolPtr(b bool) *bool { return &b }
+
 func TestBuildRenameStep(t *testing.T) {
 	pipeline := spec.Pipeline{
 		Steps: []spec.StepWrapper{
@@ -315,10 +317,11 @@ func TestBuildAssertStep(t *testing.T) {
 		Steps: []spec.StepWrapper{
 			{
 				Step: &spec.AssertStep{
-					MinRecords:   &minRecords,
-					MaxRecords:   &maxRecords,
-					RecordsEqual: &equal,
-					FieldExists:  "email",
+					MinRecords:    &minRecords,
+					MaxRecords:    &maxRecords,
+					RecordsEqual:  &equal,
+					FieldExists:   "email",
+					CaseSensitive: boolPtr(true),
 				},
 			},
 		},
@@ -360,7 +363,7 @@ func TestBuildAssertStepFieldChecks(t *testing.T) {
 					FieldEquals:   &spec.AssertFieldCheck{Field: "status", Value: "active"},
 					FieldContains: &spec.AssertFieldCheck{Field: "email", Value: "@"},
 					FieldMatches:  &spec.AssertFieldCheck{Field: "status", Value: "^active$"},
-					CaseSensitive: false,
+					CaseSensitive: boolPtr(false),
 				},
 			},
 		},
@@ -406,9 +409,10 @@ func TestBuildFilterStep(t *testing.T) {
 		Steps: []spec.StepWrapper{
 			{
 				Step: &spec.FilterStep{
-					Field:     "status",
-					Equals:    "active",
-					OnMissing: "include",
+					Field:         "status",
+					Equals:        "active",
+					OnMissing:     "include",
+					CaseSensitive: boolPtr(true),
 				},
 			},
 		},
@@ -455,7 +459,7 @@ func TestBuildFilterStepGreaterThanNumericOrText(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			pipeline := spec.Pipeline{
 				Steps: []spec.StepWrapper{
-					{Step: &spec.FilterStep{Field: "name", GreaterThan: tt.greaterThan}},
+					{Step: &spec.FilterStep{Field: "name", GreaterThan: tt.greaterThan, CaseSensitive: boolPtr(true)}},
 				},
 			}
 
@@ -483,7 +487,8 @@ func TestBuildFilterStepAllAnyThreadsOnMissing(t *testing.T) {
 		Steps: []spec.StepWrapper{
 			{
 				Step: &spec.FilterStep{
-					OnMissing: "error",
+					OnMissing:     "error",
+					CaseSensitive: boolPtr(true),
 					All: []spec.FilterCondition{
 						{Field: "status", Equals: "active"},
 						{
@@ -531,7 +536,7 @@ func TestBuildFilterStepCaseSensitivity(t *testing.T) {
 		Steps: []spec.StepWrapper{
 			{
 				Step: &spec.FilterStep{
-					CaseSensitive: false,
+					CaseSensitive: boolPtr(false),
 					All: []spec.FilterCondition{
 						{Field: "status", Equals: "active"},
 						{

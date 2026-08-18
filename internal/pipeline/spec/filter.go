@@ -50,7 +50,7 @@ type FilterStep struct {
 	All           []FilterCondition `yaml:"all"`
 	Any           []FilterCondition `yaml:"any"`
 	OnMissing     string            `yaml:"on-missing,omitempty"`
-	CaseSensitive bool              `yaml:"case-sensitive,omitempty"`
+	CaseSensitive *bool             `yaml:"case-sensitive,omitempty"`
 }
 
 func (s *FilterStep) StepType() string {
@@ -59,7 +59,7 @@ func (s *FilterStep) StepType() string {
 
 func (s *FilterStep) UnmarshalYAML(b []byte) error {
 	type rawFilterStep FilterStep
-	raw := rawFilterStep{OnMissing: "exclude", CaseSensitive: true}
+	raw := rawFilterStep{OnMissing: "exclude"}
 	if err := yaml.UnmarshalWithOptions(b, &raw, yaml.DisallowUnknownField()); err != nil {
 		return err
 	}
