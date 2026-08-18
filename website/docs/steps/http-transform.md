@@ -1,6 +1,6 @@
 # http-transform
 
-Sends the current payload to an HTTP endpoint and replaces the payload with the response. Useful for enrichment, external validation, or handing off to another service mid-pipeline.
+Sends the payload to an HTTP endpoint and replaces it with the response. Useful for enrichment and validation.
 
 **Supported formats:** `json` `jsonl` `csv`
 

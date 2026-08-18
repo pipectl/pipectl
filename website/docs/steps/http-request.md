@@ -1,6 +1,6 @@
 # http-request
 
-Sends the current payload to an HTTP endpoint and continues the pipeline with the **same payload unchanged**. Useful for webhooks, notifications, audit logging, or any fire-and-continue side effect mid-pipeline.
+Sends the payload to an HTTP endpoint and continues unchanged. Useful for webhooks and audit logging.
 
 **Supported formats:** `json` `jsonl` `csv`
 

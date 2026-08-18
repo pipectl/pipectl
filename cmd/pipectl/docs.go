@@ -27,6 +27,7 @@ var docsCommand = &cobra.Command{
 	},
 }
 
+//goland:noinspection GoUnhandledErrorResult
 func listSteps(cmd *cobra.Command) error {
 	entries, err := fs.ReadDir(stepdocs.FS, ".")
 	if err != nil {
@@ -77,6 +78,7 @@ func showStep(name string) error {
 	if isTerminal(os.Stdout) {
 		r, rerr := glamour.NewTermRenderer(glamour.WithAutoStyle(), glamour.WithWordWrap(100))
 		if rerr == nil {
+			defer func() { _ = r.Close() }()
 			rendered, rerr := r.Render(string(data))
 			if rerr == nil {
 				fmt.Print(rendered)
@@ -99,9 +101,20 @@ func extractDescription(content string) string {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-		return line
+		return firstSentence(line)
 	}
 	return ""
+}
+
+// firstSentence returns s up to and including the first sentence terminator
+// ("." followed by a space, or end of string).
+func firstSentence(s string) string {
+	for i := 0; i < len(s); i++ {
+		if s[i] == '.' && (i == len(s)-1 || s[i+1] == ' ') {
+			return s[:i+1]
+		}
+	}
+	return s
 }
 
 func init() {
