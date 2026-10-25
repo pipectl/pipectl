@@ -13,12 +13,15 @@ import (
 const (
 	DirectionAsc  = "asc"
 	DirectionDesc = "desc"
+	NullsFirst    = "first"
+	NullsLast     = "last"
 )
 
 type Step struct {
 	payload.AllFormatsSupport
 	Field     string
 	Direction string
+	Nulls     string
 }
 
 func (s *Step) Name() string {
@@ -87,11 +90,12 @@ func (s *Step) less(a, b string, aMissing, bMissing bool) bool {
 	if aMissing && bMissing {
 		return false
 	}
+	// Null placement is independent of direction; an empty Nulls means last.
 	if aMissing {
-		return false // nulls last
+		return s.Nulls == NullsFirst
 	}
 	if bMissing {
-		return true // nulls last
+		return s.Nulls != NullsFirst
 	}
 
 	fa, errA := strconv.ParseFloat(strings.TrimSpace(a), 64)

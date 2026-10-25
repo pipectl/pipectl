@@ -564,13 +564,15 @@ func TestStepWrapperUnmarshalSortStep(t *testing.T) {
 		name      string
 		raw       string
 		direction string
+		nulls     string
 	}{
 		{
-			name: "defaults to asc",
+			name: "defaults to asc and nulls last",
 			raw: `sort:
   field: name
 `,
 			direction: "asc",
+			nulls:     "last",
 		},
 		{
 			name: "explicit asc",
@@ -579,6 +581,7 @@ func TestStepWrapperUnmarshalSortStep(t *testing.T) {
   direction: asc
 `,
 			direction: "asc",
+			nulls:     "last",
 		},
 		{
 			name: "explicit desc",
@@ -587,6 +590,26 @@ func TestStepWrapperUnmarshalSortStep(t *testing.T) {
   direction: desc
 `,
 			direction: "desc",
+			nulls:     "last",
+		},
+		{
+			name: "explicit nulls first",
+			raw: `sort:
+  field: name
+  nulls: first
+`,
+			direction: "asc",
+			nulls:     "first",
+		},
+		{
+			name: "explicit nulls last",
+			raw: `sort:
+  field: name
+  direction: desc
+  nulls: last
+`,
+			direction: "desc",
+			nulls:     "last",
 		},
 	}
 
@@ -606,7 +629,25 @@ func TestStepWrapperUnmarshalSortStep(t *testing.T) {
 			if sortStep.Direction != tt.direction {
 				t.Fatalf("unexpected direction: got %q want %q", sortStep.Direction, tt.direction)
 			}
+			if sortStep.Nulls != tt.nulls {
+				t.Fatalf("unexpected nulls: got %q want %q", sortStep.Nulls, tt.nulls)
+			}
 		})
+	}
+}
+
+func TestStepWrapperUnmarshalSortStepRejectsInvalidNulls(t *testing.T) {
+	raw := `sort:
+  field: name
+  nulls: middle
+`
+	var step StepWrapper
+	err := yaml.Unmarshal([]byte(raw), &step)
+	if err == nil {
+		t.Fatal("expected error for invalid nulls value, got nil")
+	}
+	if !strings.Contains(err.Error(), "sort nulls must be first or last") {
+		t.Fatalf("unexpected error message: %v", err)
 	}
 }
 

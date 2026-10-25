@@ -9,6 +9,7 @@ import (
 type SortStep struct {
 	Field     string `yaml:"field"`
 	Direction string `yaml:"direction,omitempty"`
+	Nulls     string `yaml:"nulls,omitempty"`
 }
 
 func (s *SortStep) StepType() string {
@@ -17,7 +18,7 @@ func (s *SortStep) StepType() string {
 
 func (s *SortStep) UnmarshalYAML(b []byte) error {
 	type rawSortStep SortStep
-	raw := rawSortStep{Direction: "asc"}
+	raw := rawSortStep{Direction: "asc", Nulls: "last"}
 	if err := yaml.UnmarshalWithOptions(b, &raw, yaml.DisallowUnknownField()); err != nil {
 		return err
 	}
@@ -32,6 +33,10 @@ func (s *SortStep) Validate() error {
 
 	if s.Direction != "asc" && s.Direction != "desc" {
 		return fmt.Errorf("sort direction must be asc or desc")
+	}
+
+	if s.Nulls != "first" && s.Nulls != "last" {
+		return fmt.Errorf("sort nulls must be first or last")
 	}
 
 	return nil

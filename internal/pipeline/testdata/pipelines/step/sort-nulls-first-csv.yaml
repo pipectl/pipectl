@@ -1,0 +1,20 @@
+id: sort-nulls-first-csv
+
+input:
+  format: csv
+
+steps:
+  - assert:
+      records-equal: 5
+
+  # john and HANK have an empty country, so they come first; the rest sort
+  # descending by string value: nz, au, AU.
+  - sort:
+      field: country
+      direction: desc
+      nulls: first
+  - assert:
+      records-equal: 5
+
+output:
+  format: csv

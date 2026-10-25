@@ -1,0 +1,19 @@
+id: sort-nulls-first
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      records-equal: 8
+
+  # Only Alice (active) and Grace (hr-director) have a status; the six records
+  # without one come first, in their original order.
+  - sort:
+      field: status
+      nulls: first
+  - assert:
+      records-equal: 8
+
+output:
+  format: jsonl

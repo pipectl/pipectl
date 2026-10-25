@@ -263,3 +263,91 @@ func TestExecuteCSVHeaderPreservedWhenEmpty(t *testing.T) {
 		t.Fatalf("unexpected rows: %v", out.Rows)
 	}
 }
+
+func TestExecuteNullPlacementJSON(t *testing.T) {
+	tests := []struct {
+		name      string
+		direction string
+		nulls     string
+		expected  []string
+	}{
+		{name: "asc default nulls last", direction: DirectionAsc, nulls: "", expected: []string{"alice", "carol", "missing", "null"}},
+		{name: "asc nulls last", direction: DirectionAsc, nulls: NullsLast, expected: []string{"alice", "carol", "missing", "null"}},
+		{name: "asc nulls first", direction: DirectionAsc, nulls: NullsFirst, expected: []string{"missing", "null", "alice", "carol"}},
+		{name: "desc nulls last", direction: DirectionDesc, nulls: NullsLast, expected: []string{"carol", "alice", "missing", "null"}},
+		{name: "desc nulls first", direction: DirectionDesc, nulls: NullsFirst, expected: []string{"missing", "null", "carol", "alice"}},
+	}
+
+	for _, tt := range tests {
+		for _, format := range []string{"json", "jsonl"} {
+			t.Run(tt.name+"/"+format, func(t *testing.T) {
+				items := []map[string]interface{}{
+					{"id": "carol", "name": "carol"},
+					{"id": "missing"},
+					{"id": "alice", "name": "alice"},
+					{"id": "null", "name": nil},
+				}
+				var p payload.Payload = &payload.JSON{Shape: payload.JSONArrayShape, Items: items}
+				if format == "jsonl" {
+					p = &payload.JSONL{Items: items}
+				}
+
+				step := &Step{Field: "name", Direction: tt.direction, Nulls: tt.nulls}
+				ctx := &engine.ExecutionContext{Payload: p}
+				if err := step.Execute(ctx); err != nil {
+					t.Fatalf("unexpected error: %v", err)
+				}
+
+				ids := make([]string, len(items))
+				for i, item := range items {
+					ids[i] = item["id"].(string)
+				}
+				if !reflect.DeepEqual(ids, tt.expected) {
+					t.Fatalf("unexpected order: got %v want %v", ids, tt.expected)
+				}
+			})
+		}
+	}
+}
+
+func TestExecuteNullPlacementCSV(t *testing.T) {
+	tests := []struct {
+		name      string
+		direction string
+		nulls     string
+		expected  []string
+	}{
+		{name: "asc default nulls last", direction: DirectionAsc, nulls: "", expected: []string{"3", "1", "2", "4"}},
+		{name: "asc nulls first", direction: DirectionAsc, nulls: NullsFirst, expected: []string{"2", "4", "3", "1"}},
+		{name: "desc nulls last", direction: DirectionDesc, nulls: NullsLast, expected: []string{"1", "3", "2", "4"}},
+		{name: "desc nulls first", direction: DirectionDesc, nulls: NullsFirst, expected: []string{"2", "4", "1", "3"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			step := &Step{Field: "name", Direction: tt.direction, Nulls: tt.nulls}
+			ctx := &engine.ExecutionContext{Payload: &payload.CSV{
+				Rows: [][]string{
+					{"id", "name"},
+					{"1", "carol"},
+					{"2", ""},
+					{"3", "alice"},
+					{"4", ""},
+				},
+			}}
+
+			if err := step.Execute(ctx); err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			out := ctx.Payload.(*payload.CSV)
+			if out.Rows[0][0] != "id" {
+				t.Fatalf("header row moved: got %v", out.Rows[0])
+			}
+			ids := []string{out.Rows[1][0], out.Rows[2][0], out.Rows[3][0], out.Rows[4][0]}
+			if !reflect.DeepEqual(ids, tt.expected) {
+				t.Fatalf("unexpected order: got %v want %v", ids, tt.expected)
+			}
+		})
+	}
+}

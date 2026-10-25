@@ -128,6 +128,7 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 		return &_sort.Step{
 			Field:     s.Field,
 			Direction: s.Direction,
+			Nulls:     s.Nulls,
 		}, nil
 	case *spec.DedupeStep:
 		return &dedupe.Step{

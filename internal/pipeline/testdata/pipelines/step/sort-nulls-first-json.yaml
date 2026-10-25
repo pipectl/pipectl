@@ -1,0 +1,22 @@
+id: sort-nulls-first-json
+
+input:
+  format: jsonl
+
+steps:
+  - convert:
+      format: json
+  - assert:
+      records-equal: 8
+
+  # Records without a status come first regardless of direction, then
+  # hr-director (Grace) before active (Alice).
+  - sort:
+      field: status
+      direction: desc
+      nulls: first
+  - assert:
+      records-equal: 8
+
+output:
+  format: json
