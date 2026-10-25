@@ -20,7 +20,7 @@ A step is a single transformation applied to the pipeline payload. Steps run in 
 | [`limit`](./limit) | Truncate to N records | ✓ | ✓ | ✓ |
 | [`log`](./log) | Print record count and samples to stdout | ✓ | ✓ | ✓ |
 | [`normalize`](./normalize) | Normalise string fields (lower, upper, trim, capitalize…) | ✓ | ✓ | ✓ |
-| [`redact`](./redact) | Replace field values with `mask`, `sha256`, or `REDACTED` | ✓ | ✓ | ✓ |
+| [`redact`](./redact) | Replace field values with `mask`, `sha256`, `partial-last[:N]`, `partial-first[:N]`, `nullify`, or `REDACTED` | ✓ | ✓ | ✓ |
 | [`rename`](./rename) | Rename fields | ✓ | ✓ | ✓ |
 | [`select`](./select) | Keep only the specified fields | ✓ | ✓ | ✓ |
 | [`sort`](./sort) | Sort records by a field, ascending or descending | ✓ | ✓ | ✓ |

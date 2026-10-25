@@ -416,15 +416,18 @@ Supported payloads:
 
 Options:
 
-- `fields`: list of field names
+- `fields`: list of field paths. Nested JSON fields use dot notation (`user.email`) and array indexing (`contacts[0].phone`).
 - `strategy`: optional redaction strategy
 
 Supported strategies:
 
 - `mask`: replace each character with `*`
 - `sha256`: replace with SHA-256 hex digest
+- `partial-last[:N]`: reveal the last N characters (default 4), mask the rest
+- `partial-first[:N]`: reveal the first N characters (default 4), mask the rest
+- `nullify`: replace the value with `null` (works on any type)
 
-If `strategy` is omitted or unknown, the replacement value is `REDACTED`.
+If `strategy` is omitted, the replacement value is `REDACTED`.
 
 Example:
 
@@ -434,10 +437,40 @@ Example:
     strategy: mask
 ```
 
+Nested fields (quote paths containing `[` inside a YAML flow list):
+
+```yaml
+- redact:
+    fields: [user.email, "contacts[0].phone"]
+    strategy: mask
+```
+
+Redact a number without changing its type:
+
+```yaml
+- redact:
+    fields: [salary]
+    strategy: nullify
+```
+
+Mask a number by casting it to a string first:
+
+```yaml
+- cast:
+    fields:
+      account_number:
+        type: string
+- redact:
+    fields: [account_number]
+    strategy: partial-last:4
+```
+
 Notes:
 
-- JSON/JSONL redaction only handles top-level string fields.
-- Non-string JSON values are not redacted.
+- For JSON/JSONL, every strategy except `nullify` only applies to string values. A number, bool, object, or array fails the step rather than silently changing its type — `cast` it to string first, or use `nullify`.
+- Values that are already `null` are left unchanged.
+- A field path that doesn't exist in a record fails the step.
+- For CSV, columns are matched by exact header name (e.g. a flattened `user.email` header), and `nullify` writes an empty value since CSV has no null.
 
 ### `select`
 

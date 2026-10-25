@@ -1,0 +1,4 @@
+{"id":1,"user":{"name":"Alice Smith","email":"alice@example.com"},"contacts":[{"type":"mobile","phone":"0400123456"}],"salary":85000,"account_number":12345678,"verified":true}
+{"id":2,"user":{"name":"Bob Jones","email":"bob@example.com"},"contacts":[{"type":"home","phone":"0298765432"},{"type":"work","phone":"0287654321"}],"salary":72500.5,"account_number":23456789,"verified":false}
+{"id":3,"user":{"name":"Carol Williams","email":"carol@example.com"},"contacts":[{"type":"mobile","phone":"0411222333"}],"salary":null,"account_number":34567890,"verified":true}
+{"id":4,"user":{"name":"Dan Brown","email":null},"contacts":[{"type":"mobile","phone":"0422333444"}],"salary":91000,"account_number":45678901,"verified":false}

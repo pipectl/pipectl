@@ -30,6 +30,8 @@ func TestStepPipelines(t *testing.T) {
 		{name: "sort", pipeline: "step/sort.yaml", input: "people.jsonl", golden: "step/sort.jsonl"},
 		{name: "redact", pipeline: "step/redact.yaml", input: "people.jsonl", golden: "step/redact.jsonl"},
 		{name: "redact/partial", pipeline: "step/redact-partial.yaml", input: "people.jsonl", golden: "step/redact-partial.jsonl"},
+		{name: "redact/nested", pipeline: "step/redact-nested.yaml", input: "accounts.jsonl", golden: "step/redact-nested.jsonl"},
+		{name: "redact/csv", pipeline: "step/redact-csv.yaml", input: "customers.csv", golden: "step/redact-csv.csv"},
 		{name: "select", pipeline: "step/select.yaml", input: "people.jsonl", golden: "step/select.jsonl"},
 		{name: "rename", pipeline: "step/rename.yaml", input: "people.jsonl", golden: "step/rename.jsonl"},
 		{name: "default", pipeline: "step/default.yaml", input: "people.jsonl", golden: "step/default.jsonl"},

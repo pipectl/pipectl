@@ -1,0 +1,4 @@
+{"account_number":"****5678","contacts":[{"phone":"******3456","type":"mobile"}],"id":1,"salary":null,"user":{"email":"*****************","name":"Alice Smith"},"verified":true}
+{"account_number":"****6789","contacts":[{"phone":"******5432","type":"home"},{"phone":"0287654321","type":"work"}],"id":2,"salary":null,"user":{"email":"***************","name":"Bob Jones"},"verified":false}
+{"account_number":"****7890","contacts":[{"phone":"******2333","type":"mobile"}],"id":3,"salary":null,"user":{"email":"*****************","name":"Carol Williams"},"verified":true}
+{"account_number":"****8901","contacts":[{"phone":"******3444","type":"mobile"}],"id":4,"salary":null,"user":{"email":null,"name":"Dan Brown"},"verified":false}

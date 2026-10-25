@@ -21,7 +21,7 @@ func (s *RedactStep) Validate() error {
 	}
 
 	switch {
-	case s.Strategy == "", s.Strategy == "mask", s.Strategy == "sha256":
+	case s.Strategy == "", s.Strategy == "mask", s.Strategy == "sha256", s.Strategy == "nullify":
 	case s.Strategy == "partial-first", s.Strategy == "partial-last":
 	case strings.HasPrefix(s.Strategy, "partial-first:"),
 		strings.HasPrefix(s.Strategy, "partial-last:"):
@@ -31,7 +31,7 @@ func (s *RedactStep) Validate() error {
 			return fmt.Errorf("redact partial strategy requires a positive integer suffix (e.g. partial-last:4)")
 		}
 	default:
-		return fmt.Errorf("redact strategy must be one of: mask, sha256, partial-first[:N], partial-last[:N]")
+		return fmt.Errorf("redact strategy must be one of: mask, sha256, nullify, partial-first[:N], partial-last[:N]")
 	}
 
 	return nil

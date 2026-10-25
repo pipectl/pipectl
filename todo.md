@@ -6,8 +6,6 @@
 - `sort` — add `nulls: first|last` option; currently nulls are always last with no way to override
 - `cast` — add `on-error: fail|skip|default` strategy so a single unparseable value doesn't abort the whole pipeline
 - `limit` — add `offset` option for "skip N, take M" patterns
-- `redact` — support nested (non-top-level) fields; currently silently ignores them (code TODO at `redact/step.go:70`)
-- `redact` — support non-string field types; currently silently skips them (code TODO at `redact/step.go:71`)
 
 ## Test coverage
 

@@ -1,0 +1,23 @@
+id: redact-csv
+
+input:
+  format: csv
+
+steps:
+  - assert:
+      records-equal: 5
+
+  - redact:
+      fields: [credit_card]
+      strategy: partial-last:4
+
+  # CSV has no null, so nullify writes an empty value
+  - redact:
+      fields: [email]
+      strategy: nullify
+
+  - assert:
+      records-equal: 5
+
+output:
+  format: csv

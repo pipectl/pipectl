@@ -61,21 +61,45 @@ func (s *Step) redactCsv(csvPayload *payload.CSV) error {
 	return nil
 }
 
-// TODO only handles top-level fields, make this recursive
-// TODO can types other than strings be redacted? eg: changing from an int to "***" seems wrong and could break schema.
 func (s *Step) redactJson(jsonPayload payload.JSONRecordPayload) error {
-	for _, record := range jsonPayload.Records() {
+	for _, field := range s.Fields {
+		if err := payload.ParseFieldPath(field); err != nil {
+			return fmt.Errorf("redact: %w", err)
+		}
+	}
+
+	for recordIndex, record := range jsonPayload.Records() {
 		if record == nil {
 			continue
 		}
 
 		for _, field := range s.Fields {
-			v, exists := record[field]
-			if !exists {
-				return fmt.Errorf("redact: field %q not found in record", field)
+			v, assign, err := payload.ResolveFieldPath(record, field)
+			if err != nil {
+				return fmt.Errorf("redact: field %q in record %d: %w", field, recordIndex+1, err)
 			}
-			if value, ok := v.(string); ok {
-				record[field] = s.redactSingleValue(value)
+
+			var redacted interface{}
+			switch value := v.(type) {
+			case nil:
+				continue
+			case string:
+				if s.Strategy == "nullify" {
+					redacted = nil
+				} else {
+					redacted = s.redactSingleValue(value)
+				}
+			default:
+				if s.Strategy != "nullify" {
+					return fmt.Errorf(
+						"redact: field %q in record %d is %s; strategy %s only applies to strings — cast it to string first, or use strategy: nullify",
+						field, recordIndex+1, describeType(value), s.strategyLabel(),
+					)
+				}
+			}
+
+			if err := assign(redacted); err != nil {
+				return fmt.Errorf("redact: field %q in record %d: %w", field, recordIndex+1, err)
 			}
 		}
 	}
@@ -83,8 +107,33 @@ func (s *Step) redactJson(jsonPayload payload.JSONRecordPayload) error {
 	return nil
 }
 
+func (s *Step) strategyLabel() string {
+	if s.Strategy == "" {
+		return "REDACTED (default)"
+	}
+	return fmt.Sprintf("%q", s.Strategy)
+}
+
+func describeType(value interface{}) string {
+	switch value.(type) {
+	case bool:
+		return "a bool"
+	case map[string]interface{}:
+		return "an object"
+	case []interface{}:
+		return "an array"
+	case int, int64, float64:
+		return "a number"
+	default:
+		return fmt.Sprintf("of type %T", value)
+	}
+}
+
 func (s *Step) redactSingleValue(value string) string {
 	switch {
+	case s.Strategy == "nullify":
+		return ""
+
 	case s.Strategy == "mask":
 		return strings.Repeat("*", len(value))
 

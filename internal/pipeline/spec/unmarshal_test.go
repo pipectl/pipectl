@@ -1212,7 +1212,7 @@ func TestStepWrapperUnmarshalRedactStepValidation(t *testing.T) {
 		{
 			name:    "invalid strategy",
 			raw:     "redact:\n  fields: [password]\n  strategy: hash\n",
-			message: "redact strategy must be one of: mask, sha256, partial-first[:N], partial-last[:N]",
+			message: "redact strategy must be one of: mask, sha256, nullify, partial-first[:N], partial-last[:N]",
 		},
 		{
 			name:    "partial-last zero",
@@ -1270,6 +1270,11 @@ func TestStepWrapperUnmarshalRedactPartialStrategies(t *testing.T) {
 			name:     "partial-first with N",
 			raw:      "redact:\n  fields: [credit_card]\n  strategy: partial-first:6\n",
 			strategy: "partial-first:6",
+		},
+		{
+			name:     "nullify with nested path",
+			raw:      "redact:\n  fields: [user.salary, \"contacts[0].email\"]\n  strategy: nullify\n",
+			strategy: "nullify",
 		},
 	}
 

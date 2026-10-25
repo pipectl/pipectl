@@ -186,7 +186,7 @@ pipectl docs [step]
 | `limit` | Truncate to N records |
 | `log` | Print current record count and samples to stderr |
 | `normalize` | Normalise string fields (lower, upper, trim, capitalize, collapse-spaces) |
-| `redact` | Replace field values with `mask`, `sha256`, `partial-last[:N]`, `partial-first[:N]`, or `REDACTED` |
+| `redact` | Replace field values (including nested fields) with `mask`, `sha256`, `partial-last[:N]`, `partial-first[:N]`, `nullify`, or `REDACTED` |
 | `rename` | Rename fields |
 | `select` | Keep only the specified fields |
 | `sort` | Sort records by a field, ascending or descending |

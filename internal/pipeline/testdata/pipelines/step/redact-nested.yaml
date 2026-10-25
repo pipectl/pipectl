@@ -1,0 +1,39 @@
+id: redact-nested
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      records-equal: 4
+
+  # nested object field; existing nulls are left unchanged
+  - redact:
+      fields: [user.email]
+      strategy: mask
+
+  # array index path (must be quoted in YAML flow lists)
+  - redact:
+      fields: ["contacts[0].phone"]
+      strategy: partial-last:4
+
+  # nullify works on any type, including numbers
+  - redact:
+      fields: [salary]
+      strategy: nullify
+
+  # cast a number to string first to use a string strategy on it
+  - cast:
+      fields:
+        account_number:
+          type: string
+  - redact:
+      fields: [account_number]
+      strategy: partial-last:4
+
+  - assert:
+      records-equal: 4
+      field-exists: account_number
+
+output:
+  format: jsonl

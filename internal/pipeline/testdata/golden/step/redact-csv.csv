@@ -1,0 +1,7 @@
+first_name,last_name,email,country,credit_card,plan
+john,SMITH,,,***************1111,starter
+Mary,jones,,AU,***************2222,pro
+bill,johnson,,nz,***************3333,enterprise
+HANK,BROWN,,,***************4444,starter
+Alice,Morris,,au,***************5555,pro
+
