@@ -1,6 +1,9 @@
 .idea
 /.gocache/
 /pipectl
+/pipectl.exe
 website/node_modules
 **/.vitepress/dist
 **/.vitepress/cache
+/benchmark/data/
+.DS_Store

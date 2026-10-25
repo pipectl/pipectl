@@ -1,0 +1,50 @@
+id: benchmark-csv
+
+input:
+  format: csv
+
+steps:
+  - assert:
+      min-records: 1
+      field-exists: id
+
+  - default:
+      fields:
+        country: Unknown
+
+  - normalize:
+      fields:
+        first_name: trim|capitalize
+        last_name: trim|capitalize
+        email: trim|lower
+        country: upper
+
+  - dedupe:
+      fields: [id]
+
+  - filter:
+      field: status
+      equals: active
+
+  - redact:
+      fields: [credit_card]
+      strategy: mask
+
+  - select:
+      fields: [id, first_name, last_name, email, country, plan, credit_card, signup_date, amount]
+
+  - rename:
+      fields:
+        first_name: firstName
+        last_name: lastName
+        credit_card: creditCard
+        signup_date: signupDate
+
+  - sort:
+      field: signupDate
+
+  - count:
+      message: benchmark-csv complete
+
+output:
+  format: csv

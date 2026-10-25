@@ -36,6 +36,7 @@ export default defineConfig({
           { text: 'Core Concepts', link: '/concepts' },
           { text: 'CLI Reference', link: '/cli' },
           { text: 'Payload Formats', link: '/formats' },
+          { text: 'Performance', link: '/performance' },
         ],
       },
       {

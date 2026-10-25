@@ -39,6 +39,14 @@ var runCommand = &cobra.Command{
 			return fmt.Errorf("--max-input-size: %w", err)
 		}
 
+		if !quiet {
+			if totalRAM, ok := totalSystemMemory(); ok {
+				if msg := memoryWarning(maxInputSize, totalRAM); msg != "" {
+					fmt.Fprintln(os.Stderr, msg)
+				}
+			}
+		}
+
 		var input []byte
 		var outputFile *os.File
 		output := io.Writer(os.Stdout)

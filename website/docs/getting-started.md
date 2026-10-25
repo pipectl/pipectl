@@ -241,6 +241,8 @@ pipectl run pipeline.yaml --max-input-size 50MB < input.json
 
 The value accepts `B`, `KB`, `MB`, or `GB` suffixes (e.g. `64KB`, `256MB`, `1GB`), or a bare integer interpreted as bytes.
 
+pipectl reads the whole payload into memory rather than streaming it, so if `--max-input-size` is raised to something large relative to the machine's total RAM, `pipectl run` prints a one-line warning to stderr before running — it's advisory only and doesn't stop the pipeline. See [Performance](./performance) for what drives that estimate and how much memory to actually expect for a given input size.
+
 ## Next steps
 
 - Read [Core Concepts](./concepts) to understand how pipelines, steps, and payloads fit together
