@@ -1,6 +1,7 @@
 package spec
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 
@@ -651,6 +652,66 @@ func TestStepWrapperUnmarshalSortStepRejectsInvalidNulls(t *testing.T) {
 	}
 }
 
+func TestStepWrapperUnmarshalSortStepKeys(t *testing.T) {
+	tests := []struct {
+		name string
+		raw  string
+		want []SortKey
+	}{
+		{
+			name: "defaults direction asc and nulls last",
+			raw: `sort:
+  keys:
+    - field: country
+    - field: age
+      direction: desc
+`,
+			want: []SortKey{
+				{Field: "country", Direction: "asc", Nulls: "last"},
+				{Field: "age", Direction: "desc", Nulls: "last"},
+			},
+		},
+		{
+			name: "keys inherit step-level nulls unless overridden",
+			raw: `sort:
+  nulls: first
+  keys:
+    - field: country
+    - field: age
+      nulls: last
+`,
+			want: []SortKey{
+				{Field: "country", Direction: "asc", Nulls: "first"},
+				{Field: "age", Direction: "asc", Nulls: "last"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var step StepWrapper
+			if err := yaml.Unmarshal([]byte(tt.raw), &step); err != nil {
+				t.Fatalf("unmarshal returned error: %v", err)
+			}
+			sortStep, ok := step.Step.(*SortStep)
+			if !ok {
+				t.Fatalf("expected *SortStep, got %T", step.Step)
+			}
+			if !reflect.DeepEqual(sortStep.SortKeys(), tt.want) {
+				t.Fatalf("unexpected keys: got %+v want %+v", sortStep.SortKeys(), tt.want)
+			}
+		})
+	}
+}
+
+func TestSortStepSortKeysSingleField(t *testing.T) {
+	s := &SortStep{Field: "name", Direction: "desc", Nulls: "first"}
+	want := []SortKey{{Field: "name", Direction: "desc", Nulls: "first"}}
+	if got := s.SortKeys(); !reflect.DeepEqual(got, want) {
+		t.Fatalf("unexpected keys: got %+v want %+v", got, want)
+	}
+}
+
 func TestStepWrapperUnmarshalSortStepValidation(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -660,7 +721,7 @@ func TestStepWrapperUnmarshalSortStepValidation(t *testing.T) {
 		{
 			name:    "missing field",
 			raw:     `sort: {}`,
-			message: "sort field is required",
+			message: "sort field or keys is required",
 		},
 		{
 			name: "invalid direction",
@@ -669,6 +730,69 @@ func TestStepWrapperUnmarshalSortStepValidation(t *testing.T) {
   direction: random
 `,
 			message: "sort direction must be asc or desc",
+		},
+		{
+			name: "keys with field",
+			raw: `sort:
+  field: name
+  keys:
+    - field: age
+`,
+			message: "sort keys cannot be combined with field or direction",
+		},
+		{
+			name: "keys with direction",
+			raw: `sort:
+  direction: desc
+  keys:
+    - field: age
+`,
+			message: "sort keys cannot be combined with field or direction",
+		},
+		{
+			name: "key missing field",
+			raw: `sort:
+  keys:
+    - field: name
+    - direction: desc
+`,
+			message: "sort keys[1] field is required",
+		},
+		{
+			name: "key invalid direction",
+			raw: `sort:
+  keys:
+    - field: name
+      direction: sideways
+`,
+			message: "sort keys[0] direction must be asc or desc",
+		},
+		{
+			name: "key invalid nulls",
+			raw: `sort:
+  keys:
+    - field: name
+      nulls: middle
+`,
+			message: "sort keys[0] nulls must be first or last",
+		},
+		{
+			name: "step-level invalid nulls with keys",
+			raw: `sort:
+  nulls: middle
+  keys:
+    - field: name
+`,
+			message: "sort nulls must be first or last",
+		},
+		{
+			name: "unknown key option",
+			raw: `sort:
+  keys:
+    - field: name
+      order: desc
+`,
+			message: "unknown field",
 		},
 	}
 

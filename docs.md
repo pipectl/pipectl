@@ -696,7 +696,7 @@ Notes:
 
 ### `sort`
 
-Sorts records by a single field.
+Sorts records by one or more fields.
 
 Supported payloads:
 
@@ -706,9 +706,10 @@ Supported payloads:
 
 Options:
 
-- `field`: required. The field name to sort by.
-- `direction`: optional. `asc` or `desc`. Defaults to `asc`.
-- `nulls`: optional. `first` or `last`. Where records with a missing, null, or empty (CSV) value are placed. Defaults to `last`.
+- `field`: required unless `keys` is set. The field name to sort by.
+- `direction`: optional. `asc` or `desc`. Defaults to `asc`. Not allowed with `keys`.
+- `nulls`: optional. `first` or `last`. Where records with a missing, null, or empty (CSV) value are placed. Defaults to `last`. With `keys`, this is the default for any key that doesn't set its own `nulls`.
+- `keys`: required unless `field` is set. Ordered list of sort keys for a compound sort. Each entry takes `field` (required), `direction` (default `asc`), and `nulls` (default: the step-level `nulls`). Cannot be combined with `field` or `direction`.
 
 Example:
 
@@ -729,11 +730,21 @@ Example:
     nulls: first
 ```
 
+```yaml
+- sort:
+    keys:
+      - field: country
+      - field: age
+        direction: desc
+```
+
 Notes:
+
+- With `keys`, records are compared on the first key; later keys are only used to break ties left by earlier ones.
 
 - Records with a missing or null field value are sorted last by default. Set `nulls: first` to place them first instead. Null placement is independent of `direction`.
 - For CSV, empty string values are treated as missing.
-- Records with missing values keep their original relative order.
+- The sort is stable: records that tie on every key (including records with missing values) keep their original relative order.
 - When field values parse as numbers, numeric ordering is used. Otherwise, string ordering is used.
 - JSON object payloads (single record) are not supported — only JSON arrays.
 

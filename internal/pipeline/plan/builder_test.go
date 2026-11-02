@@ -1,6 +1,7 @@
 package plan
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/pipectl/pipectl/internal/engine/steps/assert"
@@ -12,6 +13,7 @@ import (
 	"github.com/pipectl/pipectl/internal/engine/steps/limit"
 	_log "github.com/pipectl/pipectl/internal/engine/steps/log"
 	"github.com/pipectl/pipectl/internal/engine/steps/rename"
+	_sort "github.com/pipectl/pipectl/internal/engine/steps/sort"
 	"github.com/pipectl/pipectl/internal/pipeline/spec"
 )
 
@@ -306,6 +308,48 @@ func TestBuildLimitStep(t *testing.T) {
 
 	if limitStep.Count != 25 {
 		t.Fatalf("unexpected count: got %d want 25", limitStep.Count)
+	}
+}
+
+func TestBuildSortStep(t *testing.T) {
+	tests := []struct {
+		name string
+		step *spec.SortStep
+		want []_sort.Key
+	}{
+		{
+			name: "single field",
+			step: &spec.SortStep{Field: "age", Direction: "desc", Nulls: "first"},
+			want: []_sort.Key{{Field: "age", Direction: "desc", Nulls: "first"}},
+		},
+		{
+			name: "compound keys",
+			step: &spec.SortStep{Nulls: "last", Keys: []spec.SortKey{
+				{Field: "country", Direction: "asc", Nulls: "first"},
+				{Field: "age", Direction: "desc", Nulls: "last"},
+			}},
+			want: []_sort.Key{
+				{Field: "country", Direction: "asc", Nulls: "first"},
+				{Field: "age", Direction: "desc", Nulls: "last"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			executableSteps, err := Build(spec.Pipeline{Steps: []spec.StepWrapper{{Step: tt.step}}})
+			if err != nil {
+				t.Fatalf("build returned error: %v", err)
+			}
+
+			sortStep, ok := executableSteps[0].(*_sort.Step)
+			if !ok {
+				t.Fatalf("expected *sort.Step, got %T", executableSteps[0])
+			}
+			if !reflect.DeepEqual(sortStep.Keys, tt.want) {
+				t.Fatalf("unexpected keys: got %+v want %+v", sortStep.Keys, tt.want)
+			}
+		})
 	}
 }
 

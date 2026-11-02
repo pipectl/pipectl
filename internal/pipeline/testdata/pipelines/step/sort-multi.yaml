@@ -1,0 +1,21 @@
+id: sort-multi
+
+input:
+  format: jsonl
+
+steps:
+  - assert:
+      records-equal: 8
+
+  # Sort by country ascending, then age descending within each country:
+  # au: Grace(52), Carol(32), Alice(25), Eve(19); nz: Dave(45); us: Frank(28), Bob(17), Hank(14)
+  - sort:
+      keys:
+        - field: country
+        - field: age
+          direction: desc
+  - assert:
+      records-equal: 8
+
+output:
+  format: jsonl

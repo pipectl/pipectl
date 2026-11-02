@@ -23,7 +23,7 @@ A step is a single transformation applied to the pipeline payload. Steps run in 
 | [`redact`](./redact) | Replace field values with `mask`, `sha256`, `partial-last[:N]`, `partial-first[:N]`, `nullify`, or `REDACTED` | ✓ | ✓ | ✓ |
 | [`rename`](./rename) | Rename fields | ✓ | ✓ | ✓ |
 | [`select`](./select) | Keep only the specified fields | ✓ | ✓ | ✓ |
-| [`sort`](./sort) | Sort records by a field, ascending or descending | ✓ | ✓ | ✓ |
+| [`sort`](./sort) | Sort records by one or more fields, ascending or descending | ✓ | ✓ | ✓ |
 | [`validate-json`](./validate-json) | Validate records against a JSON Schema | ✓ | ✓ | |
 
 </div>

@@ -31,7 +31,7 @@ func TestSupports(t *testing.T) {
 }
 
 func TestExecuteRejectsJSONObjectShape(t *testing.T) {
-	step := &Step{Field: "name", Direction: DirectionAsc}
+	step := &Step{Keys: []Key{{Field: "name", Direction: DirectionAsc}}}
 	ctx := &engine.ExecutionContext{Payload: &payload.JSON{
 		Shape: payload.JSONObjectShape,
 		Items: []map[string]interface{}{{"name": "alice"}},
@@ -43,7 +43,7 @@ func TestExecuteRejectsJSONObjectShape(t *testing.T) {
 }
 
 func TestExecuteSortsJSONArrayAsc(t *testing.T) {
-	step := &Step{Field: "name", Direction: DirectionAsc}
+	step := &Step{Keys: []Key{{Field: "name", Direction: DirectionAsc}}}
 	ctx := &engine.ExecutionContext{Payload: &payload.JSON{
 		Shape: payload.JSONArrayShape,
 		Items: []map[string]interface{}{
@@ -66,7 +66,7 @@ func TestExecuteSortsJSONArrayAsc(t *testing.T) {
 }
 
 func TestExecuteSortsJSONArrayDesc(t *testing.T) {
-	step := &Step{Field: "name", Direction: DirectionDesc}
+	step := &Step{Keys: []Key{{Field: "name", Direction: DirectionDesc}}}
 	ctx := &engine.ExecutionContext{Payload: &payload.JSON{
 		Shape: payload.JSONArrayShape,
 		Items: []map[string]interface{}{
@@ -89,7 +89,7 @@ func TestExecuteSortsJSONArrayDesc(t *testing.T) {
 }
 
 func TestExecuteSortsJSONNumericFieldAsc(t *testing.T) {
-	step := &Step{Field: "age", Direction: DirectionAsc}
+	step := &Step{Keys: []Key{{Field: "age", Direction: DirectionAsc}}}
 	ctx := &engine.ExecutionContext{Payload: &payload.JSON{
 		Shape: payload.JSONArrayShape,
 		Items: []map[string]interface{}{
@@ -112,7 +112,7 @@ func TestExecuteSortsJSONNumericFieldAsc(t *testing.T) {
 }
 
 func TestExecuteSortsJSONNullsLast(t *testing.T) {
-	step := &Step{Field: "name", Direction: DirectionAsc}
+	step := &Step{Keys: []Key{{Field: "name", Direction: DirectionAsc}}}
 	ctx := &engine.ExecutionContext{Payload: &payload.JSON{
 		Shape: payload.JSONArrayShape,
 		Items: []map[string]interface{}{
@@ -136,7 +136,7 @@ func TestExecuteSortsJSONNullsLast(t *testing.T) {
 }
 
 func TestExecuteSortsJSONLRecords(t *testing.T) {
-	step := &Step{Field: "score", Direction: DirectionDesc}
+	step := &Step{Keys: []Key{{Field: "score", Direction: DirectionDesc}}}
 	ctx := &engine.ExecutionContext{Payload: &payload.JSONL{
 		Items: []map[string]interface{}{
 			{"id": "1", "score": float64(70)},
@@ -158,7 +158,7 @@ func TestExecuteSortsJSONLRecords(t *testing.T) {
 }
 
 func TestExecuteSortsCSVRowsAsc(t *testing.T) {
-	step := &Step{Field: "name", Direction: DirectionAsc}
+	step := &Step{Keys: []Key{{Field: "name", Direction: DirectionAsc}}}
 	ctx := &engine.ExecutionContext{Payload: &payload.CSV{
 		Rows: [][]string{
 			{"id", "name"},
@@ -184,7 +184,7 @@ func TestExecuteSortsCSVRowsAsc(t *testing.T) {
 }
 
 func TestExecuteSortsCSVNumericFieldAsc(t *testing.T) {
-	step := &Step{Field: "age", Direction: DirectionAsc}
+	step := &Step{Keys: []Key{{Field: "age", Direction: DirectionAsc}}}
 	ctx := &engine.ExecutionContext{Payload: &payload.CSV{
 		Rows: [][]string{
 			{"name", "age"},
@@ -207,7 +207,7 @@ func TestExecuteSortsCSVNumericFieldAsc(t *testing.T) {
 }
 
 func TestExecuteSortsCSVNullsLast(t *testing.T) {
-	step := &Step{Field: "name", Direction: DirectionAsc}
+	step := &Step{Keys: []Key{{Field: "name", Direction: DirectionAsc}}}
 	ctx := &engine.ExecutionContext{Payload: &payload.CSV{
 		Rows: [][]string{
 			{"id", "name"},
@@ -231,7 +231,7 @@ func TestExecuteSortsCSVNullsLast(t *testing.T) {
 }
 
 func TestExecuteErrorsOnMissingCSVField(t *testing.T) {
-	step := &Step{Field: "missing", Direction: DirectionAsc}
+	step := &Step{Keys: []Key{{Field: "missing", Direction: DirectionAsc}}}
 	ctx := &engine.ExecutionContext{Payload: &payload.CSV{
 		Rows: [][]string{
 			{"id", "name"},
@@ -249,7 +249,7 @@ func TestExecuteErrorsOnMissingCSVField(t *testing.T) {
 }
 
 func TestExecuteCSVHeaderPreservedWhenEmpty(t *testing.T) {
-	step := &Step{Field: "name", Direction: DirectionAsc}
+	step := &Step{Keys: []Key{{Field: "name", Direction: DirectionAsc}}}
 	ctx := &engine.ExecutionContext{Payload: &payload.CSV{
 		Rows: [][]string{{"id", "name"}},
 	}}
@@ -292,7 +292,7 @@ func TestExecuteNullPlacementJSON(t *testing.T) {
 					p = &payload.JSONL{Items: items}
 				}
 
-				step := &Step{Field: "name", Direction: tt.direction, Nulls: tt.nulls}
+				step := &Step{Keys: []Key{{Field: "name", Direction: tt.direction, Nulls: tt.nulls}}}
 				ctx := &engine.ExecutionContext{Payload: p}
 				if err := step.Execute(ctx); err != nil {
 					t.Fatalf("unexpected error: %v", err)
@@ -325,7 +325,7 @@ func TestExecuteNullPlacementCSV(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			step := &Step{Field: "name", Direction: tt.direction, Nulls: tt.nulls}
+			step := &Step{Keys: []Key{{Field: "name", Direction: tt.direction, Nulls: tt.nulls}}}
 			ctx := &engine.ExecutionContext{Payload: &payload.CSV{
 				Rows: [][]string{
 					{"id", "name"},
@@ -349,5 +349,133 @@ func TestExecuteNullPlacementCSV(t *testing.T) {
 				t.Fatalf("unexpected order: got %v want %v", ids, tt.expected)
 			}
 		})
+	}
+}
+
+func TestExecuteMultiKeyJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		keys     []Key
+		expected []string
+	}{
+		{
+			name:     "secondary key breaks ties",
+			keys:     []Key{{Field: "country", Direction: DirectionAsc}, {Field: "age", Direction: DirectionAsc}},
+			expected: []string{"eve", "alice", "carol", "dave", "bob", "frank"},
+		},
+		{
+			name:     "mixed directions",
+			keys:     []Key{{Field: "country", Direction: DirectionAsc}, {Field: "age", Direction: DirectionDesc}},
+			expected: []string{"carol", "alice", "eve", "dave", "bob", "frank"},
+		},
+		{
+			name:     "per-key nulls first on secondary key",
+			keys:     []Key{{Field: "country", Direction: DirectionDesc}, {Field: "age", Direction: DirectionAsc, Nulls: NullsFirst}},
+			expected: []string{"frank", "bob", "dave", "eve", "alice", "carol"},
+		},
+		{
+			name:     "full tie keeps input order",
+			keys:     []Key{{Field: "country", Direction: DirectionAsc}, {Field: "team", Direction: DirectionAsc}},
+			expected: []string{"alice", "carol", "eve", "dave", "bob", "frank"},
+		},
+	}
+
+	for _, tt := range tests {
+		for _, format := range []string{"json", "jsonl"} {
+			t.Run(tt.name+"/"+format, func(t *testing.T) {
+				items := []map[string]interface{}{
+					{"id": "alice", "country": "au", "age": float64(25), "team": "x"},
+					{"id": "bob", "country": "us", "age": float64(17), "team": "x"},
+					{"id": "carol", "country": "au", "age": float64(32), "team": "x"},
+					{"id": "dave", "country": "nz", "age": float64(45), "team": "x"},
+					{"id": "eve", "country": "au", "age": float64(19), "team": "x"},
+					{"id": "frank", "country": "us", "team": "x"},
+				}
+				var p payload.Payload = &payload.JSON{Shape: payload.JSONArrayShape, Items: items}
+				if format == "jsonl" {
+					p = &payload.JSONL{Items: items}
+				}
+
+				step := &Step{Keys: tt.keys}
+				ctx := &engine.ExecutionContext{Payload: p}
+				if err := step.Execute(ctx); err != nil {
+					t.Fatalf("unexpected error: %v", err)
+				}
+
+				ids := make([]string, len(items))
+				for i, item := range items {
+					ids[i] = item["id"].(string)
+				}
+				if !reflect.DeepEqual(ids, tt.expected) {
+					t.Fatalf("unexpected order: got %v want %v", ids, tt.expected)
+				}
+			})
+		}
+	}
+}
+
+func TestExecuteMultiKeyCSV(t *testing.T) {
+	tests := []struct {
+		name     string
+		keys     []Key
+		expected []string
+	}{
+		{
+			name:     "secondary key breaks ties",
+			keys:     []Key{{Field: "plan", Direction: DirectionAsc}, {Field: "name", Direction: DirectionAsc}},
+			expected: []string{"4", "1", "3", "2"},
+		},
+		{
+			name:     "mixed directions with secondary nulls first",
+			keys:     []Key{{Field: "plan", Direction: DirectionDesc}, {Field: "name", Direction: DirectionDesc, Nulls: NullsFirst}},
+			expected: []string{"2", "3", "1", "4"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			step := &Step{Keys: tt.keys}
+			ctx := &engine.ExecutionContext{Payload: &payload.CSV{
+				Rows: [][]string{
+					{"id", "plan", "name"},
+					{"1", "pro", "carol"},
+					{"2", "starter", ""},
+					{"3", "pro", "dave"},
+					{"4", "enterprise", "bob"},
+				},
+			}}
+
+			if err := step.Execute(ctx); err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			out := ctx.Payload.(*payload.CSV)
+			if out.Rows[0][0] != "id" {
+				t.Fatalf("header row moved: got %v", out.Rows[0])
+			}
+			ids := []string{out.Rows[1][0], out.Rows[2][0], out.Rows[3][0], out.Rows[4][0]}
+			if !reflect.DeepEqual(ids, tt.expected) {
+				t.Fatalf("unexpected order: got %v want %v", ids, tt.expected)
+			}
+		})
+	}
+}
+
+func TestExecuteMultiKeyErrorsOnMissingSecondCSVField(t *testing.T) {
+	step := &Step{Keys: []Key{{Field: "name", Direction: DirectionAsc}, {Field: "missing", Direction: DirectionAsc}}}
+	ctx := &engine.ExecutionContext{Payload: &payload.CSV{
+		Rows: [][]string{
+			{"id", "name"},
+			{"1", "Alice"},
+			{"2", "Bob"},
+		},
+	}}
+
+	err := step.Execute(ctx)
+	if err == nil {
+		t.Fatal("expected error for missing CSV field, got nil")
+	}
+	if !strings.Contains(err.Error(), "not found in CSV headers") {
+		t.Fatalf("unexpected error message: %v", err)
 	}
 }

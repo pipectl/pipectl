@@ -1,0 +1,26 @@
+id: sort-multi-json
+
+input:
+  format: jsonl
+
+steps:
+  - convert:
+      format: json
+  - assert:
+      records-equal: 8
+
+  # Both keys inherit the step-level nulls: first. The six records without a
+  # status come first, ordered by name descending (Hank..Bob), then
+  # hr-director (Grace) before active (Alice).
+  - sort:
+      nulls: first
+      keys:
+        - field: status
+          direction: desc
+        - field: name
+          direction: desc
+  - assert:
+      records-equal: 8
+
+output:
+  format: json

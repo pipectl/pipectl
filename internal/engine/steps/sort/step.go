@@ -17,11 +17,17 @@ const (
 	NullsLast     = "last"
 )
 
-type Step struct {
-	payload.AllFormatsSupport
+// Key is one sort key. Keys are compared in order; later keys only break ties
+// left by earlier ones.
+type Key struct {
 	Field     string
 	Direction string
 	Nulls     string
+}
+
+type Step struct {
+	payload.AllFormatsSupport
+	Keys []Key
 }
 
 func (s *Step) Name() string {
@@ -35,11 +41,11 @@ func (s *Step) Execute(ctx *engine.ExecutionContext) error {
 			return fmt.Errorf("cannot sort a JSON object payload, only JSON arrays are supported")
 		}
 		sort.SliceStable(p.Items, s.jsonLess(p.Items))
-		ctx.Logger.Debug("  sorted %d records by %s %s", len(p.Items), s.Field, s.Direction)
+		ctx.Logger.Debug("  sorted %d records by %s", len(p.Items), s.describeKeys())
 		return nil
 	case *payload.JSONL:
 		sort.SliceStable(p.Items, s.jsonLess(p.Items))
-		ctx.Logger.Debug("  sorted %d records by %s %s", len(p.Items), s.Field, s.Direction)
+		ctx.Logger.Debug("  sorted %d records by %s", len(p.Items), s.describeKeys())
 		return nil
 	case *payload.CSV:
 		return s.sortCSV(p, ctx.Logger)
@@ -50,13 +56,18 @@ func (s *Step) Execute(ctx *engine.ExecutionContext) error {
 
 func (s *Step) jsonLess(records []map[string]interface{}) func(i, j int) bool {
 	return func(i, j int) bool {
-		aVal, aExists := records[i][s.Field]
-		bVal, bExists := records[j][s.Field]
+		for _, k := range s.Keys {
+			aVal, aExists := records[i][k.Field]
+			bVal, bExists := records[j][k.Field]
 
-		aMissing := !aExists || aVal == nil
-		bMissing := !bExists || bVal == nil
+			aMissing := !aExists || aVal == nil
+			bMissing := !bExists || bVal == nil
 
-		return s.less(fmt.Sprintf("%v", aVal), fmt.Sprintf("%v", bVal), aMissing, bMissing)
+			if c := compare(k, fmt.Sprintf("%v", aVal), fmt.Sprintf("%v", bVal), aMissing, bMissing); c != 0 {
+				return c < 0
+			}
+		}
+		return false
 	}
 }
 
@@ -65,50 +76,80 @@ func (s *Step) sortCSV(p *payload.CSV, logger *engine.Logger) error {
 		return nil
 	}
 
+	fields := make([]string, len(s.Keys))
+	for i, k := range s.Keys {
+		fields[i] = k.Field
+	}
+
 	header := p.Rows[0]
-	colIndex, err := payload.FindColumnIndices(header, []string{s.Field})
+	colIndex, err := payload.FindColumnIndices(header, fields)
 	if err != nil {
 		return fmt.Errorf("sort: %w", err)
 	}
-	idx := colIndex[s.Field]
 
 	rows := make([][]string, len(p.Rows)-1)
 	copy(rows, p.Rows[1:])
 
 	sort.SliceStable(rows, func(i, j int) bool {
-		a := rows[i][idx]
-		b := rows[j][idx]
-		return s.less(a, b, a == "", b == "")
+		for _, k := range s.Keys {
+			idx := colIndex[k.Field]
+			a := rows[i][idx]
+			b := rows[j][idx]
+			if c := compare(k, a, b, a == "", b == ""); c != 0 {
+				return c < 0
+			}
+		}
+		return false
 	})
 
 	p.Rows = append([][]string{header}, rows...)
-	logger.Debug("  sorted %d rows by %s %s", len(rows), s.Field, s.Direction)
+	logger.Debug("  sorted %d rows by %s", len(rows), s.describeKeys())
 	return nil
 }
 
-func (s *Step) less(a, b string, aMissing, bMissing bool) bool {
+func (s *Step) describeKeys() string {
+	parts := make([]string, len(s.Keys))
+	for i, k := range s.Keys {
+		parts[i] = k.Field + " " + k.Direction
+	}
+	return strings.Join(parts, ", ")
+}
+
+// compare returns -1 if a sorts before b, 1 if after, and 0 if they tie on k.
+func compare(k Key, a, b string, aMissing, bMissing bool) int {
 	if aMissing && bMissing {
-		return false
+		return 0
 	}
 	// Null placement is independent of direction; an empty Nulls means last.
 	if aMissing {
-		return s.Nulls == NullsFirst
+		if k.Nulls == NullsFirst {
+			return -1
+		}
+		return 1
 	}
 	if bMissing {
-		return s.Nulls != NullsFirst
+		if k.Nulls == NullsFirst {
+			return 1
+		}
+		return -1
 	}
 
+	var c int
 	fa, errA := strconv.ParseFloat(strings.TrimSpace(a), 64)
 	fb, errB := strconv.ParseFloat(strings.TrimSpace(b), 64)
 	if errA == nil && errB == nil {
-		if s.Direction == DirectionDesc {
-			return fa > fb
+		switch {
+		case fa < fb:
+			c = -1
+		case fa > fb:
+			c = 1
 		}
-		return fa < fb
+	} else {
+		c = strings.Compare(a, b)
 	}
 
-	if s.Direction == DirectionDesc {
-		return a > b
+	if k.Direction == DirectionDesc {
+		return -c
 	}
-	return a < b
+	return c
 }

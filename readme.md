@@ -189,7 +189,7 @@ pipectl docs [step]
 | `redact` | Replace field values (including nested fields) with `mask`, `sha256`, `partial-last[:N]`, `partial-first[:N]`, `nullify`, or `REDACTED` |
 | `rename` | Rename fields |
 | `select` | Keep only the specified fields |
-| `sort` | Sort records by a field, ascending or descending |
+| `sort` | Sort records by one or more fields, ascending or descending |
 | `validate-json` | Validate records against a JSON Schema |
 
 ## Documentation

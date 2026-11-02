@@ -2,7 +2,6 @@
 
 ## Step enhancements
 
-- `sort` — multi-field sort: allow an ordered list of `field`/`direction` pairs as compound sort keys
 - `cast` — add `on-error: fail|skip|default` strategy so a single unparseable value doesn't abort the whole pipeline
 - `limit` — add `offset` option for "skip N, take M" patterns
 

@@ -1,0 +1,21 @@
+id: sort-multi-csv
+
+input:
+  format: csv
+
+steps:
+  - assert:
+      records-equal: 5
+
+  # Sort by plan, then last_name within each plan (string ordering, so
+  # uppercase sorts before lowercase): enterprise: johnson (bill);
+  # pro: Morris (Alice), jones (Mary); starter: BROWN (HANK), SMITH (john).
+  - sort:
+      keys:
+        - field: plan
+        - field: last_name
+  - assert:
+      records-equal: 5
+
+output:
+  format: csv

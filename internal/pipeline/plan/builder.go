@@ -125,11 +125,12 @@ func buildStep(step spec.Step) (engine.ExecutableStep, error) {
 			Message: s.Message,
 		}, nil
 	case *spec.SortStep:
-		return &_sort.Step{
-			Field:     s.Field,
-			Direction: s.Direction,
-			Nulls:     s.Nulls,
-		}, nil
+		sortKeys := s.SortKeys()
+		keys := make([]_sort.Key, len(sortKeys))
+		for i, k := range sortKeys {
+			keys[i] = _sort.Key{Field: k.Field, Direction: k.Direction, Nulls: k.Nulls}
+		}
+		return &_sort.Step{Keys: keys}, nil
 	case *spec.DedupeStep:
 		return &dedupe.Step{
 			Fields:        s.Fields,
