@@ -1,6 +1,6 @@
 module github.com/pipectl/pipectl
 
-go 1.25.6
+go 1.26.10
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.15.0
@@ -9,7 +9,7 @@ require (
 	github.com/goccy/go-yaml v1.19.2
 	github.com/spf13/cobra v1.10.2
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/sys v0.37.0
+	golang.org/x/sys v0.49.0
 )
 
 require (
@@ -47,10 +47,10 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	github.com/yuin/goldmark v1.7.13 // indirect
+	github.com/yuin/goldmark v1.7.17 // indirect
 	github.com/yuin/goldmark-emoji v1.0.6 // indirect
-	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/term v0.36.0 // indirect
-	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/term v0.47.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
 )
